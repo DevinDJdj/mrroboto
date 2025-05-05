@@ -1,0 +1,127 @@
+
+Lets try to flesh out the language a bit more.  
+
+Switch control: Mouse -> Feedback -> ?
+General control:
+High C -> up octave
+Low C -> Down octave
+Middle C -> Act
+
+Center 23 keys for control.  
+
+
+Mouse control:
+
+Diatonic scale (white) -> scale
+Vector motion
+DEFGABCDEFGAB
+High C *2 or Low C /2
+
+
+B = -(2^1) .. D = -(2^6)
+Pentatonic (black)
+DEGABDEGAB
+
+Rotation
+Middle BD = act
+Right clockwise, left counterclockwise
+A = -PI*2^-4
+E = PI*2^-4
+
+Depending on octave
+
+
+Maybe have the whole frame moving i.e. set the frame in sinusoidal motion and move slowly right (adjustable)
+When the Action key is pressed it acts wherever that sinusoidal reference goes at the origin. 
+So move the frame not the action key.  
+Utilize some keys for this and some keys to act.  
+i.e. 2 keys = act
+3 keys = adjust frame or speed etc.  
+Only use the difference between keys.  
+The "lowest key" will represent the root.  
+
+But either way have multiple ways of adjusting the frames for visual representation.  
+
+
+**analyze.html 
+We should also visualize a spectrum frequency.  
+
+https://www.misterrubato.com/analyze.html?video=aBMIdlJfYRU
+
+Can we use this?  
+
+https://github.com/QUVA-Lab/e2cnn
+
+
+I think I like the separation of White/black keys.  
+We need the ability to shift pitch if we want.  
+Then utilize the same keys for same meaning but have a different feel.  
+How do we shift keys?  
+
+How do we start and end ideas?  
+
+Primary ideas:
+Mouse Movement - Diatonic vector, pentatonic rotation
+Mouse Movement - Alternating field of view
+Screen drawing --
+Vector and rotation same, add sin wave at location
+Set up the sound field where we set the relative volume of each note.  
+Can we adjust this on the fly?  
+
+Mouse hotkey - can we send to every window, we already have some intercepts?  
+
+Feedback language selection --
+Scale selection -- this goes to record.py output on channel 3-15
+Manual input comes on 0-2
+
+Everything will go by MINNOTE and MAXNOTE and relative distance from there.  
+Leave the existing functionality we have.  
+How do we detect multiple keys.  
+
+
+**MathVisualization
+
+What libraries do we have.  
+3Blue1Brown
+pip install manim==0.9.0
+
+https://docs.manim.community/en/stable/examples.html
+
+Lets try a quick plotter functionality with this to see what it entails.  
+
+Then maybe we have a better idea of how to proceed.  
+
+**mykeys.py
+OK we have an initial iteration.  
+We should really use the same structure as the mymidi though.  
+One is enough I would think.  
+Or mykeys can be for control and mymidi for analysis.  
+
+
+OK, have twonotes working now limited.  
+However, why are we getting the notes we are sending back to the piano?  
+Perhaps there is a setting needed on the piano to send to a specific channel the stuff which is received no the USB port.  
+
+**todo
+Change to identifier to start the song instead of using the lastnote etc.  
+Create an identifier.  
+After we have the multi-note hotkeys working we can do this.  
+
+Need option to turn on/off each track from browser during playback.  
+Default Channel 0-7 off and 8-15 on.  
+And creation the opposite.  
+Use 0-7 for generation channels and 8-15 for feedback channels.  
+
+How can we group things.  
+What is important?  Do we use primes to solidify connection with numbers in a fundamental way?  
+But then what represents what prime?  Does each fundamental note represent a prime?  
+2 is special
+12TET -> 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
+From there we just use the multiples if we divide this structure into more fundamental components?  
+Not sure I like this mapping.  But I think there should be a mapping in some way like this.  
+**How do we create multiple fundamental mappings which can intertwine?  
+
+
+Why do I have so much noise at the moment.  
+Anyway, lets just change mics and install pedals then figure it out.  
+

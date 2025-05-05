@@ -1,0 +1,711 @@
+**news.py
+Yep:
+#https://github.com/codelucas/newspaper
+
+**0606
+Need to do one match in order to have sample data.  
+Did we ever finish creating the language?  
+
+Yeah lets use part of this for TTS and then 
+#https://github.com/lxe/wasm-gpt?tab=readme-ov-file
+
+**web/public/db.html
+Does the export actually work with large amount of data?  
+
+Add import..
+
+
+**web/public/page.html
+**web/public/test/sensors/gesture/index.html
+add sensor to page.  
+
+**web/public/test/testfilbert.html
+**web/public/test/testacorn.html
+Can we use this struct to generate a DOT graph?  
+
+
+**timestep.py
+--Add spin up / spin down of backend.  
+And wait...
+Then we get some transcriptions if there is available hardware at the time of timestep.py
+
+
+**FLOW
+--rec
+--analyze
+->
+--book
+--page
+
+**web/public/test/whisper/testwhisper.html
+
+Perhaps switch speech.js to use this.  
+#https://stackoverflow.com/questions/79406943/using-whisper-cpp-in-sveltekit
+yep, same.  
+
+
+**web/public/analyze.html
+Need to add tabs to this.  
+Tab for reviewing topic images.  
+Lets just review the image when clicking
+
+If topic not found, load book portion.  
+
+Change the build context to use this last.  
+
+What should default query be?  
+
+
+**web/public/codewindow.js
+not great...
+Try to get a sample running.  
+
+
+**web/public/analyze.html
+mobilenet needs GPU.  
+So image analysis will not work otherwise. 
+Still saves data, but no image analysis will occur.  
+
+**web/public/db.js
+Try classifierDB->saveKNN
+getKNN
+--here still...
+
+
+How do we snapshot the models?  
+Do we want models to be per topic?  
+Probably both per topic and general.  
+Not sure how large the general will get though.  
+Then combine the results of general language classifier and topic specific language classifier.  
+To find other iterations of the words.  
+
+
+
+
+Also VideoSnapper should have more details in logic based on language.  This should probably be a dynamic function call.  
+
+VideoSnapper.buildFrames
+    if (lang=="base"){ //just taking ~ piano portion of the output.  
+
+
+  setClassifierDataset(classDatasetMatrices: {[label: string]: Tensor2D}) {
+    this.clearTrainDatasetMatrix();
+
+    this.classDatasetMatrices = classDatasetMatrices;
+    for (const label in classDatasetMatrices) {
+      this.classExampleCount[label] = classDatasetMatrices[label].shape[0];
+    }
+  }
+
+
+**web/public/book.html
+Need find functionality.  
+Search within book and/or code.  
+Add all to flexsearch and then query it.  
+**web/public/git.js
+--initGitIndex
+**web/public/db.js
+gitDB.ftsindex
+
+Keep ftsindex in DB struct.  
+
+**GENBOOK
+add annotations after Q/A.  
+--mynote
+
+inside of answer we may have markup sometimes.  So should ignore ** within ANSWER 
+between == $$
+Not sure this is possible practical.  
+
+
+Interesting way to possibly write a book as well.  
+Significant redundancy though I would expect.  
+There is always a bit of boilerplate to the responses from the LLM.  
+But a small amount of that is good I think.  Very tough to balance.  
+
+
+
+#https://stackoverflow.com/questions/79406943/using-whisper-cpp-in-sveltekit
+
+Lets run in local node.  
+#https://emscripten.org/docs/getting_started/downloads.html#sdk-download-and-install
+#https://github.com/ggerganov/whisper.cpp/tree/master/examples/whisper.wasm
+build and output.  
+
+**web/public/test/whisper/out/index.html
+This seems to work better if built.  
+So go through build process...
+>mkdir build-em && cd build-em
+>emcmake cmake ..
+>make -j
+
+# copy the produced page to your HTTP path
+>cp bin/whisper.wasm/*    /path/to/html/
+>cp bin/libmain.worker.js /path/to/html/
+
+
+OK, that seems to work.  
+So is it/it is worth the trouble to change out all of the webkit.SpeechRecognition.  
+
+Lets try it i.e. in book and see if we speak more.  
+Combine with testwhisper to automate getting audio.  
+Add gesture to start/stop audio, and test to make sure we can get useful transcription and input.  
+Good test case.  
+This can be in addition to using midi device.  
+LEFT WINK = lastspokenword = "comment"
+comment 
+RIGHT WINK = lastspokenword = "..."
+Handle gesture through the same linguistic arrangement.  
+
+**web/public/gesturemap.js
+gesturemap .. same as keymap...
+combine with this.  
+**web/public/test/sensors/gesture/script.js
+**web/public/test/sensors/gesture/index.html
+
+
+**web/public/analyze.html
+Just load this and transcribe in page for analyze.html
+Or have a button to do so.  
+If we automate this, then that becomes part of the workflow.  
+
+
+**web/public/recent.html
+List transcription status.  
+which items have not been transcribed.  
+
+**web/public/test/whisper/out/helper.js
+put hand in here.  
+Would have thought it would be easier to get the results.  
+Lot of overhead, but should work.  
+--still need to get audio from video file.  
+
+**web/public/test/testextractaudio.html
+
+var context = new webkitAudioContext();
+var source = context.createMediaElementSource(video);
+
+CORS issues again...
+
+
+
+**GENBOOK
+Need to utilize these answers as input and see what the subsequent generation looks like.  
+Simple COT sequence.  
+
+Need to store and adjust the system prompt.  
+@@What are you doing?
+$$system prompt (make suggestions)
+==...
+
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+
+Accept or deny changes.  
+
+
+That appears to be the standard sequence, in-editor will be interesting to start, but not as important in future.  
+Viewability will be key.  
+
+
+What is a good prompt sequence?  
+
+#https://github.blog/ai-and-ml/generative-ai/prompt-engineering-guide-generative-ai-llms/
+
+#https://code.visualstudio.com/api/get-started/your-first-extension
+Create simple extension to open webpage.  
+Perhaps page.html
+Perhaps book.html call to opentopic.  
+
+**web/public/book.html
+--ChatBuildContext
+Right now need to cut down context.  
+Use book from last 10 selected items.  
+Source from the last 2-3 perhaps.  
+Changes from the last 2-1..
+
+What is 
+#https://www.cursor.com/en/blog/prompt-design
+
+
+create button to run this chain of events, or just continue with this chain of events if not interrupted.  
+
+
+Take Few shot from GENBOOK examples.  
+heavier weight for 
+
+@@What are you doing?
+$$system prompt (make suggestions / brainstorm)
+==...
+
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+@@Update 
+How to save this event chain.  
+In transcript.  
+Export/import transcript.  
+Need topic selection as part of transcript.  
+
+Context doesnt need to be communicated, only event chain.  
+Topic selection
+and user query.  
+No generated responses for the moment.  
+This becomes too bloated.  
+May need to revisit.  
+
+
+**web/public/test/testextractaudio.html
+Not yet what I want but at least getting the audio buffer.  
+Guess we can pull direct from URL.  
+Run 
+--context.decodeAudioData...
+same as 
+**web/public/test/whisper/out/indexa.html
+--context.decodeAudioData...
+Adjust here to get from video and auto press buttons to get transcript.  
+If needed can add minimal UI similarly in analyze.html
+
+
+
+**record.py
+Should really store audio only separately...
+
+
+#https://firebase.google.com/docs/database/rest/retrieve-data#shallow
+Can we use this on video listings?  
+May want to make a separate transcript tree.  
+Firebase limitation of document-based structure.  
+
+/transcript
+byvideo and byuser.  
+
+/comments
+byvideo and byuser.  
+
+Yeah probably do this before adding transcript data from audio extraction.  
+
+Once transcription working, make default to not transcribe in timestep.py
+
+How to mark recent changes.  
+How to select only most relevant text to pass to LLM?  
+This will be solved in future anyway.  I think the current context window should be ok.  
+We are only around ~100KB.  
+
+
+**web/public/keymap.js
+Need to utilize directional concepts within larger construct.  
+Similar to location detection pattern.  
+How to make minimal grid pattern.  
+possible construct:
+1,3,6,8,10 = uppergrid.  
+1 = top LEFT
+3 = mid LEFT
+6 = mid
+8 = mid RIGHT
+10 = top RIGHT
+2,4,7,9,11
+
+This sequence defines the concept.  
+But what could the divisions be.  
+De Arte De Combinatoria
+#Leibniz
+#https://archive.org/details/ita-bnc-mag-00000844-001/page/n18/mode/2up
+
+
+5 = complete selection.  
+
+0 = word start.  
+12 = (extra octave -> Exponential depth?  as opposed to linear correlation) 
+Not sure an example..
+
+
+LANG offset utilize part-of-speech
+LANG offset:
+0 = META (design where primarily utilize RIGHT side)
+2 = BASE
+4 = MODIFIER LANGUAGE (what is this)
+
+Possible time designation.  
+LEFT = past
+0 = META unknown past
+1 = Beginning of time being discussed.  
+2 = Beginning of time being discussed, possibility.  
+3 = During the past action
+4 = possibility during past action
+5 = complete
+6 = now
+7 = potential now
+8 = near future
+9 = potential near future
+10 = far future
+11 = potential far future.  
+
+RIGHT = future
+Lets keep this conceptual structure.  
+
+
+META should begin 0,7..
+
+Possible location:
+Location conceptual designation
+1 = near far
+2 = not near anywhere
+3 = near 
+4 = not near
+5 = complete
+6 = here
+7 = not here
+8 = far known
+9 = far unknown
+10 = unattainably far known
+11 = unattainably far unknown
+
+location physical designation
+...
+1 = left top
+2 = left mid
+3 = left bot
+4 = mid top
+5 = complete
+6 = here
+7 = not here
+8 = right top
+9 = right mid
+10 = right bot
+11 = unknown
+
+
+
+**bXGBOzsxRjY
+#https://quisestlullus.narpan.net/en/ars-brevis
+Ars Brevis
+Figure A represents the nine most fundamental principles of the Art. 
+B: goodness, C: greatness, D: eternity/duration, E: power/authority, F: wisdom/instinct, G: will/appetite, H: virtue, I: truth, K: glory.
+
+B: difference - C: concordance - D: contrariety (green)
+E: beginning - F: middle - G: end (red)
+H: majority - I: equality - K: minority (yellow)
+
+
+
+Questions or Rules. B: Is it?/possibility. C: What is it?/essence. D: From/Of what is it?/matter. E: Why is it?/form. 
+F: How much is it?/quantity. G: Which is it?/quality. I: When is it?/time. H: Where is it?/place. K: How is it?/ mode and With what is it?/instrument.
+Subjects. B: God. C: Angel. D: Heavens. E: Man. F: Imaginative. G: Sensitive. H: Vegetative. I: Elementative. K: Instrumentative.
+Virtues. B: Justice. C: Prudence. D: Fortitude. E: Temperance. F: Faith. G: Hope. H: Charity. I: Patience. K: Piety.
+Vices. B: avarice. C: gluttony. D: lust. E: pride. F: accide. G: envy. H: ire. I: lying. K: inconstancy.
+
+Octave shift reserved for concept shift within the topic.  
+
+
+
+
+
+
+**web/public/test/whisper/out/indexa.html
+OK that kind of works.  
+Now add gesture to capture and transcribe audio on gesture.  
+Also need to get output text.  
+Have to change to 16000 sample rate, but then we get something...
+
+Yeah base is significantly better than tiny.  
+For the moment use this.  
+
+
+Use this textarea formatting perhaps for the transcript window as well.  
+
+Some issue using Gesture and Whisper at the same time.  
+//createFaceLandmarker();
+breaks other model functionality.  
+
+#https://github.com/google-ai-edge/mediapipe/issues/5135
+--yep. same.  
+Ugh...
+
+#https://stackoverflow.com/questions/30152622/changing-the-default-namespace-module-in-emscripten
+emcc -s EXPORT_NAME="'MyEmscriptenModule'"
+Hmm, any easy way to do this?  
+
+
+>mkdir build-em && cd build-em
+>emcmake cmake ..
+>make -j
+
+# copy the produced page to your HTTP path
+>cp bin/whisper.wasm/*    /path/to/html/
+>cp bin/libmain.worker.js /path/to/html/
+
+#https://www.willusher.io/blog/build-ship-debug-wasm/
+
+Need something like this, just not sure what exactly.  
+**CMakeLists.txt
+#set_target_properties(whisper EXPORT_NAME MyModule)
+target_link_options(whisper PRIVATE
+    "-s EXPORT_NAME='MyModuleName'"
+)
+
+>cp bin/whisper.wasm/* ../../../../music/web/public/test/whisper/outa/
+>cp bin/*.js ../../../../music/web/public/test/whisper/outa/
+
+
+**web/public/test/whisper/outa/indexa.html
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -pthread -s TOTAL_STACK=5242880 -s EXPORT_NAME='WHISPERModule'")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -s TOTAL_STACK=5242880 -s EXPORT_NAME='WHISPERModule'")
+>emcmake cmake ..
+>make -j
+>cp bin/whisper.wasm/* ../../../../music/web/public/test/whisper/outa/
+>cp bin/*.js ../../../../music/web/public/test/whisper/outa/
+
+Looks closer maybe.  
+
+
+js: failed to initialize whisper
+
+Seems maybe it works but only if WHISPER loads first for whatever reason.  
+Can use one after the other, but not simultaneously yet.  
+Something still getting overwritten.  
+
+**web/public/test/whisper/outa/main.js
+-HACK
+replace all:
+Module -> WHISPERModule
+OK finally seems to work with both on after this. 
+--Nice
+
+
+Maybe need a better PC.  
+This may overload easily.  
+Seems to work ok.  
+But probably should run speech recognition on GPU.  
+Seems running on CPU still.  
+
+COMMENT 12,15,15
+END COMMENT 15,15,12
+or
+END COMMENT 12,9,9
+Perhaps this symetry is better. 
+Musically the other makes more sense.  
+
+
+**web/public/analyze.html
+Introduced bug possibly with feedback.  
+After about 20 words, feedback video freezes.  
+
+Seems babylonjs is taking all of the time.  
+--getFeedbackImage
+Stop rewriting the same locations. 
+Probably this is what is causing the issue.  
+This is a limitation we dont want though.  
+That means feedback is limited to about 
+n * n / 2 = 24*24/2 = 248
+about here is when we have issues with the display.  
+Hmm..
+Count this.  
+annoying...
+
+Try this...
+
+**DEBUGGING
+#https://developers.google.com/speed/docs/insights/v5/get-started
+
+Adjust quota, still get 
+    "code": 429,
+    "message": "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'.",
+Boo... but poetic.
+
+#https://github.com/All-Hands-AI/OpenHands
+
+Perhaps find an agent to play with.  
+Dont think I want to make this tooling...
+
+#https://github.com/microsoft/ai-agents-for-beginners
+#https://github.com/nanobrowser/nanobrowser
+
+#https://github.com/dot-agent/nextpy
+#https://github.com/n8n-io/self-hosted-ai-starter-kit
+
+Hmmm....
+What to do with this though anyway.  
+Basically should iterate, make code change suggestions.  
+Make actual branches and changes, and run as branch.  
+
+Need to tie firebase to git.  
+https://firebase.google.com/docs/hosting/test-preview-deploy
+
+Or just deploy here:
+>firebase hosting:channel:deploy testtest
+
++  hosting:channel: Channel URL (misterrubato-test): ...
+
+Then use this with AI agent to record and annotate for review.  
+Continue to change/use under branch.  
+Record results for review.  
+
+#https://aleksandarhaber.com/install-and-run-browser-use-ai-agents-locally-using-ollama/#google_vignette
+
+Yeah lets set this up and see.  
+
+
+
+**web/public/test/whisper/outa/indexa.html
+Seems to be demanding too much to use gesture and whisper.  
+Gesture keeps freezing...
+Whole chrome tab frozen.  
+
+Hmmm, seems cant use both at the same time...
+Once we kick off the whisper, we can re-enable the gesture detection.  
+Not sure it is stable enough to use....
+
+--somewhat better.  
+
+**web/public/transcribe.html
+For now put logic necessary in here.  
+Copy and automate the transcription for now as a separate page.  
+
+FUNCS.ACT
+Also on blink turn off speechrecognition engine.  
+
+
+**web/public/analyze.html
+**web/public/languages.js
+--flattenWords
+confirm..
+
+**web/public/feedback.js
+still problem loading KNN?  
+--maybe working, check again...
+
+
+Need to generate feedback based on KNNs we have.  
+Create audio spectrogram over time.  
+Create predictor for this as well as midi data.  
+Probably slightly different results.  
+
+Then use these to predict what user would prefer/predict.  
+And correct/compare based on user input.  
+
+Can we use in-browser RAG?  
+#https://blog.kuzudb.com/post/kuzu-wasm-rag/
+#https://github.com/poloclub/mememo
+
+
+#https://github.com/babycommando/entity-db?tab=readme-ov-file
+
+**server/ollama/server.py
+#https://ts.llamaindex.ai/docs/llamaindex/modules/llms/ollama
+
+#https://docs.llamaindex.ai/en/stable/getting_started/starter_example_local/
+
+#https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
+maybe do this...
+
+Have been doing all web-based.  
+This is better, but dont restrict from using non-browser based.  
+Play a bit...
+
+#https://docs.llamaindex.ai/en/stable/examples/data_connectors/GithubRepositoryReaderDemo/
+
+#https://docs.llamaindex.ai/en/stable/examples/data_connectors/WeaviateDemo/
+
+#https://github.com/weaviate/weaviate
+
+#https://docs.llamaindex.ai/en/stable/examples/data_connectors/WebPageDemo/
+#https://docs.llamaindex.ai/en/stable/examples/data_connectors/simple_directory_reader/
+
+
+#https://docs.llamaindex.ai/en/stable/examples/vector_stores/ChromaIndexDemo/
+#https://docs.llamaindex.ai/en/stable/examples/vector_stores/WeaviateIndexDemo/
+#https://docs.llamaindex.ai/en/stable/examples/vector_stores/PineconeIndexDemo/
+
+Try a few.  
+#https://docs.llamaindex.ai/en/stable/examples/cookbooks/llama3_cookbook/
+
+#https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/
+
+#https://docs.llamaindex.ai/en/stable/examples/llm/deepseek/
+
+#https://docs.llamaindex.ai/en/stable/examples/llm/llama_cpp/
+
+#https://ollama.com/library/codellama
+
+
+
+#https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-speech
+Lets use this...
+
+Ctrl+I
+
+Hmmm....
+not exactly optimal.  
+Lets make this extension better.  
+
+#https://code.visualstudio.com/api/get-started/your-first-extension
+
+Extension with local server is the way to go probably.  
+This doesnt have to be a web UI, just use that for visualizations and strictly viewing/interrogating.  
+This should be for changing.  
+
+
+#https://code.visualstudio.com/api/extension-guides/chat
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/chat-sample
+
+For now objective would be to open something from web link.  
+
+vscode://file/c:/devinpiano/music/timestep.py
+
+with cursor position:
+vscode://file/c:/devinpiano/music/timestep.py:5:10
+
+setting for relative path [c:/devinpiano/music]
+Going the other way I'm sure is fairly easy.  
+
+
+This works.  
+So just set relative path, and then open doing this along with the subsequent suggestion.  
+For now this is a start.  
+
+Perhaps adjust chat sample to gather context and open web visualization link.  
+i.e. have simple commands like open book...
+
+#https://code.visualstudio.com/docs/copilot/copilot-extensibility-overview
+#https://code.visualstudio.com/api/extension-guides/chat-tutorial
+@tutor ....
+Perhaps we can just specify a new participant, and then from the extension, get all context and open webpage.  
+**web/public/test/testfromvscode.html
+
+
+
+
+Cant open..
+
+#https://learn.microsoft.com/en-us/microsoft-edge/devtools-guide-chromium/sources/opening-sources-in-vscode
+
+
+
+
+**web/public/feedback.js
+Need classifierDB to be per topic as well.  
+Do we want multiple topics?  
+Is there an efficient way to do this.  
+TOPIC -> LANG -> classifier
+We have this already.  
+**web/public/db.js
+			knn: "++id,lang,user,[lang+user+topic],topic,timestamp", //knn data.
+
+How to organize?  
+
+Also can we find similarity between KNNs.  
+Find preference similarity...
+
+
+Just generate a prompt from the web UI.  
+Then use this prompt on the downloaded git repository.  
+This should be the model which creates code changes.  
+Pull the book and context, and then pass this to the LLM.  
+
+
+

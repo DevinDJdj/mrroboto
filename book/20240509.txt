@@ -1,0 +1,601 @@
+**web/public/midi.js
+Adjust to mimic handsfree.  
+Cant use **handsfree/mrrubato.js
+As it is too specific to this use-case, but need quite similar functionality.  
+
+getMidiRecent()
+utilize this to check for change language etc.  
+recentTime = 4000
+is this enough, 4 seconds to complete a thought.  
+I think so.  
+
+Key is to switch between feedback and control.  
+Control:
+
+Pause/unpause - 71/72
+
+//add/edit word [12, 9, 10, 11, 12] utterance = [midi]
+//add/edit language [12, 2, 3, 4, 12] utterance = [midi]
+//change language [12, 5, 7, 12] utterance or [midi]
+
+//follow last link [?]
+
+languages[lang].keymap = new keymap
+init commands for each word in the language.  
+Some of them will be active.  
+If they have activations, they will trigger function calls.  
+
+Rewrote keymap, see if keymap works ok.  
+
+Need functionality to add language to DB.  
+right now we only have 
+/dictionary/languages/
+base: 2,3,4
+check if combo exists besides what we already have.  
+
+Need to add data from another user.  
+Then check the addLanguage functionality and continue with addWord.  
+
+
+
+**web/public/recent.html
+Add date parameter
+now=xxxx
+pull last X from here for github, and videos.  
+Also add book for this perhaps.  
+recent.html?date=2024-05-05
+--done
+Jump here for instance from analyze page.  
+
+
+**handsfree
+separate out keymap.js
+--Done need to test.  
+
+
+For now just have snapshots each day of the languages/dictionaries.  
+Along with new words with date_created = today.  
+Create page with statistics on this as well.  
+
+
+languages
+All combinatoric within an octave
+Just use 10^10
+But should be tree structured.  
+Essentially all concepts should follow this heirarchical pattern.  
+This way if we leave off notes, we still are 
+hmm.  
+How can we have this inherited structure?  
+lang = 1-key - words - 1-key
+lang = 2-key - words - 2-key etc.  
+Perhaps just show the parent language as well while using the language?  
+This kind of gives a mathematical structure.  
+Dont need hard fast rule, but this philosophy may be enough.  
+Longer structure should be more precise and follow the prior structure for each concept.  
+
+So what should the first proto-languages represent?  
+
+Also cant use the current key octave as these will always belong to the meta-language.  
+If this is the case though it may be difficult to find pleasing combinations.  
+Anyway heirarchical construct is good, not quite sure how to implement.  
+
+Similar enclosure mentality may work which we already started with the meta-language.  
+1-x-x-1
+2-x-x-2
+
+Also nested enclosure.  
+1-x-x-2-y-y-2-x-x-1
+
+1- words can  not contain a 1.  
+2- words cant contain a 2 etc.  
+
+This way the nesting structure is sound.  
+Basically a change of key.  
+How do we know when nesting starts though.  
+
+Backwards nesting structure?  
+1-x-x-2-1-2-y-y-2-1-2-x-x-1
+
+SVO
+The boy walked into town.  
+x = walk, y=boy, z=town
+1-x-x-2-1-2-y-y-2-1-2-3-1-3-z-z-3-1-3-1
+
+1-x-x-2-1 - concept complete.  Addition of -2 we can take as communication loss if this occurs.  
+Since concepts are heirarchical it wont matter too much.  
+
+2-1-2 continues concept.  
+2-y-y-2 is self-contained word.  
+3-z-z-3 also.  
+End of simple concept = 1-x-x-1
+End of complete concept with nested concepts
+3-1-3-1
+What if 2-y-y-2 is 2-1-y-2?  
+
+What if we miss a nesting marker, and ruin the whole sentence?  
+If any word is > 20, then ignore and find the next x-1-x.  
+
+Perhaps double concept start, concept end is needed.  
+1-1-.. 1-1
+
+This means we must have another rule no double within any word.  
+cant have 1-2-2-1 as a word for instance.  
+So just a few rules.  
+Cant contain meta start/stop 0-12
+Cant contain its start-word 1- word cant contain 1.  
+Cant contain two sequential of same letter.  2-2, or 3-3
+
+This (1-1) indicates sentence start/end
+
+(1-1-1) can indicate larger concept start/end etc.  
+Can parse altogether to understand structure, but 
+for the most part should parse in real-time.  
+
+If we do this though, the smallest word becomes 3-letters.  
+Perhaps allow for 1 or 2-letter single concept mode.  
+0-x-x-0 start/stop single concept mode.  
+1-letter and 2-letter modes.  
+
+By default this would be active based on language settings.  
+
+Shorthand 12-12 for end of language identifier perhaps.  
+Or perhaps beginning and end.  12-12-l-l-l-12-12
+
+Switch back to previous language, or make a hotkey cache of 10 languages.  
+12-12-x-12-12
+
+Language names can also be heirarchical.  
+And the latest selected language is whichever one was in that family.  
+
+Perhaps trill should have different meaning.  Right now with this structure, trill will not exist.  
+
+Need geometric forms to be meaningful.  This would be like a mirror word, similar to opposite.  
+Complements
+12-5-7-12 -> 12-7-5-12
+in this case on/off
+12-3-7-12 -> 12-9-5-12
+
+Taxonomy and ontologies look at some examples.  
+
+https://www.fasb.org/projects/fasb-taxonomies
+
+https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi
+
+https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=183833#null
+
+
+https://www.catalogueoflife.org/data/taxon/V2
+
+Need an abbreviation marker.  
+Maybe we can use abbreviation marker 1-2-1-2-1.  
+and other ten keys are used in words.  
+
+octaves continue for further detail, maybe 5 keys per octave is enough for normal use cases.  
+Distinguishing this will be difficult enough.  
+
+So we have 10^5 general cases, and for further constraint we can go another octave.  
+
+
+What other overarching taxonomies exist besides biological?  
+
+taxonomy of goods, any shopping catalog.  
+
+old DMOZ:
+https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/OMV93V
+
+Could use the heirarchy here as an example.  
+Need to study structure of heirarchical datasets.  
+
+
+
+**web/public/analyze.html
+Need a display of the midi feedback in real-time, have a x second window to generate.  
+
+Show feedback in seconds based on the intro/outro.  
+Create possibility to associate color with words.  
+Assign color with keys.  
+Similar function
+"change color for " word (color, 12-12)
+Allow for english representation as well as midi representation.  
+"change color " (color, 12-12)
+How to represent color
+Numerically in some way.  
+Anything that is logical to represented numerically will by default use keymapping instead of words.  
+HSV representation 
+Hue - octave 1 (1 or 2 keys), Saturation - octave 2 (1 or 2 keys), Value = velocity.  
+
+"change icon for " word (icon how do we represent this, should we)
+to start perhaps create calculated icons based on the midi keys used.  
+For this use timing, length and velocity.  
+Adjust each icon based on these properties.  
+Use the actual midi representation for the word itself if we can to start.  
+This way we have an association both ways.  
+
+These will only be created once?  
+How to generate this?  
+
+
+**web/public/speech.js
+Always can represent via midi or words.  
+words will get translated into midi if they are known words in the language.  
+If words are used to represent this, the midi should play in background when creating.  
+This allows us to still add additional comments but anything which is defined in our language will be precise 
+and represented in time.  
+
+**language
+How do we deal with changes in the language.  
+Track every change to every word, or generate a full dictionary for each day/month if there are changes to the language.  
+Then use the dictionary based on the date?  
+Default use the latest version of the language.  
+If we pass a date, use a previous iteration of the language.  
+Need to keep each change in midi representation.  
+Probably worth doing, but it is quite distracting to actually do this.  
+
+
+
+What data do we want in regular DB vs real-time DB.  
+Firebase dataconnect makes it easier to do:
+/dataconnect
+
+Past data just store in DB.  
+
+RTDB
+video info
+and comments
+and
+dictionary
+
+SQL:
+https://firebase.google.com/docs/data-connect/quickstart?authuser=0#local-development
+topics
+
+
+**server/ollama/server.py
+Why is this so slow now?  
+Takes 10 minutes for one question.  
+vectorstore=ALL too large?  
+
+Something screwed up the nvidia driver install
+sudo /opt/deeplearning/install-driver.sh
+
+Wow so many problems with this at the moment.  
+
+
+**web/public/midi.js
+Need midi command to erase recent
+0-0-0 can be the to erase?  
+
+
+**web/public/analyze.html
+Need to try add language, add word
+
+We have to do 
+checkCommands
+on all feedback.  
+Maybe we should be checking for words in the current language first, then checking for commands.  
+Put this in checkCommands.  
+Then We dont have this looping and perhaps making a mistaken command.  
+So if 
+midifeedback doesnt start with 0 or 12, we check for words in current language, and deactivate that midi if it is part of the language.  
+Could also try to rule out the midi, but probably not worth.  
+I think this will be enough.  
+
+
+Need volume control for feedback.  
+Think about possibility to change key for words.  
+
+Need to investigate some heirarchical language structures.  
+Word2Vec I guess could be similar to what we need, but we would need to know what the attributes actually mean.  
+
+**server/ollama/server.py
+Need different prompt perhaps, not pulling enough actual sources.  
+Something wrong with data path.  
+How do we have multiple nested output/output/output...
+Looks like this was a problem with copying.  
+Doesnt really matter I think, but should fix for next copy.  
+Question is why are we not getting more sources.  
+Try different prompt?  
+
+
+
+**server/ollama/loadall.py
+
+confirm if it is working as normal
+from langchain.vectorstores import Chroma
+from langchain.embeddings import FastEmbedEmbeddings
+myEmbeddings = FastEmbedEmbeddings() #OllamaEmbeddings(model="llama2") #GPT4AllEmbeddings()
+MY_DATA = '/home/devin/data/vectorstores/db/ALL/'
+vectorstore = Chroma(persist_directory=MY_DATA, embedding_function=myEmbeddings)
+len(vectorstore.get()['documents'])
+
+In a more general sense, how do we understand the embeddings?  
+
+Try to train 
+word2vec or 
+spacy 
+to get a feel for the workflow.  
+https://realpython.com/chromadb-vector-database/
+
+
+XAI - explainable AI
+https://ceur-ws.org/Vol-3637/paper6.pdf
+
+Lets take the same approach as this, but actually analyze 
+a variety of concepts further what each of the embeddings represents.  
+How to make this meaningful?  
+
+
+
+https://shap.readthedocs.io/en/latest/index.html
+
+
+create 
+
+OK, played with spacy a bit.  
+Train and display results from a model.  
+
+**languages/spacy/test.py
+word2vec basics.  
+
+**languages/spacy/train.py
+**languages/spacy/test2.py
+spacy basics.  
+
+
+
+**web/public/analyze.html
+create basic controls for the midi controller.  
+volume, pause, etc.  
+Check if octave controls on the midi controller work ok with browser APIs.  
+->yes this works.  
+See if we can display the current octave in the browser after octave change.  
+WebMidi.octaveOffset
+also for each input			
+//device.octaveOffset
+hmm not what expected, this is not coming from the device.  Device holds this on its own.  
+We can probably use this separately, but do we want to?  
+
+
+Should we use the Joystick 224 messages (pitch bend?)
+224, ?, ?
+knobs are captured
+176, 7x, value
+
+Joystick and knobs are captured, but not the pads
+
+This would allow us to simply use those and keep the same start/stop/pause etc controls.  
+Maybe switch default octaves as well for basic controls, just use a 4 or 5 octaves.  
+C2 -> C7
+Maybe use certain octaves for meta control, i.e. C2->C3
+This provides some advantages.  
+
+
+Currently used Llama2 and Mistral AI models.  
+Using OpenAI transcription, but it has some problems.  
+Is the Coqui AI stuff I integrated working to generate voice?  
+
+Try Sana AI?  
+What other companies are interesting enough to perhaps try to use?  
+
+
+
+OK, now we have structure
+midiarray[user][language][]
+
+Probably some issues still.  Check if we can save this.  
+
+
+**web/public/chat.html
+Need to test this a bit more
+
+**server/ollama/server.py
+Make a new iteration of this?  
+Let's test this a bit more before rewriting.  
+
+Should try to use a different LLM though instead of full llama2 as well?  
+https://ollama.com/library
+
+
+**server/transcription/server.py
+Probably biggest problem still is the quality of data input.  
+The speech-to-text quality is still not great.  
+Improving this will probably be best course.  
+Not sure there are better options at the moment though.  
+
+**language
+
+x = walk, y=boy, z=town
+1-x-x-2-1-2-y-y-2-1-2-3-1-3-z-z-3-1-3-1
+Not sure I like this.  
+
+set speed (speed)
+0xx0 .. 12,12
+filter (user, lang, word) multi-param need param identifiers.  
+0xx0 2x2, 4x4, 6x6 12,12 (EOS)
+lang identifier ... 7,5
+user identifier .. 11,10
+
+use post script only?  
+filter language (Ghibli)
+12,4,5,12 (4,6) 7,5 12,12
+
+filter word (good)
+12,4,5,12 (55) 12,12
+
+filter user (1) (use 1 based indexing in general to avoid 0)
+12,4,5,12 (1) 11,10 12,12
+
+filter
+
+filter clear
+12,4,5,12 (5,4) 12,12
+
+next/previous
+
+
+Do we want all midi to be relative or not?  
+I think no, this allows us to have more words if we want I guess?  
+Not sure about this.  
+Fixed is easier programatically, so lets default to this for now.  
+
+Add set speed
+next/previous
+
+Then test.  
+
+
+Probably need a logical mapping of nicknames.  
+So that we can address users by name we need.  
+Also for words which perhaps are harder to pronounce.  
+Words we can just use synonyms and create new words with the same mapping.  
+Then when we translate back.  This would just be a substitute.  
+
+OK, lets test pause/play
+0,12,24 all meta keys.  
+24,23,24 play
+24,23,23,24 pause
+
+set speed (x)
+0,1,1,0 (x)
+
+
+play,pause working
+
+test set speed.  
+--OK this works.  
+
+Then test filter
+
+
+
+
+Test:
+analyze.html?video=mj4jpeBvD2o
+
+Also test multiple tracks (languages) and multiple user feedback.  
+
+add language tennis (-6,6)
+--start here.  
+analyze.html?video=mj4jpeBvD2o
+change language (-6,6)
+add word hit (6,6)
+how do we have synonyms?  This would get overwritten
+Could have something mimicing back and forth across net.  
+add word backhand (6,1) 
+add word forehand (6,3) 
+add word slice (6,2)
+add word topspin (6,4)
+add word volley (6,8)
+add word drop (6,10)
+add word serve (10,10)
+
+add word fault (10,11)
+add word let (10,9)
+add word out (5,5)
+add word long (5,11)
+add word net (5,2)
+add word bounce (4,4)
+add word applause (3,4)
+add word noise (3,5)
+
+add word score (2,2) (param = 3,4,5,6,7)
+2,2 = 0, 2,3=15, 2,4=30, 2,5=40, 2,6=AD, 2,7=GAME, 2,8=SET, 2,9=MATCH
+2,1 = replay do we need?  Doesnt hurt.  
+
+add word player one (3,1)
+add word player two (3,11)
+3,1 = set player 1
+3,11 = set player 2
+
+3,1,2,3 = player 1 = 15
+
+
+
+Should we return a state?  
+This would be like score and serve state etc.  
+Score counted etc.  
+Display state on screen near video.  
+
+Also to start maybe we want to add all the translated language to the comments.  
+
+
+
+**web/public/chat.html
+Need to check out some prompts a bit more.  
+Try to find a laguage model and prompts that make sense.  
+See if responses can be improved.  
+For now just stick with the RAG DB structure, as anything else will require significant work.  
+
+Some responses are ok, but mostly too wordy (from original model), and they tend to only note one source.  
+They note from the same video multiple times.  
+Not sure why this is the case.  
+
+try llama3
+ollama run llama3
+try phi
+try llama3-chatqa
+try llava-llama3
+
+
+Should separate out the meta track when we accept incoming commands.  
+This should not be shared in general I think, but we could keep it just in case we want to utilize later.  
+Need logic to delete these messages from currentlanguage and add to meta track.  
+
+**server/ollama/server.py
+I think we should only use the last two years of info.  
+Perhaps we can store the transcriptions in year folders and only use the last two years.  
+Either this or some other mechanism.  
+How do we do this?  
+Just reset each year and load the previous years with loadall.  
+This is a simple mechanism.  
+Really we want all data but just to prioritize the recent data.  
+Until we can do that this workaround may be ok.  
+
+How do we train a STT engine.  
+Lets try to use this same one.  
+
+I guess try this:
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+Make it modular, who knows which of these is going to survive (coqui or deepspeech etc.)
+Good to try a few.  
+
+Need the logic to fix.  
+
+**server/transcription/server.py (get transcription / save transcription)
+Add function
+**web/public/analyze.html
+When loaded - run initial Whisper transcription and get result into page.  
+While playing fix these entries.  
+Then OnSave generate CSV entries.  
+
+Create a simple server which fixes CSV files in this format.  
+Pull from one video at a time, so this should be part of the analyze process.  
+Would like this to be minimally invasive, but how do we match up the start/finish?  
+UI -> Play all comments.  Fix by typing I guess.  
+Then just save, and part of the save process will trigger a separate engine to generate these CSV entries.  
+Same as 
+**server/transcription/transcribe.py
+Part of the analyze process, so make a flag to say these are checked or not.  
+Or default to true, and uncheck if we dont check this.  
+
+This is the logic needed, the STT or TTS training is fairly simple after this workflow is done.  
+
+**web/public/analyze.html
+Need midi command to mute the sound output from feedback in case this is already audible.  
+
+Mute/unmute
+add commands to meta track.  
+
+**web/public/recent.html
+Need recent watch as well as created.  
+Then we can continue to watch.  
+Not sure if the cookies are enough or we should save place.  
+
+
+**languages
+When generating video, title should look like this
+Title (Language)
+
+
+https://github.com/coqui-ai/STT/blob/main/notebooks/train_personal_model_with_common_voice.ipynb

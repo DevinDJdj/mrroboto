@@ -1,0 +1,131 @@
+Very fitting
+
+Tennis test:
+wsl --distribution VENV
+Test:
+analyze.html?video=mj4jpeBvD2o
+
+Also test multiple tracks (languages) and multiple user feedback.  
+
+add language tennis (-6,6)
+--start here.  
+analyze.html?video=mj4jpeBvD2o
+change language (-6,6)
+add word hit (6,6)
+how do we have synonyms?  This would get overwritten
+Could have something mimicing back and forth across net.  
+add word backhand (6,1) 
+add word forehand (6,3) 
+add word slice (6,2)
+add word topspin (6,4)
+add word volley (6,8)
+add word drop (6,10)
+add word serve (10,11)
+
+add word fault (10,9)
+add word let (10,8)
+add word out (5,5)
+add word long (5,6)
+add word net (5,4)
+add word bounce (4,4)
+add word applause (3,4)
+add word noise (3,5)
+
+add word score (2,2) (param = 3,4,5,6,7)
+2,8 = minus point, 2,3 = plus point, 2,4 plus game, 2,5 plus set
+2,9 = minus game, 2,10 minus set 
+
+
+
+add word player one (9,8)
+add word player two (9,10)
+9,8 = set player 1
+9,10 = set player 2
+
+2,3,9,8 = player 1 gets point
+
+In general should structure from left to right.  
+So in this case player can be a prefix or a postfix.  
+Structure should contain an element of distance.  
+
+
+
+
+
+Should we return a state?  
+This would be like score and serve state etc.  
+Score counted etc.  
+Display state on screen near video.  
+
+Also to start maybe we want to add all the translated language to the comments.  
+
+
+
+**generate/tennis2.py
+utilize this to generate some metadata about the match.  
+git clone https://github.com/ArtLabss/tennis-tracking.git
+follow installation instructions.  
+**generate/tennis-tracking/requirements.txt
+get rid of all versions on requirements.txt
+rename
+pip install -r requirements.txt
+pip install torchvision
+**generate/tennis-tracking/WeightsTracknet
+model.1 -> model.1.h5
+**generate/tennis-tracking/predict_video.py
+save_weights_path = 'WeightsTracknet/model.1.h5'
+
+python3 predict_video.py --input_video_path=VideoInput/video_input3.mp4 --output_video_path=VideoOutput/video_output.mp4 --minimap=0 --bounce=0
+Takes quite a bit of time even just this 3 seconds of video.  
+with a wimpy GPU, probably not practical.  
+
+Possible with better GPU.  Still quite slow.  
+
+
+
+Should really start using this with virtual envs.  
+pip freeze > requirements.txt
+
+From here we can generate some MIDI and see what it sounds like.  
+I wanted to do this anyway, a bit separate from what I was doing.  
+
+
+generate video to document language generation.  
+Test (tennis)
+
+How do we deal with changes in language?  
+
+
+CV2 Not using GPU still.  
+python3 -c "import cv2; print('CUDA support:', 'Yes' if cv2.cuda.getCudaEnabledDeviceCount() > 0 else 'No')"
+
+torch appears to be ok.  
+import torch
+torch.cuda.is_available()
+torch.cuda.current_device()
+torch.cuda.get_device_name(0)
+
+
+Tensorflow not using GPU
+import tensorflow as tf
+assert tf.test.is_gpu_available()
+assert tf.test.is_built_with_cuda()
+tf.sysconfig.get_build_info()['cuda_version']
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+
+
+pip install tensorflow[and-cuda]
+
+Why do I have to compile this, so annoying, rabbit hole.  Dont want to go down it.  Should be able with this command
+
+https://medium.com/@juancrrn/installing-opencv-4-with-cuda-in-ubuntu-20-04-fde6d6a0a367
+
+Definitely not great cohesion in this area.  
+
+https://github.com/avivcaspi/TennisProject
+https://spiral.imperial.ac.uk/handle/10044/1/67949
+
+
+Kaggle match dataset
+https://www.kaggle.com/datasets/mexwell/ultimate-tennis-matches-dataset

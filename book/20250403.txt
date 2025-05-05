@@ -1,0 +1,952 @@
+**news.py
+Yep:
+#https://github.com/codelucas/newspaper
+
+**0606
+Need to do one match in order to have sample data.  
+Did we ever finish creating the language?  
+
+
+**web/public/db.html
+Does the export actually work with large amount of data?  
+
+Add import..
+
+
+**web/public/page.html
+**web/public/test/sensors/gesture/index.html
+add sensor to page.  
+**web/public/test/whisper/outa/indexa.html
+continue here, integrate into PAGE/BOOK
+
+**web/public/test/testfilbert.html
+**web/public/test/testacorn.html
+Can we use this struct to generate a DOT graph?  
+
+
+**timestep.py
+--Add spin up / spin down of backend.  
+And wait...
+Then we get some transcriptions if there is available hardware at the time of timestep.py
+Alternatively move transcriptions (enable/disable) to
+**web/public/analyze.html
+
+
+**FLOW
+--rec
+--analyze
+->
+--book
+--page
+--plugin
+--generate
+--review
+
+
+**GENBOOK
+Need to utilize these answers as input and see what the subsequent generation looks like.  
+Simple COT sequence.  
+
+Need to store and adjust the system prompt.  
+@@What are you doing?
+$$system prompt (make suggestions)
+==...
+
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+
+Accept or deny changes.  
+How to save this event chain.  
+In transcript.  
+Export/import transcript.  
+Need topic selection as part of transcript.  
+
+#https://code.visualstudio.com/api/get-started/your-first-extension
+
+
+**record.py
+Should really store audio only separately...
+
+/transcript
+byvideo and byuser.  
+
+/comments
+byvideo and byuser.  
+
+**book/keys.txt
+5 = complete selection.  
+
+0 = word start.  
+12 = (extra octave -> Exponential depth?  as opposed to linear correlation) 
+Not sure an example..
+
+
+LANG offset utilize part-of-speech
+LANG offset:
+0 = META (design where primarily utilize RIGHT side)
+2 = BASE
+4 = MODIFIER LANGUAGE (what is this)
+
+Possible time designation.  
+LEFT = past
+0 = META unknown past
+1 = Beginning of time being discussed.  
+2 = Beginning of time being discussed, possibility.  
+3 = During the past action
+4 = possibility during past action
+5 = complete
+6 = now
+7 = potential now
+8 = near future
+9 = potential near future
+10 = far future
+11 = potential far future.  
+
+
+
+#https://aleksandarhaber.com/install-and-run-browser-use-ai-agents-locally-using-ollama/#google_vignette
+
+#https://code.visualstudio.com/api/extension-guides/chat
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/chat-sample
+
+with cursor position:
+vscode://file/c:/devinpiano/music/timestep.py:5:10
+
+setting for relative path [c:/devinpiano/music]
+Going the other way I'm sure is fairly easy.  
+
+**web/public/test/testfromvscode.html
+
+Build VSCode plugin and it should interact with the local installation via cmd line.  
+This is for detailed analysis.  
+Get context from web, paste into plugin... get response.  
+Interaction to update code pages or not....
+Significant amount of interaction here.  
+But perhaps the suggestion is more important.  
+Point to location in code and suggestion.  
+Open code location/paste with link from chat.  
+
+Future possibility to auto-run..
+
+
+**server/gemini/test.py
+#https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/getting-started/intro_gemini_2_5_pro.ipynb
+
+#https://cloud.google.com/docs/authentication/external/set-up-adc
+#https://cloud.google.com/sdk/docs/install
+
+too many issues.  
+Also need local model.  
+
+
+**OLLAMA
+> ollama pull deepseek-coder
+> ollama pull deepseek-coder-v2
+> ollama pull deepseek-r1
+> ollama pull codegemma
+> ollama pull gemma3
+> ollama pull granite-code
+> ollama pull codellama
+
+gemma3:4b 128k context
+
+codegemma: 8192
+
+deepseek-coder-v2: 163840
+
+codellama: 16384
+
+granite-code: 128000
+
+
+
+**git/clone.py
+use files already available here to do generation.  
+devinpiano/backup/git/output/
+Maybe better organization needed..
+
+
+**server/ollama/deepseek.py
+**server/ollama/codegemma.py
+ollama library Pretty easy to use structure.  
+
+
+#https://github.com/ollama/ollama-js
+hmmm...
+
+
+**server/ollama/llava.py
+not bad image description.  
+@@no image generation
+
+
+
+Simple chrome extension just using gesture?  
+
+
+**timestep.py
+**web/public/analyze.html
+transcribe option in URL.  
+auto-start and save.  
+Instead of using server.  
+**web/public/test/whisper/outa/indexa.html
+Or perhaps just use this page.  
+Check can we record while transcribing
+
+
+Add gesture recognition and transcription to record.html?  
+Lets make gesture sequence perhaps so there are no false positives.  
+For now keep as is.  
+Does this transcription require GPU?  
+
+
+Part of record.py
+
+
+**web/public/test/whisper/outa/indexa.html
+Still some freezing, but if wait until the previous iteration completes, 
+then it seems to work ok.  
+
+Probably not stable enough to actually use.  
+
+
+#https://code.visualstudio.com/api/extension-guides/chat
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/chat-sample
+
+#https://code.visualstudio.com/api/extension-guides/chat-tutorial
+
+**extensions/vscode/codetutor
+not working out of the box.  
+No response.  
+
+#https://github.com/copilot-extensions/blackbeard-extension
+
+
+> git clone https://github.com/microsoft/vscode-extension-samples.git
+
+
+Hmmm.  
+Not exactly sure why this is so annoying to run.  
+Anyway, how to interact with agent.  
+
+Continue with this:
+#https://github.com/microsoft/vscode-extension-samples/tree/main/uri-handler-sample
+Accept incoming URI to open up files as needed, or kick off chat as needed.  
+
+How do we integrate with this agent mode..
+#https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode
+
+Try to make a simple MCP server.  
+Maybe this is all that is needed instead of making a chat extension...
+
+#https://github.com/modelcontextprotocol/create-python-server
+
+> curl -LsSf https://astral.sh/uv/install.sh | sh
+
+#https://docs.astral.sh/uv/guides/tools/
+
+Then add..
+#https://code.visualstudio.com/docs/copilot/chat/mcp-servers
+
+**server/mcp/mcpiano
+--start here..
+
+#https://github.com/modelcontextprotocol/servers
+
+#vscode://settings/...
+
+#https://modelcontextprotocol.io/introduction
+
+**.vscode/mcp.json
+This will be important.  
+Everyone will be a developer soon...
+Only use local services for now.
+Not working though..
+
+!! 025-04-07 14:28:52.044 [info] Connection state: Error spawn uvx ENOENT
+==
+"command": "C:\\Users\\devin\\.local\\bin\\uvx"
+
+ok working, but invoking the tool is not great yet.  
+
+#https://modelcontextprotocol.io/quickstart/server
+This instruction set worked.  
+
+Then add mcp.json settings.  
+
+Probably chat assistant as well as MCP for something interesting.  
+Have read-aloud 
+
+#https://code.visualstudio.com/api/references/vscode-api
+Some of the useful functions to start with...
+<!--
+executeCommand(...)
+execute registered command in package.json or other...
+
+clipboard
+system clipboard
+
+language
+user language
+
+openExternal(...)
+open web page..
+
+register...Provider
+
+selectChatModel
+vscode.lm.selectChatModels({ family: 'gpt-3.5-turbo' });
+
+executeTask
+
+registerUriHandler
+
+setStatusBarMessage
+
+showQuickPick
+vscode.workspace.fs.readDirectory(someUri)
+vscode.workspace.fs.stat(anotherUri)
+vscode.commands.executeCommand('vscode.openFolder', uriOfWorkspace);
+applyEdit
+
+
+-->
+
+@vscode
+@copilot
+Need read aloud hotkey.  
+Why does this not exist?  
+
+
+**book/keys.txt
+Not sure if this is the place, but lets add important hotkeys.  
+
+**extensions/vscode/codetutor
+Do we want our own LLM function or I guess just use built-in?  
+Built-in is not local, but...
+
+Lets try to work within the framework for now.  
+instead of something like this
+#https://blog.codegpt.co/create-your-own-and-custom-copilot-in-vscode-with-ollama-and-codegpt-736277a60298
+
+
+
+What is chronicler extension.  
+Extensions to try:
+Prettier
+Better comments
+Console Ninja
+chronicler
+
+#https://marketplace.visualstudio.com/VSCode
+
+Perhaps build interaction with this Chronicler or some of the other tools via mcp.  
+
+Samples:
+Doc update.  
+#https://github.com/microsoft/vscode-extension-samples/tree/main/document-editing-sample
+Terminal interaction.
+#https://github.com/microsoft/vscode-extension-samples/tree/main/extension-terminal-sample
+#https://github.com/microsoft/vscode-extension-samples/tree/main/shell-integration-sample
+#https://github.com/microsoft/vscode-extension-samples/tree/main/terminal-sample
+
+File usage.
+#https://github.com/microsoft/vscode-extension-samples/tree/main/fsconsumer-sample
+
+Separate language (code or otherwise)
+#https://github.com/microsoft/vscode-extension-samples/tree/main/lsp-embedded-language-service
+Wow this is far too long...
+#https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-embedded-language-service/syntaxes/html1.tmLanguage.json
+
+Status bar
+#https://github.com/microsoft/vscode-extension-samples/tree/main/statusbar-sample
+
+Tabs
+#https://github.com/microsoft/vscode-extension-samples/tree/main/tabs-api-sample
+
+
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/uri-handler-sample
+--start here..
+Open URI and then open files mentioned in query.  
+#https://stackoverflow.com/questions/62313150/vscode-open-file-with-showtextdocument-at-specified-line
+
+> npm install vscode
+
+Finally works.  
+Why do I need to run this manually once...
+>tsc -watch -p ./
+Anyway, have this added.  
+**extensions/vscode/codetutor/src/extension.ts
+
+Try DSPy
+Something like:
+#https://heidloff.net/article/developing-agents-dspy/
+
+#https://github.com/Pavankunchala/LLM-Learn-PK/tree/main/Chainlit-apps/crewai-documentation-bot
+
+**server/test/testdspy.py
+Wow much more annoying than imagined.  
+
+#https://github.com/meta-llama/llama-cookbook/blob/main/getting-started/build_with_llama_4.ipynb
+Hmmm...
+not accessible for most.  
+
+#https://www.nvidia.com/en-us/data-center/h100/
+
+
+**news.py
+#https://github.com/unclecode/crawl4ai
+Maybe use.  
+Need simple general purpose crawl/query.  
+Can be run via batch I think dont necessarily need server, just generated vector store.  
+
+**server/test/testdspy.py
+Switch to use on-disk instead of in-memory
+
+> pip install llama-stack
+> llama download --source meta --model-id Llama-4-Scout-17B-16E  
+
+C:\Users\devin\.llama\checkpoints\Llama-4-Scout-17B-16E
+
+
+**extensions/vscode/codetutor/src/extension.ts
+OK, can read a book page. 
+console.log
+Debug output comes in original VSCode window.  
+
+vscode://mrrubato.mytutor?q=hi
+pass in the query all context.  
+
+
+No particular need to use mcp.  
+Just run commands from extension.  
+
+#https://github.com/google-research/robopianist
+#https://github.com/SakanaAI/AI-Scientist
+
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/document-editing-sample
+start here.  
+Add something to the page, but where?  
+
+Can we get a good enough response from any model.  
+Improve this file:
+...
+Generic request.  
+Tuned prompt.  
+Scan and add to different branches.  
+
+#https://git-scm.com/docs/merge-strategies
+
+Try this in a completely separate GIT environment to not break.  
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/github-authentication-sample
+
+Just use vscode.commands.executeCommand
+to pull whatever branch or set whatever branch.  
+commands:
+git.commit +when:!operationInProgress
+git.commitAll
+git.runGitMerge
+git.branchFrom +when:!operationInProgress
+git.branch
+git.deleteBranch
+git.deleteRemoteBranch
+git.cleanAll
+git.merge
+git.openAllChanges
+git.openFile
+git.publish
+git.push
+git.pull
+git.clone
+git.refresh
+git.showOutput
+
+github.copilot.chat.attachFile
+github.copilot.chat.attachFolder
+github.copilot.terminal.attachTerminalSelection
+github.copilot.openLogs
+github.copilot.chat.explain
+github.copilot.collectDiagnostics
+github.copilotChat.signIn
+
+stream.progress('Picking the right topic to teach...');
+stream.markdown()
+
+Then use to prompt or just display...
+
+                const chatResponse = await request.model.sendRequest(messages, {}, token);
+                for await (const fragment of chatResponse.text) {
+                    stream.markdown(fragment);
+                }
+
+
+settings:
+chat.agent.enabled
+github.copilot.chat.agent.runTasks
+chat.editing.autoAcceptDelay
+
+
+Commands:
+cursorMove 
+editor.action.goToLocations
+notebook.execute
+vscode.openFolder
+workbench.action.openLogFile
+github.copilot.acceptCursorPanelSolution
+inlineChat.acceptChanges
+
+
+Need to adjust the model to something local.  
+or call the model via command.  
+Just make mcp command or otherwise to run the model.  
+
+
+workbench.mcp.listServer
+workbench.mcp.startServer
+
+#https://github.com/punkpeye/awesome-mcp-servers
+<!--
+#https://github.com/microsoft/playwright testing
+
+#https://github.com/Automata-Labs-team/MCP-Server-Playwright
+#https://github.com/microsoft/playwright-mcp
+
+#https://github.com/abhiemj/manim-mcp-server
+#https://github.com/pydantic/pydantic-ai/tree/main/mcp-run-python
+
+#https://github.com/chroma-core/chroma-mcp
+#https://github.com/crystaldba/postgres-mcp
+#https://github.com/gannonh/firebase-mcp
+#https://github.com/LucasHild/mcp-server-bigquery
+#https://github.com/ckreiling/mcp-server-docker
+
+#https://github.com/bright8192/esxi-mcp-server
+#https://github.com/jagan-shanmugam/open-streetmap-mcp
+#https://github.com/andybrandt/mcp-simple-arxiv
+#https://github.com/nguyenvanduocit/jira-mcp
+
+#https://github.com/anaisbetts/mcp-installer
+#https://github.com/KS-GEN-AI/confluence-mcp-server
+#https://github.com/KS-GEN-AI/jira-mcp-server
+#https://github.com/rember/rember-mcp
+
+-->
+
+code --add-mcp "{\"name\":\"my-server\",\"command\": \"uvx\",\"args\": [\"mcp-server-fetch\"]}"
+const link = `code:mcp/install?${encodeURIComponent(JSON.stringify(obj))`;
+
+In the text, we can explicitly call these tools.  
+This #TOOL calls a function.  
+
+#get_alerts CA
+...
+So how do we pass a prompt in the chat.  
+
+> npm install --save @vscode/prompt-tsx
+import { renderPrompt } from '@vscode/prompt-tsx';
+
+                const { messages } = await renderPrompt(
+                    PlayPrompt,
+                    { userQuery: request.prompt },
+                    { modelMaxPromptTokens: request.model.maxInputTokens },
+                    request.model);
+const chatResponse = await request.model.sendRequest(messages, {}, token);
+
+So have some prompt chaining this way.  
+
+tsconfig.json		
+        "jsx": "react",
+		"jsxFactory": "vscpp",
+		"jsxFragmentFactory": "vscppf"
+
+Test that this works...
+Call a tool via this.  
+
+
+
+#https://github.com/microsoft/vscode-prompt-tsx/tree/main/examples
+
+OK, this is what we are using to generate a prompt.  
+
+**extensions/vscode/codetutor/package.json            
+This now has two participants, 
+@tools and 
+@tutor
+
+Still need to trigger tool.  
+Do we want to just add midi listener here?  
+#https://github.com/jazz-soft/jazz-midi-vscode
+Maybe try to make it work.  
+But not now...
+
+How do we use a local model with github copilot?  
+#https://docs.github.com/en/enterprise-cloud@latest/copilot/customizing-copilot/creating-a-custom-model-for-github-copilot
+not quite..
+
+Annoying, how to launch an MCP server programatically.  
+
+OK, so anyway, calling local ollama directly here.  
+We should be able to just use this and spit the markdown.  
+So still use the extension.  
+Just cant use these MCP tools.  
+Does it matter?  
+Better if there was better integration...
+hmmmm....
+#https://medium.com/@meirgotroot/ollama-support-for-tool-calling-186bcfeb892f
+Just pass the tools here.  
+The key is integration between the LLM and the tools.  
+I think it will still be ok ignoring the vscode.lm.
+
+**microsoft
+This is really poor.  
+The best IDE and it doesnt support a local model...
+poor...
+
+**extensions/vscode/codetutor/src/extension.ts
+This is using local...
+@tutor /exercise tell me a story
+
+Now pass any tools here...
+
+Not a good solution.  
+Want integration with local model from IDE/copilot.  
+
+
+
+**web/public/transcribe.html
+Have multiple options for transcription for now.  
+End result unclear.  
+Need to annotate in the video if transcription is correct or not.  
+Use same midi language.  
+16 = Incorrect
+18 = good
+19 = correct
+During analyze.html we can create feedback for transcription engine.  
+Whatever the transcription engine process is, it can use this feedback to improve/train.  
+
+**web/public/analyze.html
+**web/public/midi.js
+Need to create language, or create word only?  
+Activate prefix (real-time usage)
+variable to hold prefix.  
+12,13,13
+12,14,14
+
+13 -> content
+14 -> transcription (default)
+
+16 = bad (add prefix to note each time, otherwise cant edit out of real-time)
+18 = good
+19 = poetic
+
+
+**web/public/book.html
+Need to be able to search for topics.  
+> FIND TOPIC ..
+Change colors and select topics.  
+Just have basic Meta command entry.
+Use LLM to find commands / tools from command list.  
+Search commands, if no command found, then continue with inquiry to LLM.  
+Right now just use analyze.html
+But should work with book.html as well.  
+--start here..add find topic logic.  
+
+
+
+**web/public/speech.js
+Some problem occurred here with webkitRecognition.  
+Annoying getting it working again.  
+
+#https://deepspeech.readthedocs.io/en/r0.9/TRAINING.html
+use this model to build/deploy WASM for JS recognition.  
+
+#https://github.com/mozilla/deepspeech-playbook/blob/master/DATA_FORMATTING.md
+WAV format, mono-channel, and with a 16kHz sampling rate
+wav_filename,wav_filesize,transcript
+
+Lets collect this data.  
+**web/public/feedback.js
+--saveFeedback
+transcript was updated.  
+This is what triggers a transfer to the training data for custom voice/STT.  
+Add logic here to save the 16kHz audio files for training, if we have reviewed the transcript?  
+Dont really need this to go to the server, just save in RTDB for now, or just do all in python?  
+Hmmm...
+For now just adjust the transcript to only use the corrected items.  
+Or if there is a good flag during a sequence of audio, then this is flagged.  
+Just use something to mark *
+Then during train.py pull those with this mark.  
+If there is a sequence which is up to the appropriate number of seconds.  
+
+
+
+
+**timestep.py 
+uploads if transcript was updated, then this is tagged.  
+
+**server/transcription/train.py
+Generate csv file needed.  
+WAV format, mono-channel, and with a 16kHz sampling rate
+wav_filename,wav_filesize,transcript
+
+Then Train model based on uploaded files.  
+This can be run locally, pass path.. to files.  
+**web/public/test/whisper/outa/indexa.html
+--onDecoded
+Copy from here
+const kSampleRate = 16000;
+
+Deepspeech for STT and this for TTS.  
+
+#https://github.com/TensorSpeech/TensorFlowTTS
+for TTS.  
+
+Training dataset should be the same.  
+
+**server/transcription/transcribe.py
+--downloadtranscript
+test this.  
+
+**web/public/analyze.html
+Need copy function for words.  
+
+Need a find word function.  
+**web/public/languages.js
+--addDictRow
+
+meta:change language :12,5,7,12
+meta:change user :12,10,11,12
+meta:activate mic:0,4,7,0
+
+**languages.js
+Dictionary display.  
+keys should become first column if usage tends this way.  
+
+meta:add word :12,9,10,11,12
+incorrect 16 
+correct 18
+well done 19
+
+
+**web/public/midi.js
+Why is this
+set speed error?  
+
+OK, this looks better.  
+
+meta:change language :12,5,7,12
+
+--playWord
+test..
+OK, somewhat better.  
+Still dont like the need for strict sequence between words and midi.  
+Also some bug..
+meta keys were 24, then 23?  
+Need to display details on these keys as well.  
+
+Use different color for different languages in the UI display.  
+For now just a hash to generate the color.  
+
+**web/public/js/drawkeyboard.js
+--getColorFromSequence
+use this to generate from hash of language.  
+
+--test add word with voice.  
+
+
+
+
+**extension/vscode/codetutor/src/extension.ts
+remember last several contexts and line numbers.  
+And pass the contents of those files to the LLM call.  
+There really should be a model tuned to this usage though.  
+How do we indicate positive or negative.  
+Add to genbook for now via extension with context.  
+
+--getStats
+test this.  
+
+
+#https://github.com/microsoft/vscode-extension-samples/blob/main/completions-sample/src/extension.ts
+get completions and use this to interact with whatever autocomplete logic has been done.  
+
+Eventually this will be fast enough to interact with LLM.  
+Register completion Item which uses definitions.txt
+and extracts those items from book/*.*
+This is essentially creating a tagging mechanism in a variety of ways.  
+
+Search across codebase for the same topic.  
+Potentially multi-topic sequences.  
+How do we display multi-topic without using so many lines? 
+: separator?  
+
+/find !!Error
+searches in log file locations.  
+
+/find $$environment 
+searches across environment files and setting files.  
+
+/find **Topic
+
+
+does autocomplete work inside of copilot chat?  
+use
+editor.action.triggerSuggest
+
+
+
+**web/public/keymap.js
+Need more detail in "jump"/"skip" functionality.  
+currently jump goes to next event.  
+skip goes to 2^n seconds.  
+Add skip to PCT location as well.  
+Jump to iteration should also be there.  
+Use param, first param is xx, then wait for next param, and then jump to iteration yy.  
+Same skip for certain value uses different function.  
+
+Also need microskip.  
+Need to have a micro-view for adjusting commands used while paused or in micro-state.  
+Separate component for editing or deleting words in the immediate vicinity while in micro-state.  
+then jump to next word etc.  
+What component (timeline) and what defines this state?  
+timeline group by lang/word no overlap.  
+Thinking about changing to this anyway.  
+For now use as additional and not replacement.  
+
+**web/public/analyze.html
+Still need to fix issue when multiple instruments or certain instruments used, dont get the correct babylonJS display.  
+
+
+**extensions/vscode/codetutor/src/extension.js
+Investigate auto-complete.  
+First thing should be autocomplete balance recency and frequency.  
+How is it working by default?  
+
+
+Should be able to select and play section of book.  
+
+#https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+<!--
+-Document Highlights: highlights all 'equal' symbols in a text document.
+-Hover: provides hover information for a symbol selected in a text document.
+Signature Help: provides signature help for a symbol selected in a text document.
+-Goto Definition: provides go to definition support for a symbol selected in a text document.
+-Goto Type Definition: provides go to type/interface definition support for a symbol selected in a text document.
+Goto Implementation: provides go to implementation definition support for a symbol selected in a text document.
+-Find References: finds all project-wide references for a symbol selected in a text document.
+-List Document Symbols: lists all symbols defined in a text document.
+-List Workspace Symbols: lists all project-wide symbols.
+-Code Actions: compute commands to run (typically beautify/refactor) for a given text document and range.
+CodeLens: compute CodeLens statistics for a given text document.
+-Document Formatting: this includes formatting of whole documents, document ranges and formatting on type.
+-Rename: project-wide rename of a symbol.
+Document Links: compute and resolve links inside a document.
+Document Colors: compute and resolve colors inside a document to provide color picker in editor.
+-->
+
+-List Document Symbols: lists all symbols defined in a text document.
+-List Workspace Symbols: lists all project-wide symbols.
+list all topics and refs etc.  
+Perhaps statistics on language inside.  
+
+
+
+Need to do this a bit better.  
+#https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_references
+
+-Code Actions: compute commands to run (typically beautify/refactor) for a given text document and range.
+Can we use this as a trigger for the LLM to adjust code?  
+
+-Document Formatting: this includes formatting of whole documents, document ranges and formatting on type.
+Probably want to use.  
+
+-Find References: finds all project-wide references for a symbol selected in a text document.
+Possibly just jump to web UI to start?  
+Experiment.
+
+-Rename: project-wide rename of a symbol.
+try to use.  
+Perhaps clean up some garbage topics.  
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/lsp-sample
+
+#https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-sample/client/src/extension.ts
+<!--
+	// Start the client. This will also launch the server
+	client.start();
+-->
+
+Test separately to start?  
+Probably need to do this for the completion logic.  
+
+
+**extensions/vscode/codetutor/src/toolParticipant.ts
+--provideCompletionItems
+This is where the intelligent logic needs to be.  
+recency and time locality and frequency of use should balance to create a list.  
+We are in charge of the order of the array?  
+Or not, this is alphabetical.  
+
+**llama3.1:8b
+tool calling available:
+
+**granite3.3:8b
+
+
+**extensions/vscode/codetutor/src/extension.js
+Definitely some issues with tools still.  
+#https://github.com/ollama/ollama/issues/6980
+
+
+
+**mcpiano
+What is the actual benefit here.  
+Lets just figure out how to list the MCP servers and get details.  
+Then determine which should be called.  
+Too much work...
+
+
+This functionality is key but
+for the time being, no tool use...
+
+Essentially/eventually from the response we will trigger tools, and this will be what makes an "agent".  
+
+Focus on Completion logic for now.  
+
+
+**server/ollama/train.py
+**server/llmtune/server.py
+Eventaully start on model customization logic.  
+Just very basic using genbook.  
+
+#https://medium.com/@yuxiaojian/fine-tuning-llama3-1-and-deploy-to-ollama-f500a6579090
+
+So this will just be reinforcement learning for good answers.  
+Is it possible to get where we want with just that?  
+...
+
+
+
+**0606
+Just use 
+$$BASE lang
+
+
+Wonder what library incompatibility will be the first real annoyance to me.  
+Hopefully I persevere through any that come up...at least the first few...
+
+
+**extensions/vscode/codetutor/src/extension.ts
+not being activated until chatted to...
+@@Is this a problem?  
+
+OK, status bar functions ok.  
+Wow this can be so powerful... 
+

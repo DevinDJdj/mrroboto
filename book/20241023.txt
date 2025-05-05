@@ -1,0 +1,30 @@
+**web/public/game/testllm.html
+Add map to this.  
+make all LLM load functionality invisible.  
+So Essentially Transcript and map will be enough for now.  
+We can add the fancy function call logic later.  
+Or some fancy UI component from text-engine.  
+Ask questions and move.  
+We can just have a leaderboard of a GPS location.  
+Just pick random location.  
+For now this is in the same browser, but hidden from the user.  
+They can reveal if they want.  
+
+Not sure this javascript LLM is good enough to do what I want, but the premise is interesting.  
+
+continue with this, layout is not nice.  
+but we have voice and map and LLM.  
+
+
+#pick random target location
+#pick random start point (radius parameter)
+#loop (difficulty)
+#hint (generated from LLM about location)
+#move (point feedback)
+#repeat
+#win (moved within goal radius)
+#lose (moved too many times)
+
+Dont think this javascript LLM is sufficient yet.  
+Maybe wait for next release with better model.  
+Maybe a few years.  

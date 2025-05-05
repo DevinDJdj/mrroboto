@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>my side panel - blind assistant - voice assistant - my assistant - </title>
+  </head>
+  <body>
+    <h1>All sites sidepanel extension</h1>
+    <p>This side panel is enabled on all sites</p>
+    <div id="midi"> </div>
+    <div class="words" contenteditable>
+      <input type="text" id="p" name="p">
+      </div>
+      
+      <button type="button" onclick="Chat()">Update</button>    
+      
+      <table>
+          <tr><td>
+            Channels:<br>
+        <div id="channels">
+        </div>
+          </td>
+        <td><div id="state">  </div></td></tr>
+          <tr><td>
+            Tabs:<br>
+        <div id="alltabs">          
+        </div>
+        </td>
+        <td><div id="vocab">  </div></td></tr>
+      </table>
+      <div id="qrgenerator"></div>
+    <script src="jquery-1.12.4.js"></script>
+      <script src="jquery-ui.js"></script>
+      <script src="qrcode.js"></script>
+      <script src="wordtoint.js"></script>
+      <script src="webmidi.iife.js"> </script>
+      <script src="midi.js"></script>
+      <script src="keymap.js"></script>
+      <script src="mrrubato.js"></script>
+          <script src="sidepanel.js"></script>
+
+  </body>
+</html>

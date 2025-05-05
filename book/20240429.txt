@@ -1,0 +1,399 @@
+**server/...
+
+Do we want to set up as services?  
+https://medium.com/codex/setup-a-python-script-as-a-service-through-systemctl-systemd-f0cc55a42267
+
+**web/public/analyze.html
+Need ability to fix the transcription ideally.  
+but dont think I want to deal with that now, due to the way the process works.  
+Not sure how important this is.  
+
+
+**server/
+Need to make servers more robust.  
+Unexpected queries shouldnt cause problems.  
+
+sudo systemctl start transcription.service
+sudo systemctl start tts.service
+
+***
+**extensions/mrrubato/
+when decreasing frame rate, how do we capture audio, just use speed up algorithm?  
+No should use detect audio dB level of capture, and cut low dB, then speed up.  
+Responding to other youtube videos should be easy.  
+If active tab is youtube link or watch link, 
+need function to respond or not, then if respond is active, should comment on that video via API.  
+Just use text from recording and generate a link to the resulting recording which will be on mrrubato instance.  
+***
+
+**language
+create language "xxxxx" (xxx is spoken, continue with key definition)
+select language "xxxxx" (spoken or keys)
+create word "xxxx" (xxx is spoken, continue with key definition)
+"xxxx" (usage of word is just like any other predefined meta)
+first search meta language, then search used language.  
+meta language only searched if 48, 49, 71, 72 utilized.  
+These will be control keys.  
+Otherwise pass to the selected language.  
+For now this doesnt leave us much room, but enough.  
+Unfortunately it will be hard to generate pleasing combinations.  
+
+**extensions
+ROLI: Top of Keys = control
+bottom of keys = free
+
+
+**web/public/analyze.html
+Show topics/add topics.  
+Make suggestion list of topics (some work needed), easy interface to just click add/remove.  
+
+DB need top folder /topics
+/topics/topicname/topicvalue/YYYYMMdd/videoid
+relevance: 90%
+
+author, name, other
+for now.  
+What data do we want here. mostly point back to videos.  Perhaps we want a date
+Where we click on the topic will indicate the relevance for the video.  
+Dont have multiple clicks for this.  
+Feedback in some sort of color indication (or bar)
+
+For now need to be admin to create topic or word definitions.  
+
+**timestep.py 
+pass all topics to **server/transcription
+
+
+**petunia 
+Need a second server (useyoutube=false), need to complete this.  
+This will allow for more participation.  
+
+**web/public/search.html
+Search/Chat, and also with connected instances.  
+
+
+**database.rules
+test comments from other user.  
+
+
+**languages/ or extensions/keydict
+Need to have point function and basic attention markers BBOX, Oval, Arrow etc.  
+start recording and pause recording may also need to pause the original screen simultaneously as well.  
+Yes probably.  
+
+ROLI hope it has good midi/API access.  
+Hope the quality of the device is good.  
+
+**web/public/analyze.html
+Need color picker/icon picker for display of words.  
+-put this in the datatable with words.  
+
+Need user icon somewhere.  
+-put this in the large pianoroll view.  
+
+Need dropdown datatable filter for lang
+-words datatable
+--done
+
+Need edit mode as well as feedback mode.  
+Pause should always be part of meta-language.  
+When playing segments, should be able to edit at a keytouch.  
+use "wordtimes" parameters.  
+But use the filters (only language, word, user)
+Push the whole midi structure
+
+Dynamically calculate lead-in and trail-off.  
+But have minimum time 
+
+Word creation, word edit.  
+Play all by word or by user.  
+What is constitutes a segment?  
+Need pre/post buffer of X seconds.  
+
+**TTS/TTS/bin/synthesize.py
+Finally got something out of this 180k steps in training:
+python3 ./TTS/TTS/bin/synthesize.py --text "I am determined to acquire language." --model_path "./TTS/recipes/ljspeech/tacotron2-DCA/run-April-19-2024_02+00AM-0000000/best_model.pth" --config_path "./TTS/recipes/ljspeech/tacotron2-DCA/run-April-19-2024_02+00AM-0000000/config.json"
+
+
+**generate/tennis.py
+Should make sure we can go through the same video and identify aspects in time separately.  
+footsteps then bounces then ....
+
+**extensions/handsfree
+Each tab should identify content in some meaningful way
+in addition to the QR code for url
+Perhaps adjust the QR Code based on time salted with the URL each X seconds.  
+For now just include the time in the QR Code.  
+Include title perhaps, or truncated title up to 200 chars.  
+youtube tv, utilize the 
+tv.youtube.com/watch/xxxxxxx
+xxxxx = Video ID.  
+
+Special case for Youtube.  
+Can we retrieve details about a youtube video via javascript without API key?  
+https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=DQ5w8LBI0kI&key=[YOUR_API_KEY]
+
+We already have the embed into the page in this case.  
+Should be another way to get the details about the video, what javascript funciton do they use?  
+
+Or just use the     
+https://tv.youtube.com/watch/NgpFsmdsmyE?onboard=1&vp=0gEEEgIwAQ%3D%3D
+https://tv.youtube.com/sw.js
+
+ytcfg.set...
+"INNERTUBE_API_KEY": "AIzaSyD-L7DIyuMgBk-B4DYmjJZ5UG-D6Y-vkMc
+INNERTUBE_CONTEXT
+"ACCOUNTS"
+YTU_EMBEDDED_DATA
+ytuEmbeddedData
+
+and create the javascript calls necessary to go to the above URL.  
+
+This is a bit of work.  
+Also not sure if this will actually work.  
+If we do this, do just this use-case (Youtube TV) to get a feel for if it will work.  
+
+var id = 'dQw4w9WgXcQ';
+var url = 'https://www.youtube.com/watch?v=' + id;
+
+$.getJSON('https://noembed.com/embed',
+    {format: 'json', url: url}, function (data) {
+    alert(data.title);
+});
+
+
+
+Not enough hands.  
+
+**web/public/analyze.html
+Should be able to add a link to feedback easily.  
+i.e. for enhancement/bug system.  
+Should probably have a registered JIRA (or equivalent), and add link to any tickets referenced.  
+
+
+
+**web/public/recent.html
+Need some status info for listings.  
+Also change the color in the timeline chart?  
+dont want filters for all?  
+--good start.  
+refer to this for RTDB and Datatable queries.  
+
+
+How much to unwind this and use multiple channels and the same server instance?  
+Does this even make sense?  
+
+Not sure where to attack this.   
+What is the max size instance we envision?  
+
+
+This would essentially be a set for each content creator.  
+
+FBAPIKEY
+https://console.cloud.google.com/iam-admin/serviceaccounts/details
+create additional 
+credentials.Certificate
+for YoutubeMaintenance
+YOUTUBE_API_KEY
+https://console.cloud.google.com/apis/credentials
+
+**record.py
+CLIENT_SECRETS_FILE
+create new instance of this.  
+https://console.cloud.google.com/apis/credentials
+
+Possibly could do with just Youtube_API_KEY and then generate entries based on that channel.  
+
+**record.py
+Really just need the storage bucket and the DB update privilege.  
+Need to really use the parameters from config.json.  
+Lets switch to use this before doing more in record.py
+
+
+**web/database.rules.json
+anyone can write comments.  
+admin can write all.  
+creator can write?
+if we have /misterrubato/uid/videoid will this harm anything?  
+With this, the user will default to their own videos.  
+Then they can browse/search any of the other creators.  
+creator will be allowed to edit /misterrubator/uid/*
+Fairly large change.  
+Think on it.  
+I think the limitation on the RTDB search prevents this structure.  
+Just store the creator: UID under the videoid?  
+Then we can filter all with specific uid values.  
+Unfortunately this doesnt solve any problem except minor one.  
+
+Maybe this will work, then we can just use uid in the structure.  
+/misterrubato/videoid/
+".write": "root.child('uid').val() === auth.uid"
+With this and the record.py, should only be able to update videos which uid created.  
+
+kind of a hack but maybe this will work:
+			"$videoid":{				
+				"snippet": {
+					".write": "!data.exists() || auth.token.admin === true || auth.uid === data.parent().child('uid').child('uid').val()"
+				},
+				"uid": {
+					".write": "!data.exists()"
+				},
+
+
+have to test if it is actually working.  
+
+This allows to freely add videos even with different credentials, but still retain integrity of DB in case of bad actors.  
+I think.  
+
+
+
+**analyze/analyze.py
+kk and ks2 is good but rs and ks probably not so useful.  
+What do we want to visualize?  
+
+**web/public/speech.js
+Need commands here.  
+
+**web/public/midi.js
+Keep recentmidi commands here to combine with speech.js
+Specific keyset to activate and deactivate so we know if this should go to feedback or not.  
+
+For this just use 48 and 49 I guess in this interface.  
+Mic on/off -> 71, 72?  
+Need this in the UI, need session variable here if possible.  
+Save this in user settings /users/uid/settings....
+
+**web/public/config.js
+Default here, then load from DB, or just generate defaults when user is generated.  
+
+48
+create word xxxxxxx
+55, 56 ...
+49
+
+on 49 generate the action.  
+Or use time lag?  This is more natural but harder implementation.  
+
+Can we use words like this? 
+55, 56, 57
+and 
+55, 56
+
+With time lag detection?  
+Or do we just allow free-form and then try to distinguish based on context?  
+Perhaps this is the better solution but it leaves a lot of ambiguity.  
+Based on timings and context perhaps we can distinguish.  
+Or start search using the longer word, but still use timings and context to separate.  
+Create word association map for any language.  
+This will be our poor mans "context" detection.  
+
+How do we handle when the input stream is paused?  
+just use microsecond increments I guess.  
+
+Need feedback for recent commands in text format.  
+These will be associated with midi segments, and can be deleted by the user if they were unintended.  
+So basically a transcript by time, not sure if we can do this easily with the Babylon graphical representation or not.  
+
+
+Should be a by time view if preferred instead of a by word view and easy deletion.  
+Maybe just make separate records for each time instead of concatenating.  
+This would be easier to filter and play anyway.  
+
+Or this datatable should highlight the words/times which are in the transcript at the current time of the input stream.  
+Just have an ID associated and then change the style?  
+
+getCurrentMidi(window=10 secs)
+from Midi generate ID, and highlight segments.  Add delete icon for each (confirmation dialog?)
+--this kind of works.  Not updating canvas at the moment.  
+But this may be good to follow along some things.  
+Not entirely sure why this is necessary.  
+
+
+
+generate word2vec model for each language?  
+https://radimrehurek.com/gensim/models/word2vec.html
+
+model = Word2Vec(sentences, min_count=10)
+https://rare-technologies.com/word2vec-tutorial/
+
+model.similarity('woman', 'man')
+
+Use time distance as a parameter for this.  
+Essentially create a word2vec type algorithm.  
+Or adopt one in javascript.  
+https://github.com/remykarem/word2vec-demo
+Probably something like this is where we want to start.  
+Simple enough to follow easily.  
+
+Others:
+https://github.com/YaleDHLab/wordmap
+
+
+#https://www.misterrubato.com/test/word2vec-demo/index.html
+
+Load this for all transcription data?  
+Anything interesting?
+
+
+**web/public/analyze.html
+Can we add a date/time to each midi note?  
+This would be useful.  
+using JZZ lib to load this.  
+
+Lets allow for multiple tracks to be recorded by the same user.  
+so we need to make midiarray a 3d array
+[user][track][...]
+Always default to the first track, then we leave this open to explore in the future without actually coding it.  
+But I can see use-cases.  
+
+
+
+Why are we saving the data structure as midi anyway, well I guess having a common format is ok in case of reuse.  
+
+
+**server/ollama/server.py
+really we want this to be interchangable and we want to use more recent base model.  
+
+
+**7uBr8tHtjBA
+Browser asking for MIDI permissions for each site, I dont think this will actually be problematic.  
+
+
+
+Server deploy again with new deploy script.  
+**install.sh
+all server install steps.  
+Hate writing shell scripts, may change to python script.  
+
+make all directories.  
+
+**server
+Adjusted all the directories to specify full paths.  
+
+
+**handsfree
+Need off state, should be able to switch on with voice or midi.  
+
+**server
+time should be part of queries in general.  
+Need to make time significant
+
+
+Some sort of incompatibility with whisper and the latest VM?  
+Or steps to set up.  
+OpenAI 
+whisper.load_model just hangs.  
+
+
+**analyze/analyze.py
+**IIAMMVxCsOw
+why is this failing to generate images with this midi?  
+
+
+Whisper AI failing, switch to coqui-ai STT?  
+Or other?  
+https://github.com/coqui-ai/STT-examples/tree/r1.0/vad_transcriber
+
+
+https://github.com/coqui-ai/STT/blob/main/notebooks/train_personal_model_with_common_voice.ipynb
+

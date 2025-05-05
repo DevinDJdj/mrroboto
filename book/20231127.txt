@@ -1,0 +1,237 @@
+How can we use Github Copilot API?  
+
+**web/public/search.html
+Find Video and history of that video.  
+Or anything that has that search term.  
+Does RTDB not have a wildcard search?  
+How bad is this for us?  
+Right now we are storing transcripts separately and midi separately.  
+But comments are not going to be searchable easily.  
+Can we get around this limitation? 
+Maybe just add all comments to the git repository or another repository?  
+https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
+"https://api.github.com/search/labels?repository_id=REPOSITORY_ID&q=Q"
+Need to be authenticated to do almost anything.  
+
+**ftsproblem
+https://console.cloud.google.com/marketplace/product/bitnami-launchpad/solr?pli=1&project=xxxx
+Then we would need to utilize this though from the frontend.  
+
+
+
+
+
+**web/public/analyze.html
+Need to show all GIT changes occurring during this time period.  
+Show on these dates and +- 24h for now, adjustable.  
+
+git log -p --since="2022-01-01" --until="2022-01-31"
+
+OK so if we cant query certain days, perhaps we need to hold the git info in RTDB?  
+Dont like that.  
+
+Show the overview pianoroll. 
+Just make an image which has height and width, and then highlight.  
+Dont use the 3D stuff.  
+Then we have two ways in case we have problems.  
+
+Have a start of a map in map.  
+OK, we need to adjust the height of canvas.  
+And we need to add links and make clickable.  
+Then create more regarding the feedback midi.  
+
+
+can we use this?
+
+https://pypi.org/project/openllm/
+Where can we upload the data from the transcripts.  
+Maybe we can just use this for search and for other use-cases.  
+Yeah lets try something other than what we already know like solr or elasticsearch.  
+
+
+Also see if this is any better than the current speech recognition.  
+Compare with other, and then just rewrite the times to be simpler.  
+
+Whisper
+
+**https://analyzingalpha.com/openai-whisper-python-tutorial
+pip install -U openai-whisper
+pip install pytube -q
+
+testing folder currently not in git tracked, do we want this to be?  
+**testing/openai-whisper
+python ./youtubetest.py
+
+ffmpeg -ss 1924 -i "/content/earnings_call_microsoft_q4_2022.mp4/Microsoft (MSFT) Q4 2022 Earnings Call.mp4" -t 2515 "earnings_call_microsoft_q4_2022_filtered.mp4"
+python ./test.py
+Need full path because ffmpeg not in this directory I think.  
+
+
+install PromptEngineer/localGPT
+visualstudio.microsoft.com/visual-cpp-build-tools
+
+Wait for localGPT which works better or use a cloud server.  
+Dont really want to increase cost of ownership but going to need a server I think so may as well do it.  
+Can we put search and this on the same machine?  
+Best if we have description ingested as well, and have a standard prompt to get all "xxxx" songs.  
+Or really want to get all songs with certain musical word or combination as well.  
+How do we store this though?  
+We could just translate to characters.  Or can we make a different binary structure of some sort.  
+NGRAM->VideoID
+Lets just stick with this for now, but what will be the density of this map.  
+Have to choose at least 9-gram word I think.  Just use what we have set up as a test-case already.  
+Should we just store in the existing DB?  
+I think we need another storage mechanism.  
+
+**web/public/analyze.html
+For now translate to text and then find all entries which map to this same set i.e. on analyze.html or maybe 
+a different page.  
+
+
+Finish using the openai-whisper
+python ./test.py takes quite a while.  
+looks like this takes about 10-20x the length of the file.  
+Lets try on the GPU.  But we really dont want to have to do this.  
+Need to time.  
+
+Maybe this is the best option for now.  
+https://console.cloud.google.com/marketplace/vm/config/click-to-deploy-images/deeplearning?project=xxxx
+
+
+Wow what a crappy message:
+ZONE_RESOURCE_POOL_EXHAUSTED constantly when trying to deploy.  
+From search, just says try again.  
+First see if we get good transcription with this then determine how to move forward.  
+
+
+Yeah lets try this, and maybe make this a service.  
+Yeah this is probably going to be necessary anyway.  
+We will need something to integrate with the firebase app.  
+Lets test this and then determine how to interface with it.  
+We would need to do this in the JS pages at the moment.  
+I suspect this is fine if we create an endpoint.  
+
+
+
+gcloud config set compute/zone NAME
+
+Need to read this if we are going to create any instances.  
+Prefer to do it programatically.  The UI is not great anyway, and this may have 
+at least some reproducibility and staying power.  
+
+https://blog.pratikkale.in/how-to-manage-google-cloud-compute-engine-with-python
+
+After creating this VM with NVIDIA GPU, create localGPT on that instance.  
+
+Vector database is similar to what has been done before with recommendation engines.  
+This is just a general tool for this sort of analysis.  
+
+Lets use this and see.  
+chroma DB 
+
+
+First of all quality of transcription much better with the openai-whisper
+So lets start using this.  
+
+**server/transcription/server.py
+using standard flask app, may as well make this real-time I guess.  
+Do both, add this transcript to the DB.  
+if there is no transcript at timestep.py, add it again.  
+For now start a server on the NVIDIA GPU machine so it doesnt take forever, either this or 
+run this in the **timestep.py
+
+**transcribe.py
+How do we get rid of the 
+
+**record.py make sure the transcription is called after upload.  
+may not be able to do this real-time if we are getting from the videoid.  
+So may need to just do at timestep.py
+Either way though from timestep.py try to use the server, if it is not available do locally.  
+Yeah anything that takes a long time we can do this at timestep.py
+
+
+**timestep.py
+for now just doing here.  
+This is sufficient I think.  
+Also we dont need to do during record.py after we see this is working.  
+This will save a lot of time.  
+Need to check empty case, dont want to redo empty cases many times.  
+
+
+See if we can serve on GCP easily.  
+gcloud run deploy
+Then it doesnt really matter.  
+
+CAI Content authentication initiative.  
+
+
+**GCloud GKE cluster setup
+gcloud container clusters update cluster-1 --project=misterrubato-test --zone=us-west1 --update-addons=CloudRun=ENABLED
+
+gcloud container clusters get-credentials cluster-1 --region us-west1 --project misterrubato-test
+gcloud components install gke-gcloud-auth-plugin
+
+Cloud Run pricing seems far more reasonable, lets see if this works ok.  
+gcloud components install kubectl
+gcloud container fleet cloudrun apply --gke-cluster=us-west1/cluster-1
+
+
+Anthos sample deployment on google cloud
+Then use 
+gcloud run deploy
+
+./asmcli install --project_id misterrubato-test --cluster_name cluster-1 --cluster_location us-west1 --enable_all --ca mesh_ca
+
+https://cloud.google.com/service-mesh/docs/unified-install/install-dependent-tools#download_asmcli
+https://cloud.google.com/service-mesh/docs/unified-install/install-anthos-service-mesh
+
+Cant use autopilot cluster.  
+Do same process with standard cluster.  
+gcloud container clusters create cluster-1 --project=misterrubato-test --zone=us-west1 --machine-type n1-standard-2 --num-nodes 2
+gcloud container clusters update cluster-1 --project=misterrubato-test --zone=us-west1 --update-addons=CloudRun=ENABLED
+
+gcloud container clusters describe cluster-1 --region us-west1 --format="value(workloadIdentityConfig.workloadPool)"
+gcloud container clusters update cluster-1 --region=us-west1 --workload-pool=misterrubato-test.svc.id.goog
+
+Wow why do I have to do this.  
+Pretty annoying to set this up.  
+
+gcloud services enable mesh.googleapis.com --project=misterrubato-test
+https://cloud.google.com/service-mesh/docs/managed/provision-managed-anthos-service-mesh
+echo "management: automatic" > mesh.yaml
+gcloud container fleet mesh enable --project misterrubato-test --fleet-default-member-config mesh.yaml
+gcloud container fleet memberships describe cluster-1
+
+gcloud iam service-accounts create gke-anthos --project=misterrubato-test
+gcloud projects add-iam-policy-binding misterrubato-test --member="serviceAccount:gke-anthos@misterrubato-test.iam.gserviceaccount.com" --role="roles/owner"
+
+gcloud beta container --project "misterrubato-test" clusters create "cluster-2" --no-enable-basic-auth --cluster-version "1.27.3-gke.100" --release-channel "regular" --machine-type "e2-medium" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "3" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias --network "projects/misterrubato-test/global/networks/default" --subnetwork "projects/misterrubato-test/regions/us-west1/subnetworks/default" --no-enable-intra-node-visibility --default-max-pods-per-node "110" --security-posture=standard --workload-vulnerability-scanning=disabled --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --binauthz-evaluation-mode=DISABLED --enable-managed-prometheus --enable-shielded-nodes --node-locations "us-west1-c"
+
+
+Wow none of this works properly.  
+
+
+Anyway, just using a simple VM for now.  
+
+Use GCP template Deeplearning VM.  
+gcloud compute scp --project misterrubato-test --zone us-west1-b --recurse c:/devinpiano/music/server/ deeplearning-1-vm:/home/devin/server
+
+python ./server/transcription/server.py
+http://x.x.x.x:8001/transcribe/?videoid=UUUoYYW7SsE
+Can we get unlisted stuff as well?  
+Nice this works now.  
+
+Then use ingested info.  
+**ollama start
+curl https://ollama.ai/install.sh | sh
+export OLLAMA_HOST=0.0.0.0:8181
+ollama serve
+ollama run mistral
+ollama run llama2
+
+chainlit run RAG.py
+http://x.x.x.x:8000/
+
+
+Still very basic.  
+

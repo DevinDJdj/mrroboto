@@ -1,0 +1,290 @@
+
+<html>
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Recent recordings</title>
+
+</head>
+    <!-- update the version number as needed -->
+	<script src="config.js"></script>
+	<script src="globals.js"></script>
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-RXPM3QHNJ3"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	
+	  gtag('config', 'G-RXPM3QHNJ3');
+	</script>
+	
+    <script defer src="/__/firebase/9.19.1/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/9.19.1/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/9.19.1/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+
+<body translate="no" >
+  <br>
+  <table>
+	<tr><td>
+  <table>
+    <tr><td>
+		<div id="recent" style="width: 100%;height: 180px;overflow:auto;">
+			<table id="RecentTable" class="display" style="width: 100%">
+				<thead>
+					<tr>
+						<th>id</th>
+						<th>date</th>
+						<th>Title</th>
+						<th>Status</th>
+						<th>Desc</th>
+					</tr>
+				</thead>
+				<tfoot>
+					<tr>
+						<th>id</th>
+						<th>date</th>
+						<th>Title</th>
+						<th>Status</th>
+						<th>Desc</th>
+					</tr>
+				</tfoot>
+			</table>	
+	</div>
+	</td></tr>
+    <tr><td width="100%" align="right">
+	<div id="timeline" style="height:300px;"></div>
+	</td></tr>
+    <tr><td width="100%" align="right">
+	<div id="durationchart" style="height:200px;"></div>
+	</td></tr>
+    <tr><td width="100%" align="right">
+	<div id="gitchart" style="height:200px;"></div>
+	</td>
+	<td>
+		<img id="thinkinggit" src="images/thinking.gif" height="200px" style="visibility:hidden"/>
+	  </td>	
+	</tr>	
+  </table>
+  </td>
+  <td>
+
+	<div id="clock" 
+	style=	"display: inline-block;
+	 font-family: monospace;
+	 font-size: 30px;
+	 text-align: right;
+	 color: lightgray; 
+	 border-radius: 10px; 
+	 padding: 10px; 
+	 background-color: rgba(0, 0, 0, 0.75);">
+</div>
+<div id="secondselapsed" 
+	style=	"display: inline-block;
+	 font-family: monospace;
+	 font-size: 30px;
+	 text-align: right;
+	 color: lightgray; 
+	 border-radius: 10px; 
+	 padding: 10px; 
+	 background-color: rgba(0, 0, 0, 0.75);">
+</div>
+</td>
+</tr>
+</table>
+  <br>
+      <p id="load">Firebase SDK Loading&hellip;</p>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js'></script>
+
+		<script src='https://apis.google.com/js/platform.js' async defer></script>
+
+
+		<link href="js/datatables/datatables.min.css" rel="stylesheet">
+ 
+		<script src="js/datatables/datatables.min.js"></script>
+		
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+		<script src="recent.js"></script>
+		<!-- local DB -->
+		<!-- indexeddb -->
+		<script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+		<!-- local search -->
+		<script type="text/javascript" src="js/flexsearch/flexsearch.bundle.min.js"></script>
+		<script src="db.js"></script>
+	
+	<script src="git.js"></script>
+	
+  <script>
+  //firebase deploy to deploy this.  
+  //usage:
+//  https://www.misterrubato.com/analyze.html?video=s5zoEwEUPu0
+//can we add this link to the top of all descriptions on record?  
+  
+// https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+
+var title = '';
+var recenttable = null;
+var querydate = null;
+//setup https://www.youtube.com/watch?v=3jZ5vnv-LZc
+//then restrict the key if needed to your site and youtube data API.  
+
+</script>
+<script src="clock.js"></script>
+<script>
+
+    var gitchart;
+	var vidchart;
+	var dataTable;
+	var dataTableGit;
+    var options;
+	var optionsGit;
+
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+         firebase.auth().onAuthStateChanged(user => { 
+		   if (user) {
+			// User is signed in, see docs for a list of available properties
+			// https://firebase.google.com/docs/reference/js/firebase.User
+			
+			uid = user.uid;
+				// ...
+			  } else {
+				// User is signed out
+				// ...
+			  }
+			});
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'functions',
+            'storage', 
+			'database',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+		  
+		//use this as the base, and then we can write an update to whatever.  
+		//we can also use this, if the user is logged in, get that info instead.  
+			 var provider = new firebase.auth.GoogleAuthProvider();
+
+			firebase.auth()
+			  .signInWithPopup(provider)
+			  .then((result) => {
+				/** @type {firebase.auth.OAuthCredential} */
+				var credential = result.credential;
+
+				// This gives you a Google Access Token. You can use it to access the Google API.
+				var token = credential.accessToken;
+				// The signed-in user info.
+				var user = result.user;
+				//not sure why we need this, but the asynchronous check is not getting kicked off.  
+				   if (user) {
+					// User is signed in, see docs for a list of available properties
+					// https://firebase.google.com/docs/reference/js/firebase.User
+					
+						uid = user.uid;
+						
+						loadAll();
+					}
+				// IdP data available in result.additionalUserInfo.profile.
+				  // ...
+			  }).catch((error) => {
+				// Handle Errors here.
+				var errorCode = error.code;
+				var errorMessage = error.message;
+				// The email of the user's account used.
+				var email = error.email;
+				// The firebase.auth.AuthCredential type that was used.
+				var credential = error.credential;
+				// ...
+			  });
+
+		google.charts.load('current', {'packages':['corechart', 'timeline', 'bar']});
+		
+		//loadAll();
+
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
+
+
+
+function loadAll(reload = false){
+	loadAllRecent(25);
+	getGitCommits(querydate);
+}
+
+
+function getIterations(desc, vidtime){
+    st = [];
+	et = [];
+	for (i=1; i< 20; i++){
+	    fnd = "TRIAL#" + i;
+		ts = desc.indexOf(fnd);
+		te = desc.indexOf(")", ts);
+		if (ts > -1)
+			st.push(getSecsFromTime(desc.substring(ts+(fnd.length)+2, te)));
+	}
+	for (i=1; i<20; i++){
+	    fnd = "END#" + i;
+		ts = desc.indexOf(fnd);
+		te = desc.indexOf(")", ts);
+		if (ts > -1)
+			et.push(getSecsFromTime(desc.substring(ts+(fnd.length)+2, te)));
+	}
+//    console.log(st);
+//	console.log(et);
+	//arrays of all iterations
+	return st.length;
+
+}
+
+
+
+  </script>
+
+
+
+	
+</body>
+</html>

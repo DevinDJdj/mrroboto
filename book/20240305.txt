@@ -1,0 +1,547 @@
+
+**server/llmtune/testing
+https://medium.com/@ogbanugot/notes-on-fine-tuning-llama-2-using-qlora-a-detailed-breakdown-370be42ccca1
+Looks to work perhaps, but need better GPU.  
+Needs further work.  
+--continue testing.  
+peft - parameter efficient fine-tuning (just cheap tuning, but not precise)
+sft  - supervised fine tuning (usually human generated/approved control)
+QLora - Quantized LoRA (Low-Rank Adaptation of Large Language Models)
+
+
+**server/ollama/server.py
+Also look at prompting doc for llama2:
+https://huggingface.co/blog/llama2#how-to-prompt-llama-2
+Allow this to be a free parameter in the interaction.  
+Add this to current 
+
+
+**extension/handsfree/audio
+Why incompatible with **web/public/analyze.html
+
+**extension/handsfree/sidepanel.js
+need to interact with history object for browser.  
+Assign name -> hotkey
+3-key+ with *48* within 2 second is a name.  
+read-back the name.  
+Then this hotkey combo and name and/or command are associated with this tab.  
+
+chrome.storage.sync.set({ mytext: txtValue });
+eventually have playback functionality.  Start saving sequences and timings now.  
+Each tab can be a midi track?  
+
+load ... load config from 
+chrome.storage.sync.get('mytext', function(data) {
+    yourTextArea.value = data.mytext;
+});
+
+
+chrome.history.getVisits(
+
+--Think of better name.  
+--Need search functionality in page.  
+How can we use the saved midi/transcript?  
+Yeah use the transcript along with the QR Code
+to generate the same results.  
+
+"layout" - Generate sound heatmap of visible page.  
+
+Same feedback as we move around the page.  
+Certain sound for link, image, text.  
+Use velocity or instrument selection to describe type of element.  
+Stick with 25 keys for now.  
+
+playNote(..., instrument)
+for now static:
+link = trill for cello/viola/violin (volume indicates density)
+image = french horn
+text = piano (volume and repetition indicates density)
+
+**timestep.py
+add functionality to respond to any Youtube comments.  
+Perhaps just pick the latest during timestep and respond to that.  
+After 1-2 weeks for any video that has been published.  
+Then set done flag.
+
+Use server/ollama/server.py API to generate response and adjust links.  
+POST https://www.googleapis.com/youtube/v3/comments
+https://www.googleapis.com/youtube/v3/commentThreads?key={your_api_key}&textFormat=plainText&part=snippet&videoId={video_id}&maxResults=100&pageToken={nextPageToken}
+
+For now just save in a DB, oh this is why we didnt start this.  
+We have to save query and response.  
+Do we?  
+For now just save the link?  
+Put it in feedback under the video json?  
+videoid/comments/userid/comments (do we want a chain?  I think we do want a chain, but seems far to complex for right now)
+
+Can we get the userid from the comment?  
+Lets get the userID and the query/response.  
+Then eventually we can search by user.  
+Not sure what functionality exists for that.  
+Basically youtube brings you to the user, but not the users comments.  
+
+**web/public/chat.html
+We should add the same here.  
+But eventually we will run out of space I think.  
+Depends on the activity of the channel/videos.  
+For now we will just randomly pick the number of comments to store (chat.html) and/or respond to (youtube channel).  
+It will be relative to growth rate of the DB.  
+Keep slow as we dont have any good infrastructure anyway.  
+
+I think this is an interesting thing to do.  Not sure which is more pertinant at the moment handsfree or this.  
+This includes the segregation of knowledge channels for the RAG.  
+How do we do this, essentially we want the idea of tags for the knowledge graph, and then you can search by tag.  
+But with the software structure that would mean that highly used tags would saturate the interesting knowledge.  
+So we need an inverse relationship query essentially on the global knowledge graph along with specific tags.  
+This is a very standard concept like hashtag or Confluence "labels" for instance.  
+So how do we combine multiple queries?  
+hmmm.  I think this is probably going to be the standard structure of knowledge graphs in the future.  
+Aggregation and summarization of entity responses.  
+So essentailly summarize the responses of each individual tag/label.  
+
+This is already essentially what is being done with the original GPT algorithms.  
+In the sense that it takes text from all websites (or a portion) and aggregates the probability of what will come next given the "prior context" or query.  
+
+So then the question is how do we want to create tags?  
+Something to ponder a while.  
+So for now just store a query/response in chat.html
+Rough calculation 1KB*1 million.  
+have a Date/response count or just size of DB.  
+Just store this on the backend side and then use timestep to store it from there.  
+This is better architecture I think.  
+No need to be concious of where the query came from, we already have the userID.  
+Should pass the userID to the backend.  
+Then have timestep.py call the backend as well.  
+Store somewhere though on the backend and then delete after timestep.py run.  
+
+**server/ollama/server.py
+ugh - need to do something like this I think.  
+https://realpython.com/flask-google-login/
+For now just do a test of this.  
+Then add to 
+.  
+OK, lets test this.  
+
+--need to test.  
+See if what we have added will work for a while.  
+OK, problem some responses are far longer than I expected.  
+--need to test with timestep.py
+
+**timestep.py
+Perhaps for now just run some batch commands to retrieve the inquiries data structure 
+and then add it to the shared data store in GCP.  
+This is a simple workaround for now and no need to work with DB really I think?  
+We are just going to retrieve this data on a cycle.  
+We dont want to keep it all anyway.  
+From the shared data store, we can decide how to manage it, i.e. keep some of it for use in the RTDB.  
+**web/public/analyze.html
+We can query the GCP store anyway from here.  
+
+**web/public/recent.html
+run the #http://127.0.0.1:8000/analyze/?command=get&userid=..&topic=ALL
+to get the latest queries.  
+
+**server/**
+Add some ping commands to utilize for status page.  
+Add stats command for info to display on each page.  
+
+**web/public/server/index.html (status etc)
+**web/public/server/transcription.html (get numbers of files /size etc. over time )
+--add info in RTDB? take the functionality of timestep?  Cant take all the functionality so maybe just for display.  
+**web/public/server/ollama.html (get number of query/response over time etc. )
+--add info to the RTDB from ollama queries.  
+For now just this functionality.  
+**web/public/server/upload.html (get number of recordings and size etc. )
+same structure here?  Just save locally and then batch job copies to GCP?  
+OK, need to embed the video in ollama.  Lets create do the youtube version if we have youtube config flag active.  
+Dont like having the chat.html code and the ollama.html not shared.  
+Minor details.  
+
+
+
+So the server data flow will be local file -> RTDB -> timestep (move offline)
+I think this will work.  
+Do we need this to be RTDB?  probably not.  
+
+
+
+**server/login/app.py
+This is essentially what we need when we run/store the query/response.  
+For now should we just use this local sqlite DB to store the request/response, yeah I guess so.  
+Then once timestep.py runs delete all, maybe manage the services from this.  
+
+**server/timestep/server.py server.  
+Then run some of the needed functions here, like passing the transcription to the correct tag iterations.  
+Yeah need some sort of management server.  
+
+
+
+GDjC1e8A2Bc
+This would be useful to index the user comments.  
+I guess that is what the channel is meant to be.  
+But there is no reference back to the video and time which is a comment on a particular other video.  
+This functionality is needed really.  With this we have a much more interesting knowledge graph.  
+
+
+
+
+
+**languages
+use 2^n option as well as base 10.  
+Negative and positive numbers.  
+
+**web/public/chat.html
+create test Chat() feedback here for extension to send to page.  
+
+
+dont think we need an options page, just put any settings in the side-panel page itself.  
+-SpeechRecognition Language
+-SpeechSynth voice
+
+
+**extensions/handsfree/sidepanel.js
+On-close adjust icon status.  
+
+
+commands
+--listen (open any media on page or list media)
+--mute (mute any media playing)
+--start/stop feedback
+
+Define feedback langauge.  
+
+--create 25-key images with selected items.  
+These images will be displayed in help portion.  
+
+
+Not finding deleted stuff when using tabs.  
+
+
+need arg --config flag for other batch jobs.  
+
+
+C:\Users\devin\AppData\Local\Google\Chrome\User Data\Default\Extensions
+
+Probably need to get data from Iframe components.  
+docment.getElementByTag("iframe") ...
+Not sure we want to bother with this.  
+But this will be a limitation until we do.  
+
+
+have some history of find commands.  
+Then allow to search in documents for all these words.  
+
+**web/public/analyze.html
+What do we have running on a timer?  
+Seems some Chrome memory issues if leave up the page for long time.  
+
+
+Should we do the feedback of each command set?  
+
+OK, move and scroll are working ok.  
+Now check if we can use all midi.  
+Are we ok using the 48 and 72 in the move/scroll etc.  
+Perhaps we should use all but 60. 
+adjust right a bit.  
+
+
+Need to try to play and record.  See if it actually works.  
+This will be useful in other ways as well.  
+Need to be able to import files or share files.  
+We need to think of a pause mechanism.  
+By default this will pause recording only, but will still allow for interaction.  
+Then we maintain that data and then with the play indicator we restart the video.  
+And then the preparation of the information can be ready if we have watched a previous session.  
+really record here is browser embedded.  But not sure when to use browser embedded recording and when not.  
+
+Maybe play is default.  Can we skip between pauses then?  
+We need to know when the response has come from the commands.  
+If we do not, then what is shown is not necessarily the current state.  
+hmmmm
+
+
+
+**extensions/handsfree/
+how do we want to use the callback function, did we really need to pass to each command()?  
+--test if we unbroke this.  
+--no voice initial interaction.  
+
+--continue with sound feedback after loading.  
+search vs find, do we want to use other words?  
+
+Wow had a lot to fix.  
+
+
+--Need to add recording functionality.  How to manage topics for this in the front-end?  
+Each topic has a chromadb.  
+When topics changed in the front-end, call back-end server to update that topic chroma.  
+This is probably a good enough trigger.  So if the text exists for this, we can add it to a topic.  
+For now these text files will just reside in a directory on the server?  
+What should these topics be?  
+
+
+later
+--Need test some full MIDI commands.  
+Fix as we go.  
+Key is can we replay these commands on another browser instance?  
+Still have two entries.  
+
+
+Possible other midi instruments for additional expressions:
+--have to check do they actually work with a python midi library or not?  
+Roli Seaboard.  
+Continuum Fingerboard.  
+https://www.hakenaudio.com/slim-continuums
+
+MPE controller?  Need this python lib?  
+How do we actually connect one of these boards?  
+https://en.wikipedia.org/wiki/ROLI
+Will they stay in business?  
+Nice product.  
+What other options?  
+This is the new attempt.  
+https://playlumi.com/lumi-keys
+This looks nice.  Hmm...
+https://roli.com/products/blocks/seaboard-block-m
+
+https://www.embodme.com/
+
+
+**server/ollama/server.py
+Did I break this?  
+No just quite slow on first load. 
+
+**web/public/analyze.html
+**web/public/chat.html
+Make switch between Youtube/Local seemless.  
+Should be a config setting.  
+useyoutube = true;
+OK initially working.  
+Need to separate out video.js
+**web/public/video.js
+--still need to add to chat.  
+--still need to do seek with chat.html
+
+Chat() should return string as an example and extension do tts.  
+pass prompt as optional parameter.  
+
+
+NPlD890yuXY#
+
+**2025
+Use 2025 as cutover to store MEDIA and other things in year folders.  
+
+**web/public/analyze.html
+Can we just correct the answers as a part of the process to start maybe?  
+This is similar to what users do now with comments.  
+**server/ollama/server.py
+http://127.0.0.1:8000/analyze/?command=get&userid=..&topic=ALL 
+What order?  Delete after get?  
+Just look at the recent questions/answers from chat and pick one/two and correct them or expand upon them in the next recording session.  
+
+**timestep.py 
+finish the comment->chat function.  
+OK, have a start.  
+Randomly get the json files when timestep is run.  
+If we lose a few it doesnt matter, just make that part of the process on
+
+**server/ollama/server.py/analyze
+Save them locally for now and delete from server.  
+Or upload them to GCP file.  
+Make year/month folders for now.  
+That way we dont have too much in any one folder.  
+Each file is named as the timestamp.  
+We dont need microseconds.  If there are multiple at the same time, just overwrite.  
+What algorithm to decide how much to delete.  
+I guess just use the frequency of analyze function.  Store this somewhere locally.  
+LastAnalyze.  
+Delete all that are read.  
+And be able to delete all in 1 year based on this interval since last time.  
+(dayssincelastscan/365) % of items.  
+
+See if this works.  
+OK, this works now, but need some sort of login mechanism.  
+Or just add this to the 
+**web/public/analyze.html
+**web/public/server/ollama.html
+
+Topic inquiries are only generated if we query on that topic.  
+This should be optional on the chat.  We should be able to filter and select up to X topics from 
+listtopics.  Once a topic is generated with load.py, this should be added to the data path.  
+ALL should always be queried?  
+OK, think the changes are good, but need to confirm 
+**server/ollama/load.py working ok.  
+
+
+**server/ollama/server.py/listtopics
+**web/public/server/ollama.html
+Do the ALL topic here, and have a way to look at other topics.  
+Filter by topic and give stats on this.  
+OK basic function there, but is this scalable?  
+
+
+
+**web/public/analyze.html
+run **server/ollama/server.py/analyze
+Do the topic specific deletion here?  
+Where do we show this data?  
+We need perhaps an accordian panel to do this?  
+
+
+What is the base LLM we should use really.  
+We are using ollama for convenience.  
+Is this good enough?  
+
+Also still need to fine-tune if not too complex.  
+Probably not worth my time to do this as there will be lots of people studying this.  
+For now we live with topic specific RAG generation
+
+Perhaps as a general idea fine-tune the ALL model, and use RAG for the topic specific.  
+
+
+**web/public/analyze.html
+finish useyoutube=false functionality.  
+---keep testing this.  
+--not working with the MIDI visualization.  
+Several things need to be added to this functionality, but cant right now.  
+The MIDI portion is pretty spaghetti, and not robust. 
+I think it works now.  
+
+We should really put something on the 0 mark.  
+Just show lines at the feedback as well to start.  
+
+Lets adjust the image before we put it on the canvas?  
+Or just draw another image to overlay on top of the pianoroll.  
+Create the X/Y->function for all interaction points.  
+Then overlay the image on top.  
+Lets just use standard functionality.  
+https://stackoverflow.com/questions/22823752/creating-image-from-array-in-javascript-and-html5
+inside here:
+loadMidiFeedback
+loadCanvas(
+    //start here.  
+)
+https://doc.babylonjs.com/features/featuresDeepDive/materials/using/dynamicTexture#images
+
+In the end just use drawLines.  
+
+OK we have a start.  
+Display language and words next to history time chart.  
+Add language parameter?  Or take from midi?  
+div id=dictionary
+use same functionality as addChatRow
+
+Need functionality to create a new word.  
+Just use midiseq -> meaning for now.  
+Need to have this in the RTDB as well.  
+dictionary -> language -> midiseq/meaning.  
+timestep.py --admin MYID to add as admin.  
+Need a process to suggest admins.  
+Read from users/
+Keep stats on users here regarding estimated minutes invested.  
+Estimated contribution etc.  (how many times their feedback was suggested/viewed)
+How do we actually process "admin" requests.  
+Not going to make all kinds of levels, either admin or user.  
+admin = can write.  
+user = can view (anybody)
+Utilize MIDI messaging to control/show/create.  
+
+Can we have multiple meanings for the same sequence.  
+I think we have to?  
+So maybe just speak/play to create a definition?  
+Maybe build out the extension a bit more?  
+
+
+When we load, load any languages (from midi) from RTDB.  
+Need a way where the words can contain multiple meanings.  
+Or how do we want to do this?  
+
+
+Same height.  Auto-scroll to last word played.  
+Adjust to display lines with correct color and height.  
+Have this whole section be an accordian.  
+Most scenarios will only have one iteration, so this should be enough to display the pianoroll.  
+
+--Still have an issue loading midi which includes other instruments.  
+
+
+
+**web/public/chat.html not sure it is working ok or not.  
+
+**timestep.py
+How do we tell when we have commented on something?  
+Oh just use the datestamp and only respond to comments > date.  
+
+
+
+Wow they make this really inconvenient to make a few bucks.  
+https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup
+We should be able to just train and add a custom voice to the OS.  
+Instead they are just sending everything through some web service which MS control.  
+This will never last.  
+https://learn.microsoft.com/en-us/azure/ai-services/speech-service/personal-voice-overview
+
+Well what are the other options other than the default speechsynthesis component?  
+
+https://developer.chrome.com/docs/extensions/reference/api/tts
+
+See if this could work, generate the audio via python on backend and transfer the audio response.  
+https://www.youtube.com/watch?v=HJB17HW4M9o
+
+https://rioharper.medium.com/cloning-your-voice-cb321908b060
+
+tortoise-tts?  
+https://www.youtube.com/watch?v=zrZ4efCkaxI
+
+https://www.youtube.com/watch?v=b_we_jma220
+
+pipertts
+
+Probably the only practical way will be to generate server side.  
+
+Framework on client/browser side not ready for this sort of functionality.  
+
+Try one.  
+pipertts.  
+github.com/rhasspy/piper
+
+Midi feedback we should probably have languages as a parameter in the RTDB.  
+This way we can filter by language.  
+If we can filter by language, we can do a variety of functions using meta-languages.  
+
+
+transcribe_me - prepare any files necessary.  
+Probably can get rid of this function since we are transcribing on the backend.  
+Or make it asynchronous
+
+**web/public/analyze.html
+Show the generated transcript in the analyze.html and fix it if needed.  
+After this is done
+**timestep.py - when we publish (rating available), generate the wav files here between iterations?
+Use these wav files for TTS voice mimicry.  
+Best if we can do without any additional server or on client side.  
+
+How important is voice mimicry, not really sure.  
+
+
+
+https://pypi.org/project/noisereduce/
+
+LJSpeech structure?  
+https://keithito.com/LJ-Speech-Dataset/
+why have caps?  Is this really necessary?  
+Mono 22kbps why do we need this?  
+
+
+So I guess just recreate this as I see fit, then the model is generated from this.  
+
+Should we record audio for the watch set?  
+
+//4YT8WZT_x48
+26:00 - LOL
+
+Cant use watch at the moment:
+https://www.misterrubato.com/analyze.html?video=4YT8WZT_x48
+
+
+

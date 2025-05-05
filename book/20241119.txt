@@ -1,0 +1,128 @@
+add language doodle (-9,-3)
+
+--start here..
+0 reference better?  
+Negative just for notation?  
+Use notation shift or store negative?  
+I think middle 0 reference is going to be better.  
+
+0=
+analyze.html?video=mj4jpeBvD2o
+change language (-9,-3)
+add word line (-9,-6)
+add word box (-4,-2)
+add word set coordinates (2,4) [5,7 7,9]
+add word polar (5,7)
+add word grid (7,9)
+
+Need function to continue deciphering words even after we have a prefix.  
+This should be default.  
+
+How can we make this function adding completely dynamic?  
+
+For now see if we can use this language after adding words.  
+
+Need to create a map from func -> 
+
+Think we need a MyChat function for each language.  
+This way we pass along whatever language is actually executed.  
+Pass language to Chat(..., lang)
+Then go to the 
+
+**web/public/languages/doodle.js
+test doodle chat line.  
+                console.log("doodle chat line " + midi);
+
+remember previous x, y.  
+add keymap[xxx].vars dict.  
+add keymap[xxx].settings dict.  
+add keymap[xxx].load function.  
+This should be saved and loaded in loadLanguage.  
+load local settings if necessary.  
+
+Keep any state info in vars dict.  
+
+**web/public/analyze.html
+Problem in getFeedbackImage.  
+When updating midiarray in the middle.  
+We have a problem with shifting index numbers.  
+
+See if we can use generated font here.  
+Each user should have a character representation.  
+So this will go along with the word to indicate speaker.  
+
+
+**web/public/config.js
+Added some user config.  
+
+
+
+**languages
+Study Mirad Language.  
+Has some of the aspects I like.  
+
+#https://www.europalingua.eu/
+#https://en.wikibooks.org/wiki/Mirad_Grammar
+#https://en.wikibooks.org/wiki/Mirad_Thesaurus
+#https://en.wikibooks.org/wiki/Mirad_Lexicon
+Good reference if not more.  
+This may be a good test case.  
+Can basically map one key to each consonant.  
+<!--
+The letters c and q are used only to represent words and names imported into Mirad from other languages
+-->
+So skip these.  
+Then we have a simple mapping.  
+How to distinguish without perfect pitch.  
+We have relative.  
+Need multiple octaves for testing this sort of thing.  
+
+Several of the grammar concepts are nice.  
+#https://en.wikibooks.org/wiki/Mirad_Grammar/Vocabulary_Formation
+This seems one of the most advanced conlangs of interest.  
+
+
+#https://en.wikipedia.org/wiki/Ithkuil
+Check writing system here.  
+<!--
+the writing system is morpho-phonetic, meaning two types of graphemes are used: one to represent different grammatical concepts, such as case, number etc. and the other to represent roots and affixes. 
+
+-->
+
+#https://en.wikipedia.org/wiki/Constructed_language
+a priori languages are of most interest.  
+
+Perhaps to start only augment existing spoken language with punctuation, numerical values and other markings.  
+
+
+**web/public/testdoodle.html
+--continue.  
+
+Physical Directional communcation
+use polar coordinate system and maintain symetry.  
+1,24 = sqrt(3)/2, -1/2
+2,24 = 1/2, -sqrt(3)/2
+3,24 = 0, -1
+6,24 = -1,0
+9,24 = 0,1
+12,24 = 1,0
+
+DOWN = 3,24
+LEFT OF = 6,24
+UP = 9,24
+RIGHT OF = 12,24
+
+I think I like this to start at DOWN
+Seems more logical from a usage perspective.  
+0 = DOWN
+3 = LEFT
+6 = UP
+9 = RIGHT
+
+Is there a real-time collaboration possibility without an extreme amount of work?  
+I guess we can just have the RTDB update for now.  
+Current edit could be updated in RTDB, and then that will be propagated.  
+quasi-realtime.  
+
+
+

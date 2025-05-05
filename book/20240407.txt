@@ -1,0 +1,373 @@
+**server/...
+
+Do we want to set up as services?  
+https://medium.com/codex/setup-a-python-script-as-a-service-through-systemctl-systemd-f0cc55a42267
+
+I think probably need this.  
+Or is there another pattern which makes this easy? 
+
+**web/public/analyze.html
+adjust to useyoutube when video ID was not found in DB.  
+for now just use 
+watch parameter.  
+useyoutube || watch
+
+Need to add some usage statistics to users/uid...
+
+
+
+**timestep.py
+pass file download info to 
+**server/transcription/transcribe.py
+for non-youtube use.  
+If we can get from youtube, do so, otherwise use the media info passed.  
+Just pass every time.  
+--done, but not using on server side.  
+
+
+**server/transcription/server.py
+OK, start times and end times being passed, now have to generate the wav files.  
+Only do this with public videos also have to correct the text prior.  
+Need to copy coqui to server and test.  
+Rabbit hole continues...
+OK, lets try to see if we can load coqui in base directory and actually get this generating data.  
+So somewhere around 10GB perhaps, then we should delete this all or download/delete after done.  
+--done
+
+**web/public/analyze.html
+Need ability to fix the transcription ideally.  
+but dont think I want to deal with that now, due to the way the process works.  
+Not sure how important this is.  
+
+
+**web/public/analyze.html
+**web/public/**
+Add time that user was added.  
+Code added - See if this worked.  
+--done
+
+**server/
+Need to make servers more robust.  
+Unexpected queries shouldnt cause problems.  
+
+sudo systemctl start transcription.service
+sudo systemctl start tts.service
+
+
+
+**extensions/mrrubato/
+when decreasing frame rate, how do we capture audio, just use speed up algorithm?  
+No should use detect audio dB level of capture, and cut low dB, then speed up.  
+Responding to other youtube videos should be easy.  
+If active tab is youtube link or watch link, 
+need function to respond or not, then if respond is active, should comment on that video via API.  
+Just use text from recording and generate a link to the resulting recording.  
+
+
+
+**server/transcription/server.py
+When transcribing, name the file for the TTS training
+video_sss 
+sss = seconds for this frame.  
+Then we can load and fix any incorrect transcription.  
+This can be adjusted in the actual RTDB transcription and in the ingestion file.  
+Once the video is approved, move all video_... to the ingestion folder.  
+ljspeech/wavs.  
+What do we do with non-reviewed?  
+--done
+
+
+**generate/tennis.py
+#take input of tennis match audio, and use the timings which occur and separate the sounds of the 
+#ball hitting the racket, the players footsteps, the type of shot, and the applause.  
+#every distinct type of act should be identified and a sound timbre should be created for each.
+#represent the tennis match in a midi file, and compose a piece of music based on the match.  
+#Group by each player, and create a life track for each player in sequence of matches played.  
+#or perhaps also create some combination of multiple matches played.  
+#or by player/location etc.  
+#maxsimultaneous = 4?  
+#work with each player to choose ball striking sound etc.  
+
+Can we get the data here?  
+https://www.atptourarchive.com/site/requireapproval
+i.e. https://imgvideoarchive.com/client/the_wimbledon_archive/results/gentlemens_singles
+
+
+WTA equivalent?
+i.e.https://www.wtatennis.com/videos/3954881/watch-sara-errani-s-underarm-serve-pays-off-in-bogota
+<video id="playlistPlayer_html5_api" data-video-id="6350349713112" data-account="6041795521001" 
+data-player="gdE9yhT4h" data-embed="default" class="vjs-tech" playsinline="playsinline" 
+data-tracker-type="VIDEO" data-tracker-id="3954881" tabindex="-1" role="application" 
+src="blob:https://www.wtatennis.com/7adfe279-4e7b-4e7b-ba57-f46d36ab10ed" style="">
+            </video>
+
+
+Use this:
+https://www.youtube.com/@WTA/playlists
+Unfortunately this is already clipped, but may be interesting.  
+Starting with 202x
+Get all videos here, get audio, then detect player(s) from the video.  
+Before this, the format was not similar enough I think.  
+Perhaps we can just use this.  
+
+Full match playlist
+https://www.youtube.com/playlist?list=PLhQBpwasxUpldXpIymjy_FeQrax9qXGNT
+
+https://www.youtube.com/@tennistv/playlists
+xxx 202x
+This is similar format.  
+not as good here https://www.youtube.com/@ATPTour/playlists
+
+
+Some full match data to test with perhaps:
+https://www.youtube.com/user/argol54227/videos
+Maybe this is more interesting for us as the audio is all we want.  
+Nope this audio is horrible.  
+
+
+**testreduce.py
+reduce_noise
+Dont find anything nice at the moment.  
+This is a fail.  
+
+
+**generate/tennis.py
+Just use **web/public/analyze.html to mark with the midi device while watching.  
+Then we can mark all types of actions, then we have a good start.  
+Rather than trying to detect.  
+
+Then can we embed YoutubeTV like youtube, or do we have to watch past matches?  
+Use two octaves for all.  
+50 and 62
+Set Player xxx
+50 56 xxx
+Set Player xxx
+50 51 point
+50 52 game
+50 54 set
+50 58 match
+
+
+Bounce 53
+Grunt 56
+Hit 57
+Applause 51
+Footsteps 54, 55
+
+Take this data and generate wav files for categorizing with i.e. with urban8k dataset.  
+Then separate audio into chunks about the same length and detect events.  
+
+
+**language
+create language "xxxxx" (xxx is spoken, continue with key definition)
+select language "xxxxx" (spoken or keys)
+create word "xxxx" (xxx is spoken, continue with key definition)
+"xxxx" (usage of word is just like any other predefined meta)
+first search meta language, then search used language.  
+meta language only searched if 48, 49, 71, 72 utilized.  
+These will be control keys.  
+Otherwise pass to the selected language.  
+For now this doesnt leave us much room, but enough.  
+Unfortunately it will be hard to generate pleasing combinations.  
+
+
+**web/public/analyze.html
+Need to display feedback on watch videos.  
+loadMidiFeedback
+getFeedbackImage
+--done
+
+We are not even using the midi, except the midi feedback.  
+We just need to load blank images.  
+
+See if we have a blank image.  
+
+
+Is midi timing good enough.  
+Yes we have ms here.  
+noteOff...
+
+OK, still not quite there.  
+Feedback is not displaying.  
+It is displaying but some wierd problem with Babylonjs perhaps.  
+Time->X calculation incorrect?  
+
+x = Math.round((secs/maxduration) * w - (w/2));
+not quite right.  
+maybe this works:
+		x = Math.round((secs/maxduration) * w); //start at middle of the canvas.  
+		x -= w/2;
+		x = -x;
+
+
+
+Fill in dictionary with words created.  
+/dictionary/
+
+dictionary -> language -> midiseq/meaning.  
+
+dictionary -> language -> word -> {midi, definition, created}
+
+dictionary -> word -> language -> {midi, definition, created}
+
+for now just hold the midi keys as an array.  
+Need more data probably to keep history of language in tact, but for now this will do.  
+
+Allow definition to be edited
+TODO: How do we keep the history of words/definitions.  
+on edit add to history table?  
+
+Test dictable.  
+Not done yet with this.  
+Add logic for spoken language change.  
+Then test.  
+
+Then add functionality to add words.  
+Need command delay control (how many seconds prior to start) and speed control.  
+Play control for each word/concept to find/play all locations associated with that concept.  
+can we generate a new video for this, or is jumping in the video control enough?  
+Probably enough for most use-cases.  
+
+
+
+
+
+**extensions
+ROLI: Top of Keys = control
+bottom of keys = free
+
+**web/public/analyze.html
+Show topics/add topics.  
+Make suggestion list of topics (some work needed), easy interface to just click add/remove.  
+
+DB need top folder /topics
+/topics/topicname/topicvalue/YYYYMMdd/videoid
+relevance: 90%
+
+author, name, other
+for now.  
+What data do we want here. mostly point back to videos.  Perhaps we want a date
+Where we click on the topic will indicate the relevance for the video.  
+Dont have multiple clicks for this.  
+Feedback in some sort of color indication (or bar)
+
+For now need to be admin to create topic or word definitions.  
+
+
+**timestep.py 
+pass all topics to **server/transcription
+
+
+
+
+I cant do this all alone.  Too much to do.  
+But how to make a community?  
+Never been good at this.  
+
+**petunia 
+Need a second server (useyoutube=false), need to complete this.  
+This will allow for more participation.  
+
+**web/public/server
+Need to be able to register other instances and need API to connect.  
+to start just 1-deep tree search.  
+DB need top folder /servers
+
+**web/public/analyze.html
+Get subset of user feedback and display words based on language.  
+Start with (base)
+--done
+
+**web/public/search.html
+Search/Chat, and also with connected instances.  
+
+
+**database.rules
+This is opening the DB for comments by anyone.  
+Probably should be an option.  
+
+RTDB how do we allow write on a nested dynamic folder.  
+can we do
+"misterrubato": {
+    "$videoid": {
+        "comments": {
+            "$uid": {
+				".write": "$uid === auth.uid"                
+            }
+        }
+    }
+}
+
+test this.  
+
+create a section where only the user can read
+/users?  
+/users/$uid/settings
+Does this actually work?  
+
+
+**languages/ or extensions/keydict
+Need to have point function and basic attention markers BBOX, Oval, Arrow etc.  
+start recording and pause recording may also need to pause the original screen simultaneously as well.  
+Yes probably.  
+
+ROLI hope it has good midi/API access.  
+
+
+
+**server/transcription.py
+Is this actually working?  
+../../../coqui/TTS/recipes/ljspeech/LJSpeech-1.1/metadata.csv
+Test with new setup.  
+
+Need color picker/icon picker for display of words.  
+Need user icon somewhere.  
+Need dropdown datatable filter for lang
+
+
+
+https://open.spotify.com/episode/7H4ICIgQET0xy33q1QyKmP?si=73329696932641b1
+Sleap
+https://sleap.ai/
+
+having some issues with pianoimg in loadCanvas.  
+We should check if the URL is giving us an image before adding.  
+Unfortunately sometimes we get no image.  
+
+Show feedback from a mix of users.  
+Selection to include or not certain users.  
+
+Just add all to the midiarray, or just change midiarray to a multi-array and load each one separately.  
+This is probably better.  
+Then determine which words to show depending on the density of information.  
+Filter by word or by user.  
+Just have user in the columns.  
+OK, this seems to work ok.  
+
+OK, the structure is there I think.  
+Now need to load more user feedback, but need to add feedback from another user.  
+Then test.  
+
+Need to limit feedback if we have lots of user feedback info.  
+
+Play by word or by user.  
+What is constitutes a segment?  
+
+Have to go through word start/end and push to one side.  
+First of all need to get rid of the excess midi messages.  
+
+
+**TTS/TTS/bin/synthesize.py
+Finally got something out of this 180k steps in training:
+python3 ./TTS/TTS/bin/synthesize.py --text "I am determined to acquire language." --model_path "./TTS/recipes/ljspeech/tacotron2-DCA/run-April-19-2024_02+00AM-0000000/best_model.pth" --config_path "./TTS/recipes/ljspeech/tacotron2-DCA/run-April-19-2024_02+00AM-0000000/config.json"
+
+Still bunch of empty space after the actual spoken/broken text.  
+
+See if 400k training steps allows for less broken or less empty space.  
+
+
+If the feedback includes visual cues, could combine the feedback from multiple users to create a new iteration.  
+Also eventually will need an algorithm for combining feedback in a meaningful way for each viewer.  
+There is a rudimentary type of this algorithm already in social media functionality.  
+
+

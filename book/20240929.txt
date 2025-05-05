@@ -1,0 +1,514 @@
+**web/public/game
+Make voice interactive simple game for reference.  
+
+**server/game
+For a text, create a RAG based on time in the text.  
+not sure best approach.  
+Simple time based 
+Or potentially just use the LLM.js in local browser with these rag dataset. 
+Could use something simple like this
+https://github.com/MattDClarke/Voice-controlled-snake-game
+Really looking for a library which has some intelligence and story ability.  
+Or at least something based on a common Gaming engine.  
+https://github.com/okaybenji/text-engine
+
+https://github.com/Yuan-ManX/ai-game-devtools
+Some curious links from here:
+https://github.com/choosewhatulike/trainable-agents
+https://github.com/kyutai-labs/moshi
+https://github.com/BAAI-Agents/Cradle?tab=readme-ov-file
+https://github.com/TencentARC/SEED-Story
+https://github.com/ali-vilab/VGen
+https://github.com/Vchitect/LaVie
+https://github.com/see2sound/see2sound
+
+
+
+
+
+
+Passing the wav files to the browser should not be hard.  
+Essentially create a Narration based on the book.  
+
+
+##LLM.js
+LLM.js needs to add a RAG functionality.  
+Then this would be much simpler.  
+
+https://blog.streamlit.io/using-time-based-rag-llm-apps-with-timescale-vector/
+
+Basically making DB shards, and querying the ones which are relevant.  
+Yes this makes sense.  
+
+
+**web/public/analyze.html
+have a flag to not load voice interaction.  
+And jump to location.  
+Find similar sequences of midi (words/sentences) and jump to those locations.  
+
+
+
+
+**web/pubic/game/text-engine/
+
+Let's just use something like this and create realistic voice, and narrate a choose-your-own adventure story.  
+Using different character and narrator voice.  
+https://github.com/huggingface/parler-tts
+https://github.com/okaybenji/text-engine
+Combine this with the actual transcript whatever it is.  
+This is a pretty decent little library.  
+Can we make this more dynamic/natural somehow with LLM.js?  
+Make a minimap of discovered area.  
+We can probably just create this.  
+Story component, then minimap, and then graphical component.  
+Let's make a real image.  
+
+
+Best is if we have all in javascript, but we can get the voice for now from another engine for fun.  
+Until TTS customization is built in to browsers.  
+
+Use this simple framework with custom voice generation and then possibly custom image generation.  
+Simple service to serve the voice prompt.  
+For now custom TTS leave it be.  
+Then possibly continue the generation.  
+https://github.com/TencentARC/SEED-Story
+
+Where can we get the original story?  
+
+
+Anyway, for now just integrate the LLM.js with text-engine.  
+Talk to can be a random query to the LLM with prompt.  
+Similar prompt regarding character/voice aspect to parler-tts.  
+
+Use LLM to find location, and use dynamically generated story and dynamically generated map.  
+Can we generate an interesting story in this way?  
+
+For now just allow it to not have story line.  
+Generate location, voice, items in the scene.  
+what can you do with this item.  If something comes up in the further story, allow use of this item.  
+Simply if the use makes sense.  
+So all dynamic, but just complete chaotic story.  
+
+Show minimap for known locations within X radius.  
+Generate dynamic distances between a, b for map generation.  
+Perhaps just display the map on the background of the text div?  
+
+**web/public/testllm.html
+        const write_result = (line) => {
+
+        const run_complete = () => {
+
+Use these two functions to speak.  
+
+
+OK, so have interactive speech.  
+But the LLM results are pretty bad.  
+Should allow for random interaction with backend LLM as well.  
+
+Now integrate this with the gaming UI, and read sentence by sentence.  
+
+Get random number of exits (1-8) N,NE,E,SE,S,SW,W,NW
+
+
+Get random location in a city - Just make a list.  
+Could just use OSM or something.  
+https://leafletjs.com/examples/quick-start/
+https://github.com/OptimalLearner/Leaflet-JS-Example-Code
+
+
+Maybe just use real-world map and generate the story and items.  
+Allow to go to location and generate a story based on what is near there.  
+Just pick random locations between the point of origin and the destination.  
+
+Goal is to try to find someone.  
+Pick a location for the goal and have them describe what they see.  
+Different kind of geoguessr.  
+
+
+Get random items - Just use the location to generate items that might be found here.  
+Generate minimap and item info.  
+
+This LLM not really good enough for what I want to do.  
+But I want it in the browser.  
+
+**web/public/game/testmap.html
+https://gist.github.com/tyrasd/45e4a6a44c734497e82ccaae16a9c9ea
+
+This seems to work ok after changing to https://
+So use this to get overlay info.  
+And then generate the game from here.  
+
+Dont actually show the map.  
+or show only where we have travelled.  
+Generate the story from here.  
+
+What is the goal though?  
+
+OK, lets just add the actual map to the game UI.  
+For now random location is fine. 
+
+Can we have P2P data transfer?  
+I guess we could have this for currently online.  
+Simple in-memory server.  
+Nah.. if we do this, we need to create DB and backend becomes more complex.  
+Or can we keep this real-time data in the current DB in a meaningful way?  
+If we use location names and sub-location names, then probably fine.  
+
+
+Describe the location based on the city name and a location within that city.  
+20 questions / battleship combo.  No visuals just noises generated and descriptions generated by AI?  
+
+Determine radius for win.  
+Randomly, see how smaller larger radius changes the game.  
+
+Can only go a direction and distance.  
+Choose exact bearing and distance.  
+tell general direction and distance.  
+And user has to move from their original location exact bearing and distance.  
+Either move, if land within X radius of other player, win.  
+Dynamic radius based on how far away they are.  
+
+-turn based
+-timer to choose action
+/move (max distance)
+/get hint
+/hide (minimize radius single turn)
+Gets smaller as game goes on?  
+
+after each turn the other player is notified of the action taken.  
+And given some info.  
+/move gets general direction of the move or general distance of the move.  
+/hint gets to see the same hint.  So if too good, can move
+/hide other users knows the radius
+
+Keep all dialogue and list of hints/moves etc in the scrolling text.  
+Map will show all moves as POI #1, #2, etc.  
+Bonus for getting within the radius.  
+Value changes for how close to bulls-eye.  
+Points given though for getting closer.  
+
+Start > 2* max distance to be fair.  
+
+Will the LLM be good enough to generate hints that are useful?  
+Maybe randomly good/bad hints will be interesting.  
+
+
+
+...
+perhaps some other functions.  
+Minimal movement gives points.  
+Grade on each move, distance closed or distance widened.  
+
+
+
+Why am I not displaying meta words?  
+
+Need to show some more feedback on commands being run.  
+Print out a console of at least going through the command.  
+
+The Roland keyboard when BT is on causes some issues.
+
+Power/Mode button at the bottom left
+
+Ugh, still have note duplication somewhere.  
+I think I save twice the notes which were loaded.  
+OK hopefully fixed.  
+remember the var is not local to the function unless explicitly declared.   
+
+Display immediately after update.  
+
+Nice, I think that works.  
+
+**web/public/analyze.html
+getFeedbackImage
+Have to get the actual words, not the midi array.  
+
+
+Check out Llama 3.2 image functionality.  
+>ollama run llama3.2 
+https://github.com/meta-llama/llama-stack
+
+
+Rearrange 
+wordtimes["lang"]["word"][]
+wordtimes[lang][word][user]
+to time based.  
+langindex["lang"]
+
+getWords(start, end, filter)
+timebased array of words (user, lang, word)
+time -> {user, lang, word, ...}
+
+**languages.js
+filterWords()
+finish this.  
+Add start/end time.  
+
+With the feedback, mimic the midi word playback mechanism
+-AAAAAA--EEE
+--BB---
+----CC-
+------D
+for example.  
+200, so perhaps 5 down or 10 down.  
+Depending on setting.  
+Use different color text, perhaps do this by user.  
+Dynamically change the user reference color map?  
+No, keeping colors the same is probably best.  
+
+
+
+
+OK, maybe this is working ok.  
+
+Need to add the simple text to the overlay.  
+
+
+
+**web/public/analyze.html
+bug with 00:00 start time.  
+iterationCalculation for first iteration. 
+
+
+**web/public/languages.js
+loadLanguage(..)
+Need to test a language with Kanji.  
+Should make sure this works earlier than later.  
+
+Change base language to use 2 note messages.  
+
+Ugh getSecsFromXY fail.  
+Hmm some issue where we get multiple pointer events for babylon.js.  
+Just ignore if it is the same X.  
+Not sure origin of this issue.  
+
+Print text.  
+loadCanvas(..)
+Continue...
+
+Ugh, finally got this working.  
+We now have words and pianoroll.  
+Not perfect.  
+Maybe move this canvas overlay next to video?  
+hmmm...
+
+Word is a color
+Or combination outer/inner color
+Mark color indicates person?  
+Word color adds to word recognition.  
+
+Spotlight needs to move up and down.  
+Also why are some lines disappearing?  
+
+OK, still have language issues.  
+have to use the pedal.  
+Not sure if I like this.  
+If I use the pedal seems to work ok.  
+
+OK, maybe this bug is solved.  
+
+Anyway, see if we can get both languages working with the GUI.  
+
+Need to study some linguistics.  
+See if I get any ideas.  
+
+
+**web/public/analyze.html
+Save to playlist for watch later.  
+Then use youtube API to get from playlist.  
+Can we get this:
+
+WatchLaterPub
+https://www.googleapis.com/youtube/v3/playlistItems?playlistId=PLurfgbaepqV2cAROz72UQ6U-zlXilvhR9&part=snippet,id&maxResults=20
+
+WatchHistoryPub
+PLurfgbaepqV0VfCxt8kw_c6-gk4R8vH1i
+
+Put into bottom right for now, this should be per user.  
+Lets save in the user DB.  
+If not public can we get it?  
+...
+
+
+Save in DB under user.  
+
+Need to probably decide expected installation realm.  
+
+Do we really need the API key?  
+
+**timestep.py
+Ugh, do this to get WatchLaterPub and WatchHistoryPub for displaying.  
+https://www.youtube.com/playlist?list=PLurfgbaepqV0VfCxt8kw_c6-gk4R8vH1i
+
+Then just use this:
+https://img.youtube.com/vi/2EAZDoXp4DU/0.jpg
+No authorization here.  
+
+
+$(document).ready(function() {
+
+    var playlistId = "your_playlist_id",
+        APIKey = "your_api_key",
+        baseURL = "https://www.googleapis.com/youtube/v3/";
+
+    $.get(baseURL + "playlistItems?part=snippet&maxResults=50&playlistId=" + playlistId + "&key=" + APIKey, function(data) {
+        // Do what you want with the data
+    });
+
+});
+
+
+Not an elegant solution because of Youtube sharing issues.  
+Good enough to do?
+
+Once feedback saved, remove from WatchLaterPub and move to WatchHistoryPub.  
+
+
+**language.js
+Norvin W. Richards
+**Mvy5hjAWeZw
+Need some sort of language relationship mapping.  
+I think we need to experiment with the idea of morphemes for the midi word syntax.  
+I still like the general idea of symetrical messaging.  
+Semitic (templatic morphology)
+
+How do we do this exactly?  
+Perhaps any double entry can be extended to indicate certain things.  
+Time or attribution to another element?  
+
+How do we use time?  
+
+
+For now some basic notation.  
+Up is default no notation for single octave up.  
+A->B
+
+Octave up
+_A->A
+
+Double Octave
+Largest jump
+_A->^A
+_A->^B
+
+Double Octave Down
+^A->_A
+
+Down refers to referential grammatical structure.  
+Grammatical structure ideas.  
+A->_G refers to point of reference.  
+
+Can go back up to 5 perhaps in the stack.  
+A->_Ab
+A->_G
+A->_Gb
+Next step can refer to something else like type of grammatical structure?  
+Verb/Adjective/Noun etc.  
+Or could have the order swapped.  
+
+
+Up refers to word meaning.  
+Word meaning is heirarchical.  
+
+ABBA is going to be similar to ABCCBA
+Symetric structure internalized.  
+If we do this though, what is the indication of a new word or new phrase?  
+Just the downward structure?  
+
+Perhaps we need word start indication
+A->_G->A
+And then if there is further structure
+A->_F->A etc.  
+
+
+Or can we use octaves to indicate something? 
+This may be easier to detect than exact Tones.  
+O3 O4 O5 O6
+any sequence started in these octaves have meaning?  
+What can we use to have optional meaning but still use a smaller octave set?  
+For now lets prioritize communication.  
+Octave switch should be doable with some other mechanism for smaller keyboards.  
+So each step variance 11 possibilities can be repeated for each octave to create a word.  
+Want to be playing mostly on higher end.  
+So start perhaps at O2 or O3 usually.  
+Only meta or other uses O0 or O1
+For now:
+Just use A0-C0 for meta control like we already are.  
+C0-C1 is for meta commands.  This is too hard to distinguish anyway.  
+And use C6-C7 for meta commands.  Out of hearing range for some.  
+I think we should have an extra octave or two to be honest, hmm maybe not so useful.  
+I think 24 key octave would be more useful.  
+
+Up to C9, maybe just use a separate keyboard for that for now.  
+
+So we have C1-C6
+Not so much.  
+Any octave start sequence is extended (use time?)
+i.e.
+D1-F1
+D2-G2
+D3-A3
+--
+Start indication needed?  No we are only taking the difference.  
+REFERENCE indicator if applicable.  
+E1-D1-E1
+E1-F1
+E2-A2
+E3-A3
+--
+
+In general step up, step down indicates what?  
+D1...D3A3 
+C1...C3G3
+
+We can use step down, this is just like using the following simplified form.  
+E1-F1-E2-A2 = E1-F1-_A1
+or
+E1-F1-E2-A2-E3-G3 = E1-F1-_A1-G1
+reverse of direction indicates next step in word.  
+In this case we end with same unit or double unit.  
+So
+E1-F1-_A1-G1-E2-E2 perhaps.  
+Or E2-E1 perhaps.  
+Yes simplified version with multiple octaves I think is a nice concept.  
+Do we use MPE in this.  
+Need to understand the MPE messages first of all.  
+But we couldnt capture...back to previous problem.  
+For now skip the MPE featureset except for extension.  
+
+
+Next word must start after Octave.  
+Should it then go E1-A1-A1 to start the next word for instance.  
+This distance should indicate something significant.  
+Either referentiality or part of word class (part of speech)
+
+What are the best classes for words.  
+Why do the ones we have exist.  
+What is the "etymology" of parts of speech?  
+
+
+
+Is this a more favorable word unit?  
+Step down can occur at each level.  
+
+
+
+May be interesting to find harmony in words this way.  
+
+
+
+https://viva.pressbooks.pub/openmusictheory/chapter/aspn/#:~:text=ASPN%20differentiates%20between%20octaves%2C%20from,0%20and%208%20are%20included.
+
+
+
+Where should symetric structure of the word come from?  
+AA what should this mean?  
+Do we only have 12 base structures?  
+and build from there?  
+Or is there no structure except relative structure.  
+I kind of like this better.  
+But needs more notes.  
+
+
+1 up 1 down is standard.  
+2 up 2 down is a modifier.  

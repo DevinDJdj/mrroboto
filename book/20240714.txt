@@ -1,0 +1,489 @@
+
+**web/public/recent.html
+Need recent watch as well as created.  
+Add watch parameter
+watch=true
+
+sort by: 
+/watch/[videoid]/snippet/addedAt
+
+add value:
+/watch/[videoid]/comments/[uid]/pctWatched
+
+Use these two parameters to sort results.  
+
+
+**web/public/languages.js
+"change color for " word (color, 12-12)
+
+
+**server
+Try Deepspeech insead of Coqui for STT/TTS training.  
+There is some poor compatibility with the NVIDIA driver that Coqui causes.  
+Functionality is the same.  
+
+**server/transcription/server.py
+Need update of STT to use Deepspeech or similar.  
+I guess try this:
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+
+**web/public/analyze.html
+Test:
+MscGMds1wn4
+
+OK, multiple users ok now, but how do we distinguish between them in the feedbackImage?  
+
+Build meta commands, playback filtered list.  
+Playback with filter functionality.  
+Need to create/test this.  
+
+This should also run the commands associated with the transcript.  Whatever they are, or have the option to.  
+If we are running the commands, we should add to our feedback channel of whatever the language is for our user?  
+Or should that be separate option?
+
+Should test
+set octave 
+
+Go ahead and complete seekTo Functionality.  
+
+Need to fix the login functionality.  
+
+
+**web/public/db.js
+Need to move some things here as well.  
+
+
+
+
+**web/public/analyze.html
+How do we draw on the frame of the video?  
+Annotation on the video should be a basic function.  
+Need to drive from MIDI first
+https://stackoverflow.com/questions/33834724/draw-video-on-canvas-html5
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas
+draw transcript just above keys?  
+Not sure if it will work well with youtube.  
+
+test highlightvideo function.  
+
+How/what do we want to display?  
+Embed video on BabylonJS
+https://playground.babylonjs.com/#1DX9UE#3
+
+Make video hidden and draw canvas in the same location as the video.  
+
+Make video hidden, and then 
+
+
+OK, lets keep this along with the video for now.  
+Draw on this copy any text and info needed.  
+Could also match up the midi keyboard notes.  
+Maybe match up the BabylonJS underneath.  
+And push the static info to the right.  
+Yeah I think that's better organization.  
+Make video a bit larger and Stack previous and graphic in the first td
+
+
+Lets only display the words in the list which we have times for.  
+Others we can hide.  
+So on setTimes, we should display the row.  
+$(row).hide();
+
+Just do with filter.  
+Not sure if this is what we want.  
+                    dictable.columns(DIC_TIMES).search((d) => d !== "").draw();
+
+
+Add function to add transcript (comments) in a general fashion.  
+Need EOW with this.  
+Need different EOW I guess?  
+0,0,0 clears.  24,24,24 accepts.  
+24,24,24?  Allow empty midi, and just pull spoken text.  
+
+Shifted language-specific command sets should mimic meta set if possible.  
+
+Accept use of keyboard if there is no midi.  
+Turn on/off keyboard function.  
+Or accept topline numbers (~-+ = 0-12, SHIFT = 12-24)
+
+
+List languages.  
+If lang is being used.  
+Redraw labelDic() each time.  
+
+OK, 
+need to adjust funcdict
+need this to be this.funcdict[lang][key] = function
+right now all meta.  
+Need a list of languages to check.  
+
+Do language listing/management first.  
+Do we want to add to transcript?  Not sure yet.  
+This is all transcribed data, so it is just preference.  
+Maybe just show transcript of the currently selected language.  
+
+use midiarray[currentuser][lang]
+Any array that exists here
+This should only exist if it is already used or if we selected the language.  
+So we want to load all languages in the midi if there is select language...
+Also if it has been used in the feedback.  
+Do we need another structure here besides midiarray?  
+
+Eventually may want to hold same data in midiarray2[lang][user...]
+
+all languages in the piano map should be included in AutoDic
+
+Need button to filter "includes word" (times) or not filter on times.  
+
+Why does bottom octave not work?  
+
+Test add language.  
+Does this make sense as a command?  
+Not sure, but in general let's make any substantial action taken in use of the software, allow for function generation via language and midi.  
+
+Need to dynamically add the words.  
+
+How can we check for words as they are added?  
+findWordsA
+
+Decect word added via keymap.  
+Then reset wordtimes
+Then call setTimes with
+setTimes(lang, word, wordtimes[lang][word], user);
+getFeedbackImage(null, xmultiplier1, ymultiplier1, scene1, engine1, currentmidiuser, lang);
+getFeedbackImage(null, xmultiplier2, ymultiplier2, scene2, engine2, currentmidiuser, lang);	
+
+const options = {
+  points: myPoints, //vec3 array,
+  updatable: true,
+};
+
+let lines = BABYLON.MeshBuilder.CreateLines("lines", options, scene); //scene is optional and defaults to the current scene
+
+
+**web/public/languages/tennis.js
+in each language.js, need a 
+//Need to load others from /languages/LANG.js LANG.Keymap(), LANG.updateState()
+
+**web/public/speech.js
+keymaps[lang] = new Keymap();
+
+**web/public/languages/tennis.js
+overwrite whatever functions we need.  
+keymaps["tennis"].funcdict["..."] = function ....
+
+How are we mapping octaves here?  
+using keybot["lang"]
+
+
+foreach keymaps[lang].findCommand(...)
+
+Bring loadKeys out of constructor.  
+
+
+**web/public/languages.js
+Sort order of AutoDic, MetaDic sould be based on Feedback.  
+Most used in Feedback combined with most used of the user.  
+Need some ability to hide/put at the bottom any particular word.  
+Should still be searchable, but just pushed to the bottom.  
+This allows us to get the words we need in reference.  
+
+
+Maybe this is working ok for now.  
+
+OK, load the keydict of the language from the DB.  
+
+Filter should actually filter by key.  
+Right now filtering 1 will show 11, 12
+filtering for 0 will show 10.  
+Do we care?  
+
+**web/public/keymap.js
+Should we use 21, 22 in the web UI?  
+Could use to load (pull for any updates)/update (save my updates).  
+Probably lets use a different set of commands.  
+21,21,21 perhaps.  22,22,22
+
+Can we combine words from different languages ok with the current structure.  
+This is important, we will have some dictionaries of just identifiers.  
+And we want to be able to create abstract terms which refer to those identifiers.  
+So i.e. 
+add language company directory
+add word yyyy@zzz.com (identifier)
+
+Then afterward
+****COMPANYDIRECTORY****xxxMYLANGxxx
+use multiple dics and combine words/parameters
+MYLANGFUNC -> Directory entry.  
+
+current structure allows for 4/8 seconds from start of word to end of word.  
+This should be adjustable.  
+**web/public/midi.js 
+recentTime
+
+Is this good enough for tempo?  
+Depending on the language this should be adjusted probably.  
+
+500 ms for the command check interval.  
+
+Not sure this structure is optimal, but seems to work, so let it be for now.  
+
+But should work for combining languages/directories.  
+
+Should words have sub functions?  
+How can we structure this better.  
+Post-prefix operators?  
+We already have that structure, but right now we are only using midi as post-prefix operators.  
+Structure is ok.  
+
+How do we deal with ambiguity?  
+
+Check commands without midi.  
+May have broken this.  
+addCommandLog() - spoken
+Then checkCommands - spoken + midi
+midi is after, and appends to the transcript.  
+Then we could potentially add more to the transcript with spoken again.  
+The timing of the speechrecognition component will be crucial to make it natural.  
+
+We continue to hold the command log with " " 
+
+How do we know which goes first spoken text or midi commands.  
+If commands are translated first will spoken get added?  
+getPendingCommand() could append commands.  
+
+How can we chain commands.  
+send info to (find user 4,5,6)
+Should we have a command log per language?  
+Perhaps yes.  
+Put as part of hte keymap struct.  
+under keymaps[lang]
+
+Perhaps lets use the word or phrase vector to find commands.  
+So if there is no command found, run through a filter to find likely commands and replace.  
+
+Midi keys are better suited to represent numbers.  
+Need a better way how do we meaningfully map words to keys?  
+heirarchical structure is good.  
+0,3,0
+-> 0,3,4,0 (any similar prefix is similar word/heirarchy)
+-> 0,3,4,7,0 (etc..)
+
+Should have similarity between 0,3 and 1,4 as well.  
+1st order diff.  
+
+
+MusicXML is there a repository of this?  
+https://www.w3.org/2021/06/musicxml40/tutorial/hello-world/
+can we get musescore musicxml?  
+Perhaps find/write a musicxml viewer
+
+Maybe not so interesting.  
+
+Should just use midi->staff.  
+i.e.
+https://github.com/Stereo101/python-MidiToVirtualPianoMacro
+
+
+
+Ah something maybe useful which I can use without too much trouble.  
+https://github.com/0xfe/vexflow
+https://vexflow.com/vexwarp/
+
+We want a new rendering though.  
+
+
+Why are we getting extra midi messages after save?  
+--OK I think this is fixed.  
+Javascript has a problem with local variables if you dont actually instantiate with 
+var ....
+annoying.  
+Run into this a few times now.  
+Have to get in the habit of instantiating with var ...
+
+
+
+**web/public/midi.js
+onEnabled()->
+Accept use of keyboard if there is no midi.  
+Lets just accept it anyway as a substitute regardless of midi presence.  
+
+
+Turn on/off keyboard function.  
+Or accept topline numbers (~-+ = 0-12, SHIFT = 12-24)
+document.addEventListener("keypress", function onPress(event) {
+    if (event.key === "z" && event.ctrlKey) {
+        // Do something awesome
+    }
+});
+--meh...
+
+
+Sentence to vector manipulation:
+https://www.misterrubato.com/test/word2vec-demo/index.html
+
+
+Analyze midi sequences.  
+**analyze/analyze3.py
+Transcript service being off affects /stats/numwords
+printMidi
+printTranscript
+
+
+**web/public/keymap.js
+findCommand
+not returning correct language.  
+is this only if we change octaves?  
+
+
+Check loading "base".  
+Then switch to dynamic keydict
+
+--OK, appears to work.  
+
+Transcript only added to our history when we have "Chat" function which is recognized.  
+I think this is close to what we want.  
+
+
+**extensions/
+Can we use this:
+https://chromewebstore.google.com/detail/instant-data-scraper/ofaokhiedipichpaobibbnahnkdoiiah?hl=en-US
+C:\Users\[login_name]\AppData\Local\Google\Chrome\User Data\Default\Extensions
+
+No too much code and obfuscated.  
+
+Would be good to have some additional logic in extension for summarizing content.  
+https://github.com/Yale-LILY/SummerTime
+
+Try this:
+https://github.com/miso-belica/sumy
+
+Where can we use this.  
+Better if we have in Javascript...
+Maybe just add a simple server for now.  
+Summarize and find most similar documents.  
+https://wolliq.medium.com/ranking-document-similarity-at-scale-with-spark-nlp-4b7a23f32694
+https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html
+
+Test script:
+https://www.geeksforgeeks.org/doc2vec-in-nlp/
+
+
+Just use this with text in page and divide into bits.  
+Dont find javascript implementation.  
+
+Create doc2vec of the text from transcription.  
+So just load/save the model as we train it per doc.  
+Get similar doc graphs from this service.  
+List most similar videos on analyze page.  
+
+Add Doc2vec similarity service.  
+
+
+
+**web/public/languages.js
+Need a set group functionality.  
+And group identifier.  
+This will essentially be a notifier/access control function.  
+
+Add group
+Add user
+Dont really want to do user management, but it is necessary.  
+Can we store this in the google record?  
+Essentially just get the groups that user is in.  
+
+Create notification structure for users.  
+This is delivered with ./timstep.py
+
+user/[id]/groups/...
+
+groups/[id]/users/...
+NxN entries.  
+
+Maybe hash struct?  
+Make the hash represent locality?  
+
+Make this the default heirarchical search.  
+This is within the group.  
+Depending on participation calculation of some sort, move up and down the heirarchy for this group.  
+Notify those one level above and below level of participation for said topic.  
+Or could just be the people who have commented on similar topics.  
+
+Also use some sort of similarity vector and notify those working on similar topics with some randomness.  
+Each document/video is a topic in and of itself which receives a vector.  
+So essentially something similar to a recommendation engine will be used for notification if activated.  
+This is already what is occurring with all the video/media streaming services.  
+
+
+
+Locality group
+
+good sample:
+https://radimrehurek.com/gensim/auto_examples/howtos/run_doc2vec_imdb.html
+
+https://towardsdatascience.com/named-entity-recognition-with-nltk-and-spacy-8c4a7d88e7da
+
+
+article = nlp(text)
+labels = [x.label_ for x in article.ents]
+Counter(labels)
+
+**generate/baseball.py
+Still need to create the tennis language via the UI.  
+Initial language outlined
+
+
+Also test multiple tracks (languages) and multiple user feedback.  
+
+add language tennis (-6,6)
+--start here.  
+Hmmmm... not working great.  
+Also feedback is multiplied by the number of languages.  
+Why is this occurring.  
+
+analyze.html?video=mj4jpeBvD2o
+change language (-6,6)
+add word hit (6,6)
+how do we have synonyms?  This would get overwritten
+Could have something mimicing back and forth across net.  
+add word backhand (6,1) 
+add word forehand (6,3) 
+add word slice (6,2)
+add word topspin (6,4)
+add word volley (6,8)
+add word drop (6,10)
+add word serve (10,11)
+
+add word fault (10,9)
+add word let (10,8)
+add word out (5,5)
+add word long (5,6)
+add word net (5,4)
+add word bounce (4,4)
+add word applause (3,4)
+add word noise (3,5)
+
+add word score (2,2) (param = 3,4,5,6,7)
+2,8 = minus point, 2,3 = plus point, 2,4 plus game, 2,5 plus set
+2,9 = minus game, 2,10 minus set 
+
+
+
+add word player one (9,8)
+add word player two (9,10)
+9,8 = set player 1
+9,10 = set player 2
+
+2,3,9,8 = player 1 gets point
+
+In general should structure from left to right.  
+So in this case player can be a prefix or a postfix.  
+Structure should contain an element of distance.  
+
+**generate/baseball.py
+getTime
+Need to check for skipped days
+Need more harmony.  
+Slow down? 
+

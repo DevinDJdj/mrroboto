@@ -1,0 +1,205 @@
+**web/public/recent.html
+Need recent watch as well as created.  
+Add watch parameter
+watch=true
+
+sort by: 
+/watch/[videoid]/snippet/addedAt
+
+add value:
+/watch/[videoid]/comments/[uid]/pctWatched
+
+Use these two parameters to sort results.  
+
+How do we add videos to watch?  
+
+
+
+**web/public/languages.js
+"change color for " word (color, 12-12)
+
+
+**server
+Try Deepspeech insead of Coqui for STT/TTS training.  
+There is some poor compatibility with the NVIDIA driver that Coqui causes.  
+Functionality is the same.  
+
+**server/transcription/server.py
+Need update of STT to use Deepspeech or similar.  
+I guess try this:
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+
+**web/public/db.js
+Need to move some things here as well.  
+
+
+
+**web/public/keymap.js
+Should we use 21, 22 in the web UI?  
+Could use to load (pull for any updates)/update (save my updates).  
+Probably lets use a different set of commands.  
+21,21,21 perhaps.  22,22,22
+
+Can we combine words from different languages ok with the current structure.  
+This is important, we will have some dictionaries of just identifiers.  
+And we want to be able to create abstract terms which refer to those identifiers.  
+So i.e. 
+add language company directory
+add word yyyy@zzz.com (identifier)
+Need location to input this text.  
+Then we refer using this directory.  
+
+
+Then afterward
+****COMPANYDIRECTORY****xxxMYLANGxxx
+use multiple dics and combine words/parameters
+MYLANGFUNC -> Directory entry.  
+
+
+Ah something maybe useful which I can use without too much trouble.  
+https://github.com/0xfe/vexflow
+https://vexflow.com/vexwarp/
+
+
+
+
+**web/public/midi.js
+onEnabled()->
+Accept use of keyboard if there is no midi.  
+
+Turn on/off keyboard function.  
+Or accept topline numbers (~-+ = 0-12, SHIFT = 12-24)
+
+Test this
+
+
+Sentence to vector manipulation:
+https://www.misterrubato.com/test/word2vec-demo/index.html
+
+
+add language tennis (-6,6)
+--start here.  
+Hmmmm... not working great.  
+Also feedback is multiplied by the number of languages.  
+Why is this occurring.  
+
+analyze.html?video=mj4jpeBvD2o
+change language (-6,6)
+add word hit (6,6)
+how do we have synonyms?  This would get overwritten
+Could have something mimicing back and forth across net.  
+add word backhand (6,1) 
+add word forehand (6,3) 
+add word slice (6,2)
+add word topspin (6,4)
+add word volley (6,8)
+add word drop (6,10)
+add word serve (10,11)
+
+add word fault (10,9)
+add word let (10,8)
+add word out (5,5)
+add word long (5,6)
+add word net (5,4)
+add word bounce (4,4)
+add word applause (3,4)
+add word noise (3,5)
+
+add word score (2,2) (param = 3,4,5,6,7)
+2,8 = minus point, 2,3 = plus point, 2,4 plus game, 2,5 plus set
+2,9 = minus game, 2,10 minus set 
+
+
+
+add word player one (9,8)
+add word player two (9,10)
+9,8 = set player 1
+9,10 = set player 2
+
+2,3,9,8 = player 1 gets point
+
+In general should structure from left to right.  
+So in this case player can be a prefix or a postfix.  
+Structure should contain an element of distance.  
+
+
+
+**web/public/analyze.html
+Can we use a pressed SHIFT/CTRL to extend the command input?  
+Cant capture this off-screen.  So wont work.  Could use midi keys for this I guess.  
+As long as this is in pressed state, dont remove input queue.  
+Need some adjustment to the command building.  
+How do we get better timing from the voice input?  
+checkCommands...
+
+
+---------Use pedal??----------
+once pedal is released read the command.  This may be a good option.  
+Lets try two methodologies.  
+With pedal and as we started.  
+Maybe annoying to need to do the pedal.  
+Perhaps when pedal is down, dont checkCommands until released.  
+This way we just use the same function and just react differently based on pedal.  
+Also commands arent very harmonic at the moment.  
+Maybe make more musical even if we have to make longer commands.  
+
+Seaboard Block M messages not detected by webmidi.  
+**web/public/midi.js
+What messages are we getting?  
+			input.channels[1].addListener("midimessage", (event) => {console.log(event); getMIDIMessage(event.data); });
+
+This is not receiving any, but device seems connected.  
+I like the device, but only 24 keys instead of 25.  This will be a problem.  
+
+
+**analyze/analyze.py
+Lets go ahead and make some more stats about note frequency etc.  
+/misterrubato/[id]/stats
+timeplaying
+numnotes
+
+Consistency between iterations
+#unique words
+#word duration
+#stddev of duration
+Analyze a few different word lengths in this way.  
+Use relative distance from initial key, not absolute
+This will find some generated patterns.  
+Try to distinguish generated patterns from read patterns.  
+General Tempo analysis.  
+
+**extension
+From extension can we open the site and work side-by-side?  
+
+
+
+**web/public/analyze.html
+
+Need a flag to accept incoming text
+
+
+Some spaghetti around the pedal logic.  
+Lets see if this improves the functionality though.  
+
+
+**web/public/analyze.html
+Still need to show the feedback immediately.  
+
+
+**doc2vec
+BLAS library for optimized bulk vector operations
+Dont worry for now, it is 50x slower on non-optimized. 
+
+
+https://storage.googleapis.com/misterrubato-test.appspot.com/videos/2024-01-31%2011-38-27.mp4
+
+
+When pedal down, just use filter and nothing else.  
+Should be working like this.  
+Need to use this more. 
+Just use voice commands.  
+When voice commands are used, we should filter and see key commands.  
+Gradually may/should use this.  
+
+Maybe show midiRecent in the status

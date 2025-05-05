@@ -1,0 +1,563 @@
+
+**server/transcription/transcribe.py
+set up and use this if possible.  Or create separate transcribe2.py
+https://github.com/coqui-ai/STT/blob/main/notebooks/train_personal_model_with_common_voice.ipynb
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+
+**web/public/analyze.html
+id="transcript" 
+Save same result we get to 
+/words/YYYY/file
+And /misterrubato/[videoid]/transcript/
+When updated via UI, update this file contents as well.  
+Perhaps need .xxx ms as well
+
+
+**web/public/recent.html
+Need recent watch as well as created.  
+Add watch parameter
+watch=true
+
+sort by: 
+/watch/[videoid]/snippet/addedAt
+
+add value:
+/watch/[videoid]/comments/[uid]/pctWatched
+
+Use these two parameters to sort results.  
+
+
+**web/public/analyze.html
+**web/public/keymap.js
+Need midi command to mute the sound output from feedback in case this is already audible.  
+Mute/unmute
+mute = 12,6,6,12,0
+mute output = 12,6,6,12,1
+set volume 100% = 12,6,6,12,24
+additional pause/play with set speed.  
+pause = 0,1,1,0,0
+play = 0,1,1,0,1
+add commands to meta track.  
+Need volume control for feedback.  
+Need a display of the midi feedback in real-time, have a x second window to generate.  
+Create possibility to associate color with words.  
+Assign color with keys.  
+Similar function
+"change color for " word (color, 12-12)
+
+
+
+**analyze/analyze.py
+launch process to do transcription via server.  
+Exchange this for current local client process.  
+--done
+
+**web/public/analyze.html
+test filter functionality
+
+
+**web/public/keymap.js
+How do we make this more ordered?  
+
+**web/public/chat.html
+**web/public/analyze.html
+Show user icon of logged in user.  
+Check how prompting works and change user function.  
+Annoying but I think we need it.  
+
+
+**server/transcription/loadall.py
+re-transcribe all data after changing back to whisper-large.  
+Or changing to STT mechanism.  
+
+**server/transcription/transcribe.py
+Need to be able to load from MEDIAFILE.  
+/transcribe/?videoid=sdtc1to0CM8&mediafile=https://storage.googleapis.com/misterrubato-test.appspot.com/videos/2024-06-04%2022-00-17.mp4&st=141,541,949,1321&et=529,885,1286,1657
+--fixed I think.  
+**timestep.py
+test.  
+
+
+**record.py
+change to use this transcription
+/transcribe/?videoid=sdtc1to0CM8&mediafile=https://storage.googleapis.com/misterrubato-test.appspot.com/videos/2024-06-04%2022-00-17.mp4&st=141,541,949,1321&et=529,885,1286,1657
+Save to text file.  
+pull from timestep.py (535)
+change transcribe_me to point to separate function same as in timestep.py
+--ok maybe it works.  
+Need to watch timestep.py and analyze.py if any problems.  
+analyze.py still not using new **util.py
+
+**web/public/analyze.html
+
+
+**server/transcription/server.py
+also add transcriptfile=xxx
+when this is passed, use this as the local file to pass to ollama.  
+When not present dont pass, use the mediafile, when this not present use youtube videoid.  
+Do check that the URL passed is allowed.  
+--done, needs test
+
+**timestep.py 
+upload new transcriptfile if updated not null.  
+--done
+
+This is all still messy
+
+
+**web/public/analyze.html
+Need to start showing events.  
+need to add 'transcript' and 'meta' tracks.  
+Flag for including transcript/meta events in flow.  
+Then when skipping, search for next word (with filter) and/or meta/transcript event.  
+Then show the event details.  
+
+
+**server/ollama/load.py
+adjust to use REVIEWED topic when we have reviewed the transcript.  
+
+**web/public/chat.html
+use topic REVIEWED in future to see what difference this makes.  
+yeah, then we get all transcript and REVIEWED separately.  
+
+Not adding topics for other transcription yet.  
+How do we do this?  In analyze.html add topics/labels.  
+
+**record.py use Groupname as topic.  
+
+In order for this to have much meaning, we need to figure out how to use a minimal base LLM.  
+With enough data, probably doesnt matter, but without a large amount of data, we mostly get the LLM data which is not all that interesting for our use-case.  
+
+
+**web/public/languages.js
+statefeedback.  
+Need to dynamically generate this from the transcript.  
+In transcript we can see the change language etc.  
+So each language will have a function to do this that will be dynamically loaded if it exists.  
+If doesnt exist, use the base statefeedback function.  
+This will be like a dashboard.  
+Should we make separate transcripts based on language?  
+I think no, but we may want to change color of the text based on the language color.  
+
+**web/public/tags.js
+logic for tagging.  
+Need autocomplete here.  
+Pull from /topics in DB.  
+Then have pointer to any videos underneath this tag name.  
+This will be added to topics parameter when ingesting to ollama.  
+topics must start with certain
+Should we add uid who create word/tag etc?  
+
+Finish loadTags from DB and remove tag speech.  
+addTag and removeTag need to touch UI.  
+--done, maybe working ok.  
+
+Carefule with DB mechanism.  Can delete data if not careful.  
+Need to use separate ref variable name as this is used in the promise afterward.  
+
+
+Why are we getting this in transcript:
+set speed 1.50 (01:55)
+set speed  (01:56)
+
+Test timestep to make sure nothing broke.  
+
+
+Can we use word2vec somehow with the tagging or vocabulary?  
+Find similar tag suggestions based on the input?  
+Or if we find something similar enough just use that as the tag?  
+Have some default similarity parameter so we dont end up with too many tags.  
+
+
+JS example:
+https://www.misterrubato.com/test/word2vec-demo/index.html
+combine/train with custom data
+python example:
+https://www.analyticsvidhya.com/blog/2023/07/step-by-step-guide-to-word2vec-with-gensim/
+
+
+**web/public/midi.js
+forgot what are we doing with the original midi track?  
+getFile()
+OK we are loading but not using.  We can use.  Mostly it is valid unless there is some overlay which JZZ doesnt parse correctly.  
+So if we want to use this, we can just adjust this:
+			if (feedback == true && (smf[trknum][i][0] == 144 || smf[trknum][i][0] == 128)){ //midicommands ON OFF
+How do we want to use the original MIDI?  
+
+
+**server
+Try Deepspeech insead of Coqui for STT/TTS training.  
+There is some poor compatibility with the NVIDIA driver that Coqui causes.  
+Functionality is the same.  
+
+
+**/web/public/keymap.js
+Need an ending Pre or postfix.  
+Probably need to stick with pre-fix only strategy.  
+This will probably be easier programming-wise
+
+**timestep.py
+Would be convenient to have ollamaload function
+with date to load anything after date=20240518.  
+For when we inevitably screw up the data.  
+
+**server/transcription/server.py
+Need update of STT to use Deepspeech or similar.  
+I guess try this:
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+whisper is not good enough.  
+Get workflow working first.  
+Generate wav -> CSV after fixing.  
+
+
+**server/transcription/transcribe.py
+maybe return and then make different function for getting wav files.  
+
+
+Test skipVideo
+--looks ok.  
+
+**web/public/analyze.html
+Show the User Icon/name.  
+Show name on hover.  ah who cares.  
+How do we distinguish the original author?  
+We should hold this in the video structure.  
+Just add to record.  
+Test:
+MscGMds1wn4
+
+OK, multiple users ok now, but how do we distinguish between them in the feedbackImage?  
+
+
+
+**record.py 
+add UID of creator in DB structure.  
+
+
+I mean they will have comments, maybe list by comment date.  
+
+
+Test
+
+**web/public/analyze.html
+Show meta commands and filter for that based on input.  
+autodic
+show any autocomplete or expected commands.  
+Keep usage statistics in lang somewhere.  
+But we want contextual info.  
+For now just use most common, we can worry about the contextual later?  
+Recently used, combined with most common.  
+Here we want piano images in midisequence if possible.  
+Do this on checkCommands.  
+
+Need multiselect combo box for existing DicTable filter.  
+https://live.datatables.net/xehexoye/1/edit
+
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+
+Input commands should come in the current language, but if they are identified as meta commands, they should be squished and moved to another track.  
+Then if there is playback requested we can unsquish them.  
+Do we want this or we want the actual time, but if we have actual time we run risk of mixing words.  
+Maybe this is ok, but right now we dont have any way of detecting this.  Mixed data will just not show up and this will be confusing.  
+Maybe just add in real-time on separate open track always.  
+Then once recognized move to the right track and place/squish if necessary.  
+This is a rare case that the same person is adding again with the same language.  Maybe dont worry right now about that.  
+
+Are we getting duplicate entries?  
+
+--should be ok I think to start.  
+Now we need to get data from the filtered list.  
+And have a master playback to play back all that is in this list.  
+Need to be able to interact with the filter.  
+filter word ...
+$('#word').select2('val', ['good'])
+filter user ...
+$('#user').select2('val', ['0'])
+filter langauge ...
+$('#lang').select2('val', ['base'])
+etc.
+Use lang as reference.  
+
+filter add word ..
+filter remove word ..
+
+
+created a timing issue of some sort.  
+feedbackImage not working now on reload.  
+--ok maybe fixed.  
+
+
+
+Check filterDic
+--ok maybe working ok.  
+Should add phrasetoVector calculation and try to find similar command/words.  
+Quick way to integrate this functionality to see what it may be like.  
+
+https://developers.google.com/meet/api/guides/artifacts#python_2
+How to do recording?  
+
+
+Build meta commands, playback filtered list.  
+Playback with filter functionality.  
+Need to create/test this.  
+
+This should also run the commands associated with the transcript.  Whatever they are, or have the option to.  
+If we are running the commands, we should add to our feedback channel of whatever the language is for our user?  
+Or should that be separate option?
+EOW,EOW can just clear the buffer.  
+For now not required.  
+But it will clear the buffer and the filter.  
+EOW,EOW or other combination could also trigger add to comments.  
+Need filter for comments by language?  
+If midi can be encoded, should we encode?  
+User Options?  
+
+
+
+
+**record.py
+update extension/keymap.js
+Start using with extension.  
+
+TTENIS only video and midi.  
+generate midi from video/audio?  
+
+
+
+
+
+
+
+Switch between Original Transcript and links seemlessly.  
+Original transcript displayed for admin otherwise not.  
+Just switch to non-editable with edit button or checkbox.  
+Current state is not editable, this is calculated.  
+My Transcript and Original Transcript should work the same.  
+--ok this should be ok.  
+
+
+language -> keymap functions, try to build this structure.  
+Can potentially move languages around on keymap up and down octaves, to allow for multiple simultaneous uses.  
+**web/public/speech.js
+change keymap to array of languages.  
+Always check base and current language keymap in checkCommands.  
+Keep ongoing transcript of each language.  
+Hmmm...
+Something slowed the loading down quite a bit.  
+This is all the datatables. 
+Hard to load much.  
+So I think we need a NULL value to add after everything.  
+OK, this is much faster, but ...
+Not a great solution.  
+So after every language load, we will update the filters etc.  
+
+Anyway, lets see how this works.  
+Now we have meta lookup.  
+So if there is no meaning, we can still leave in the track.  It is kind of garbage.  
+Kind of funny.  
+
+
+Change keys -> piano image.  
+If clicked show keys.  
+Show keydict parameters if they exist for the command.  
+5th column.  
+Maybe substitute the language column.  
+Yeah, lets just show the current language.  For any other show in the large datatable.  
+Maybe modify this.  
+https://github.com/BenjaminPritchard/js-PianoKeyboard
+		RedKeys = [39, 43, 46];
+		DrawKeyboard(canvas, RedKeys);
+
+or 
+https://www.geeksforgeeks.org/build-a-piano-using-html-css-and-javascript/
+
+generate an image from the canvas.  
+const img    = canvas.toDataURL('image/png')
+If want to animate.  I think that is too busy.  Just generate based on the keys themselves from canvas.  
+https://github.com/antimatter15/jsgif
+
+Just gradually make darker if there are multiple strikes of a key.  
+Make the played keys red combined with the original color I guess?  
+
+Change Keys to this image.  
+
+**web/public/languages.js
+Should have ability to set language octaves.  
+In general lets say a language is two octaves or 24 keys.  
+With 24-key we just need one octave.  
+Then allow the user to set octave of the language.  
+And possibly the key, but this would be confusing maybe.  
+
+get rid of lang in autodic and metadic.  
+Show current lang above autodic.  
+
+get rid of mini piano canvas or hide it after all is generated.  
+Or can we hide it period?  
+Make midifeedback less wide.  
+
+Load user settings like intro and last used language.  
+Load on start.  
+
+
+
+**web/public/analyze.html
+How do we draw on the frame of the video?  
+Annotation on the video should be a basic function.  
+Need to drive from MIDI first
+https://stackoverflow.com/questions/33834724/draw-video-on-canvas-html5
+https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas
+draw transcript just above keys?  
+Not sure if it will work well with youtube.  
+Random solution
+https://community.adobe.com/t5/animate-discussions/embedding-youtube-videos-in-an-html5-canvas/m-p/9988866
+
+test highlightvideo function.  
+
+
+
+**web/public/keymap.js
+adjust keymap.findCommand
+Allow for MIDI driven commands with general text input.  
+i.e. annotate a location on the screen.  
+create a box 12x12 is fine or 10x10 whatever.  
+Then add STT text to that location.  
+This should just be in the transcript.  
+Eventually can have STT engine for each person perhaps.  
+Keeping with text data instead of audio has its advantages.  
+A good personalized STT/TTS engine will be one of the primary functions that AI enables in the near term.  
+Already MS and Google working on this.  
+Maybe see if this is reasonable/integratable at all.  
+https://learn.microsoft.com/en-us/azure/ai-services/speech-service/professional-voice-deploy-endpoint?pivots=speech-studio
+Not yet worth the effort I think.  
+Will still change some.  
+
+
+**web/public/languages.js
+seekAll
+Need to adjust.  
+
+
+UI Original Transcript is actually the edited transcript if edited.  
+Original Computer generated transcript is saved, but not displayed anywhere.  
+
+
+**server/transcription/server.py
+why is this getting killed sometimes?  
+Got rid of the wav file generation, except for when explicitly called.  
+I think this is what we want anyway.  
+
+
+**web/public/analyze.html
+What do we need to move to config.js
+playfeedback;
+...
+volumecontrol.  
+vidbuffer
+myrate
+mypitch
+
+
+**web/public/db.js
+Need to move some things here as well.  
+
+**web/public/speech.js
+addComment do we only want this when there is a command or do we want free-form as well?  
+Maybe separate the two.  
+
+**web/public/analyze.html
+refresh user login appears ok.  
+Now how do we default to previous login?  
+--seems ok.  Not pretty code :)
+
+Now need to be able to link to other items.  
+This is what we can put next to the feedbackImage
+
+Adjust feedbackImage to include feedback in more meaningful way.  
+Adjust login for more than just current tab.  
+
+
+**web/public/keymap.js
+need to use center of keys, not absolute.  
+Should essentially be based on Centerpoint.  
+Then we can set to a particular octave.  
+Lets just use keybot, for each language.  
+meta language included.  
+This keybot is editable by the user, however not the key intervals in words.  
+In order to change this, they would need to change the language implementation.  
+So musical key will be mutable for any language by using keybot.  
+But words within the musical key are non-mutable.  
+Octaves are mutable for any language the same way using keybot.  
+Is this sufficient?  
+What language takes priority in case of overlap.  
+Obviously meta-language will take priority.  
+And then just whatever was set first I guess.  
+Need language shift function and UI for this.  
+Also would need to update the images based on any keybot change.  
+But only show the 2-octave image.  
+Adjust the image based on keybot.  
+keybot[lang]...
+keybot = {"base": 48, "meta": 48};
+Somewhat significant adjustment.  
+Create full keyboard interactive image to show sequence played and fade each note gradually.  
+Probably need to build this.  Use same colors to show sequence and just fade relative to time.  
+Just use same piano drawing logic but this will be live canvas implementation.  
+Should represent the keyboard attached numkeys.  
+Still need to make octave jump keypattern.  G3->G4->G4?  
+Skip also needs to be remapped.  
+Most common patterns should be central.  
+Keep list of selected languages.  
+So we can change language easily with them.  
+Change language with midi will pick from prevlang[]
+Should test
+set octave 
+
+Have to store saved language octaves and load before midi is loaded.  
+Or do we just leave as default and then check from the midi language if octave was changed?  
+This would be like a macro, but we would have these macros inside of each midi structure.  
+Do we want this?  
+I think for now pull from the midi directly.  
+We can change later if needed.  
+So by default unless there is a octave change, default = 48
+
+Loading is slow when we have too many embedded keys.  
+Maybe we need to stop listening when we get a 21 until we hear a 22.  
+Lets use these keys to ignore.  
+We can also use the 107, 108 markers, but this has potential overlap.  
+I think the 21, 22,23 keys should be used for pause/unpause as well probably.  
+
+Lets display a state.  
+--ok basic functionality there
+Need to move commands to meta
+checkCommands()
+if executed move to the lang of choice.  
+OK, now we are returning language from findCommand.  
+How do we make this logical to search through multiple languages.  
+
+Why are we getting two notes for each base note?  
+
+
+
+
+**web/public/languages.js
+fullpcanvas can display feedback midi, but could also switch to show input midi.  
+Need a line for NOW in the feedbackImage.  
+updateVidTimes
+
+**web/public/analyze.html
+updateCanvas
+we want to be able to drag the canvas side to side.  
+Right now it is free.  
+Just do on-click move to that location and also the video move to that location.  
+Detect which iteration and what secs.  
+Should be able to do on mini-canvas and main canvas.  
+OK, getSecsFromXY appears to work ok.  
+So we can skip by clicking on the minimap as well.  
+Much more annoying than I thought.  
+This logic is not so intuitive for BabylonJS.  
+Maybe disable the drag functionality.  
+Not sure....
+
+Need to fix the login functionality.  

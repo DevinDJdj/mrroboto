@@ -1,0 +1,1080 @@
+**news.py
+Yep:
+#https://github.com/codelucas/newspaper
+
+#https://github.com/mlc-ai/web-llm?tab=readme-ov-file
+
+browserify main.js -o bundle.js
+
+
+**server/ollama/custom.py
+Lets see if we can make a custom model here instead of langchain RAG.  
+**server/ollama/custom.parameter
+
+#https://llm.mlc.ai/docs/deploy/webllm.html
+create custom model for this.  
+Eventually.  
+
+
+
+**timestep.py
+add git commits.  
+
+
+-Set up firebase push on commit.  
+##https://medium.com/@flutterist/deploying-your-website-to-firebase-hosting-from-github-d6bdbf284a82
+
+
+**web/public/languageeditor.html
+Does this component work well with multiple existing languages?  
+Also create a font and test with this.  
+
+**web/public/testfont.html
+Need to be able to create font entries for each concept/word.  
+Font size is going to need to be somewhat larger.  
+This is an important question/constraint.  
+How large do we want the font size?  
+Lets try 32 for now.  ~400x400 area
+
+
+**web/public/rec.html
+Need to save video.  
+#https://firebase.google.com/docs/storage/web/start#web_1
+
+**web/public/storage_upload.html
+Does this work for full recording?  
+
+**web/public/keymap.js
+Need commands for controlling scrolling of standard screen components.  
+i.e. Select chat row for reading.  select transcript, source code or change
+
+
+So a parameter for building context.  
+Importance on Time of the current video.  
+Importance of Book content.  
+Importance of Git changes.  
+Importance of TOPIC similarity.  
+Importance of Selected TOPIC.  
+Others?
+All of these parameters will adjust the context which is built.  
+
+
+**web/public/languages.js
+findWordsA needs to be adjusted when set octave is used.  
+Right now if we adjust octave I think the words are getting saved, but UI not updated.  
+
+
+**web/public/testvisjs.html
+--ok
+
+**web/public/analyze.html
+Maybe switch pianoroll UI to this?  
+May be easier.  
+Dont actually need full 3d library.  
+
+**web/public/book.html
+use vidinfo a bit more.  
+
+
+**timestep.py
+Add the copy of git contents.  
+DB Top-level 
+/git/contents
+/git/commits
+Then same directory structure or hash entries.  
+
+**git/clone.py
+git log --since="last month" --pretty=format:'%H,%an,%as,%at,%s' > log.csv
+Maybe this is enough for now?  
+Store this in DB?  
+If exists, skip.  
+Otherwise download all changes etc.  
+
+
+
+
+https://api.github.com/repos/DevinDJdj/mrrubato/git/commits/1a853838418830aa3aa7af1f7fe4240f67ffb026
+https://github.com/DevinDJdj/mrrubato/commit/1a853838418830aa3aa7af1f7fe4240f67ffb02
+
+
+**web/public/git.js
+Need to make the git download asynchronous.  
+gitDownloadCommits -> gitChartCommits
+--OK
+
+visjs need to not create duplicate entries.  
+Make group per file like other chart.  
+make mouseover tooltip with change contents just for that file?  
+
+
+#https://www.electronjs.org/fiddle
+Do we need full UI?  
+#https://github.com/sindresorhus/awesome-electron?tab=readme-ov-file#apps
+#https://github.com/zz85/space-radar
+Maybe start with something simple like this.  
+
+#https://github.com/minbrowser/min
+Could adapt for voice-control?  
+Alternative to plugin?  
+
+
+#https://github.com/wireapp/wire-webapp?tab=readme-ov-file
+reference
+#https://github.com/mifi/lossless-cut
+
+
+
+**server/ollama/custom.py
+really need to go ahead and make the fine-tune process.  
+But am too surprised at the junk responses I get with base model.  
+
+#https://medium.com/@rschaeffer23/how-to-fine-tune-llama-3-1-8b-instruct-bf0a84af7795
+#https://www.datacamp.com/tutorial/fine-tuning-llama-3-2
+
+
+Just create a training dataset which takes the BOOK as input and the next commit in the same file as answers?  
+
+**web/public/book.html
+Should also pass transcript of video to the llm.  
+Sometimes the response is interesting but most of the time it is garbage.  
+Very strange.  
+"stopllm" not working.  
+Why so annoying to utilize modules in JS.  
+
+GIT API testing is annoying.  
+Even with the token, still too many requests.  
+Need to download.  
+
+**git/clone.py
+store in DB, and retrieve from DB.  
+Not content, but all relational info and commit info.  
+
+**web/public/test/web-llm/test.js
+
+  const config = {
+    temperature: 0.5,
+    top_p: 1,
+    sliding_window_size: 1024,  //do we have to use this as 1024 or 2048?  
+    context_window_size: -1,
+    attention_sink_size: 4, 
+    repetition_penalty: 1.0
+//    max_new_tokens: 300
+//    max_tokens: 300
+  };
+
+    const completion = await engine.chat.completions.create({
+      stream: true,
+      messages,
+      max_tokens: 512,
+      stream_options: { include_usage: true },
+    });
+
+
+With these params though, seems to be much better results.  
+
+
+**web/public/book.html
+Need setting for number of previous "selectionhistory" to use in context passed to LLM.  
+Balance "selectionhistory" files / changes?  
+along with "gitbook".  
+For now not enough to find related changes, maybe just get changes from same git push.  
+
+This is a very important dynamic function.  
+Almost should try to read the user intention and then input data.  
+Whoever can figure out this trick of reading user intention...
+
+**web/public/git.js
+"selectionhistory", "gitbook"
+
+
+**web/public/book.html
+Probably need to remove the SVG visualization.  
+It doesnt bring much really.  
+Lets just put these book entries in the timeline instead of what we have now.  
+**web/public/timewindow.js
+"updateTimelineBook"
+--test this.  
+
+**git/clone.py
+for now just do book.  
+That is the primary thing being loaded anyway.  
+https://api.github.com/repos/DevinDJdj/mrrubato
+
+already some code here:
+**timeste.py
+"getCodeHistory"
+
+
+**web/public/git.js
+--test "loadGitBook"
+--OK
+
+Still need tooltip for book entries so we can read like a timeline for that topic.  
+Make groups?  
+Dont like this display yet.  
+
+UI freezing on LLM call.  
+How to prevent this?  
+#https://github.com/TensorSpeech/TensorFlowTTS
+Can we use these models in browser?  
+
+#https://github.com/playerony/TensorFlowTTS-ts
+Can we use in browser?  
+**testing/Tensorflow
+sudo apt install nodejs
+npm install --global yarn
+
+#https://github.com/MightyAlex200/tfjs-tts
+git clone https://github.com/MightyAlex200/tfjs-tts.git
+
+**web/public/test/tfjs-tts/index.html
+Does this work?  
+nice.  
+So lets start using this.  
+Why would we go to the server?  
+Hmmm... Need a better GPU perhaps.  
+Running the word2vec and the llm also on the GPU.  
+At the moment dont expect any problems.  
+How to make LLM asynchronous?  
+
+Image of the old SETI distributed search.  
+Current iteration, where each PC/Droid is linked to a master NN.  
+
+
+**web/public/book.html
+Add TTS to this.  
+Optionally enable this instead of 
+ssu = new SpeechSynthesisUtterance(tospeak);
+ssu = new SpeechSynthesisUtterance(data.answer);
+
+How to load different voice model?  
+
+**web/public/test/tfjs-tts/index.js
+const text2mel = tf.loadGraphModel('text2meljstiny/model.json');
+const vocoder = tf.loadGraphModel('vocoderjstiny/model.json');
+
+#https://www.geeksforgeeks.org/how-to-train-a-custom-model-in-ml5js/
+#https://glitch.com/edit/#!/ml5-workshop2-1training?path=script.js%3A64%3A2
+
+**web/public/test/ml5/index.html
+
+Why not just train the voice model in the browser from the video or interaction?  
+Option to train the voice model slowly but surely.  
+Micro-training.  
+Save/load model in user info.  
+
+#https://codelabs.developers.google.com/codelabs/tensorflowjs-audio-codelab/index.html#8
+Probably interesting to do this.  
+We need something similar in this area.  
+
+
+**web/public/test/ml5/load/index.html
+
+
+**web/public/test/tfaudio/index.js
+Use this perhaps for game.  
+Training doesnt really work very well.  
+Need a better probability indicator here
+#https://codelabs.developers.google.com/codelabs/tensorflowjs-audio-codelab/index.html#8
+      const predLabel = probs.argMax(1);
+      await moveSlider(predLabel);
+
+But positive is it is much more realtime than webaudio.  
+
+**web/public/test/tfaudio/speechcommands/train.js
+This seems to work ok.  
+Can we use this on more than monosylable words?  
+Often no detection?  
+
+
+**web/public/book.html
+Switch codemirror between languages.  
+
+Anythin from "selectionhistory" which is not found, dont search again.  
+--maybe fixed.  
+
+**MISSINGTOPICS
+store in DB under content and have a redirect.  
+
+
+**web/public/midi.js
+Need to make sure turn on/off speech and turn on/off midi is working.  
+For now can only have one tab with active speech.  
+Can we have multiple with the other recognition structure.  
+**web/public/speech.js
+ window.SpeechRecognition
+vs 
+**web/public/test/tfaudio/index.js
+#https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+ recognizer = speechCommands.create('BROWSER_FFT');
+ await recognizer.ensureModelLoaded();
+   return navigator.mediaDevices.getUserMedia({
+    audio: audioTrackConstraints == null ? true : audioTrackConstraints,
+    video: false
+  });
+So we are using the mediaDevices.getUserMedia.  
+Have more control using this for STT.  
+
+Hmm... time, time time
+Prefer to find a library with feedback training embedded in browser UI.  
+Dont find one.  
+Suppose this would be a good start but...
+
+Why is there no feedback training loop within the library usage of these models?  
+Especially for STT.  Just stupid design.  
+Why is training separate from usage?  
+#https://github.com/TensorSpeech/TensorFlowTTS
+#https://github.com/TensorSpeech/TensorFlowASR
+
+
+Suspect this works in multiple.  
+Maybe work directly with audio.  
+
+
+#https://developer.mozilla.org/en-US/docs/Web/API/SpeechGrammar
+This is basically the same thing.  
+But This speechrecognition may not be active on the tab.  
+
+
+
+What other possibilities.  
+This will get better as part of browser eventually.  
+But the personal trained model will be valuable.  
+Maybe just make the files for training from videos.  
+
+
+Need multi-tab communication.  
+localStorage and/or BroadcastChannel
+const channel = new BroadcastChannel('app-data');
+channel.postMessage(data);
+const channel = new BroadcastChannel('app-data');
+
+channel.addEventListener ('message', (event) => {
+ console.log(event.data);
+});
+
+This way we can investigate then start other actions.  
+Use this to add to local storage window details.  
+
+Book -> analyze -> rec 
+
+**web/public/rec.html
+Need to add topics to entries/times.  
+Transcript should all go to gitbook?  
+
+Use sequential topic entries as categorical structures.  
+NGRAM structure instead of heirarchical.  
+Potentially use separate functionality for sequential topics without content in between.  
+
+**PARENT
+**CHILD
+Hierrarchical structure comment.  
+
+
+
+**web/public/test/tfaudio/speechcommands/train.js
+Better example now.  
+Like this concept and design.  
+But still a bug in here which is really annoying.  
+
+#https://github.com/tensorflow/tfjs-models/blob/master/speech-commands/src/browser_fft_recognizer.ts
+Line 330
+
+    if (outputShape[1] !== this.words.length) {
+      throw new Error(
+          `Mismatch between the last dimension of model's output shape ` +
+          `(${outputShape[1]}) and number of words ` +
+          `(${this.words.length}).`);
+    }
+
+Can get around this by adding noise, but similar noise also creates a problem.  
+
+Strange limitation to train on groups of 20 words.  
+Might be useful though.  
+We need something like this.  
+To have a sound->string map.  
+Is there no better library?  
+
+
+#https://www.w3.org/TR/jsgf/
+
+**web/public/speech.js
+Probably want to make a custom one of these, or is this just for word lists?  
+const recognition = new SpeechRecognition();
+const speechRecognitionList = new SpeechGrammarList();
+speechRecognitionList.addFromString(grammar, 1);
+recognition.grammars = speechRecognitionList;
+
+So switch grammar based on state.  
+Hmmmm....
+This is good for a game as well.  
+
+#https://support.voicegain.ai/hc/en-us/articles/360048936511-JJSGF-Grammars
+
+What are the grammar rules we are using for STT input?  
+Maybe just define a JSGF for the command input as an alternative method.  
+Maybe a JSGF generator for the speechKit would be useful.  
+Audio -> JSGF phrase
+
+Hmmm...
+Definitely need to change the current handling.  
+
+How do we map this in the most useful manner with the current technology available?  
+
+**book
+Probably should split up book by year now to make it more managable?  
+Maybe not necessary for me. 
+
+
+**web/public/book.html
+Need to create a link to zoom/highlight something on the graphic.  
+on loadTopic highlight this in the graphic.  
+
+**web/public/word2vec-demo/scripts/main.js
+Ugh finally some font size adjustment.  
+svg, not loving the syntax.  
+
+Adjust the display a bit more though, see if we can get something we like.  
+Book entries need to be different color.  
+
+
+**web/public/book.html
+Eventually make sure this works with other repository.  
+Should not have to pre-load source.  
+
+Maybe the SVG will be nice.  
+Need to adjust color perhaps based on some things, 
+
+**web/public/timewindow.js
+Dont need repeated entries here. 
+If repeat within X time, ignore it.  
+Base this on data density in the timewindow at the time.  
+
+#https://visjs.github.io/vis-timeline/examples/timeline/groups/groupsEditable.html
+Yeah that is more like what we want.  Combine with this.  
+Can we make this dynamic?  For now just generate
+<!--
+  var groups = new vis.DataSet([
+    {id: 0, content: 'First', value: 1},
+    {id: 1, content: 'Third', value: 3},
+    {id: 2, content: 'Second', value: 2}
+  ]);
+  var options = {
+    // option groupOrder can be a property name or a sort function
+    // the sort function must compare two groups and return a value
+    //     > 0 when a > b
+    //     < 0 when a < b
+    //       0 when a == b
+    groupOrder: function (a, b) {
+      return a.value - b.value;
+    },
+    editable: true
+  };
+  var timeline = new vis.Timeline(container);
+  timeline.setOptions(options);
+  timeline.setGroups(groups);
+  timeline.setItems(items);
+
+
+timeline.getVisibleGroups()
+
+.vis-item .vis-item-overflow {
+  overflow: visible;
+}
+
+  var selection = document.getElementById('selection');
+  var select = document.getElementById('select');
+  var focus = document.getElementById('focus');
+  select.onclick = function () {
+    var ids = selection.value.split(',').map(function (value) {
+      return value.trim();
+    });
+    timeline.setSelection(ids, {focus: focus.checked});
+  };
+
+  ID can be string.  
+    groups.push({
+      id: g,
+      content: "Group " + g
+    });
+timeline.setGroups(groups);
+-->
+
+Need to dynamically size the topic window based on number of topics.  
+
+--somewhat better.  
+
+Probably change name to filename, and just keep the folder as group?  
+
+
+**0606
+Need to do one match in order to have sample data.  
+Did we ever finish creating the language?  
+
+
+**web/public/languages.js
+Dont allow for duplicate entries in languages.  
+--OK maybe.  
+
+Do we need multiple instruments?  
+This would be nice to add an instrument for the word.  
+Where would we add this though?  
+already have color in word.  Maybe this is enough.  
+Based on this use different instrumentation.  Have color -> instrument mapping.  
+Trigger word playback or adjust feedback midi directly to change instrument.  
+The instrument map should be determined by listener.  
+
+How to input this script?  This will be easy enough to load.  
+Should we add parenthesis?  
+
+add language tennis (-6,6)
+--start here.  
+analyze.html?video=mj4jpeBvD2o
+change language (-6,6)
+add word hit (6,6)
+how do we have synonyms?  This would get overwritten
+Could have something mimicing back and forth across net.  
+add word backhand (6,1) 
+add word forehand (6,3) 
+add word slice (6,2)
+add word topspin (6,4)
+add word volley (6,8)
+add word drop (6,10)
+add word serve (10,11)
+
+add word fault (10,9)
+add word let (10,8)
+add word out (5,5)
+add word long (5,6)
+add word net (5,4)
+add word bounce (4,4)
+add word applause (3,4)
+add word noise (3,5)
+
+add word score (2,2) (param = 3,4,5,6,7)
+2,8 = minus point, 2,3 = plus point, 2,4 plus game, 2,5 plus set
+2,9 = minus game, 2,10 minus set 
+
+
+
+add word player one (9,8)
+add word player two (9,10)
+
+
+**web/public/book.html
+**genbook
+Notate @@ and == when using book.html if it spurns you to act in any way.  
+
+
+**web/public/analyze.html
+**web/public/languages.js
+Need to adjust findWordsA
+Cant be loading this every time for a large amount of feedback.  
+Only need to load last few.  
+--maybe ok.  
+Surely search mechanism can still be improved.  
+But performance may be fine for what we need.  
+
+
+**web/public/midi.js
+"completeMidi"
+This is what moves from language to language after "checkCommands"
+Is this what we want?  
+
+**web/public/languages/book.js
+Drive all components on book.html
+--need to test.  
+
+**web/public/timewindow.js
+Need to trigger refresh after retrieving commits.  
+
+
+**web/public/git.js
+Need to 
+
+
+**web/public/book.html
+Add search bar/filter bar.  
+Essentially just filter and zoom out to nearest in the filter. 
+Keep selected items in the list.  
+And show all which are within the filter.  
+Make basically invisible and not clickable unless in the filter.  
+
+Need to download all transcripts.  
+Essentially just move transcripts to another location.  
+
+**web/public/git.js
+scrolling on new file.  
+Stop scrolling to location on new topic.  
+
+groups
+treeLevel: 1, 2, 3
+--hmmm, maybe this is ok.  
+
+
+**web/public/book.js
+Need to load language and test.  
+
+
+Need to load a different repository sooner rather than later.  
+
+Need better way to specify a certain element and not the standard entity that is known in the LLM.  
+
+@@How do we do entity recognition?  
+
+Try a few other models.  Get a feeling for what it means to be a model user.  
+**Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC
+
+@@What is the input history being kept on standard sites?  
+
+This is too slow..frozen?  
+
+webllm really needs some feedback.  
+There is going to be a completely new Front-end.  
+#https://www.sciencedirect.com/science/article/pii/S2666920X24000857
+
+
+
+**web/public/keymap.js
+Need delete word / remove functionality.  
+Select last or list and select.  
+When remove is used, list selections with images from video.  
+Can we get the video frames from the last selections?  
+findWordsA should store these images?  
+list 6 images or so should be possible or possibly 9.  
+Just create a temporary canvas with these images.  
+Or just pause, seek previous word next word.  
+delete...
+play..
+Start here...
+"23,22,23": "play"
+"23,22,22,23": "pause"
+"23,20,21,23": "jump ", //just use move to previous/next word.  
+"0,1,1,0": "set speed"
+
+OK jump maybe working.  
+How do we end up with "set speed good"
+And do we want this?  
+
+#https://docs.llamaindex.ai/en/v0.10.33/getting_started/starter_example_local/
+similar to what exists.  
+
+Do we need a pre-query to train the question.  
+Yes, I think we need better questions, but this will make things slower.  
+
+Sample....
+reformulate question using context markers.  
+
+
+#https://ocw.mit.edu/courses/11-255-negotiation-and-dispute-resolution-in-the-public-sector-spring-2021/resources/mit11_255s21_lec1/
+Should we use other input datasets
+Perhaps just use them from the notes.  
+Automate analysis of the mentioned sites.  
+Then browse from that starting point as a user.  
+
+
+Should the entire book be a prompt eventually?  
+Perhaps that is where we are headed.  
+I suspect yes.  
+
+#https://www.khanmigo.ai/
+#https://www.khanacademy.org/khan-for-educators/khanmigo-for-educators/xb4ad566b4fd3f04a:welcome-to-khanmigo-your-new-ai-teaching-assistant/xb4ad566b4fd3f04a:khanmigo-teacher-focused-ai-activities/v/khanmigo-create-tools
+
+This seems to have a lot of potential.  
+
+So when the entire book is a prompt what will occur?  
+That is an interesting question.  
+I suspect I will see within a few years.  
+
+How we define truth becomes a much more interesting question.  
+
+Thinking about this.  Eventually, I suspect I should at some point spend more time writing words and less writing code.  
+What is that point though.  
+Some people think it is soon.  
+I suspect it may be.  
+
+#https://arxiv.org/abs/2203.14927
+
+#https://michaelmuenzer.medium.com/control-a-raspberry-powered-rc-boat-from-within-the-web-browser-aaab1e84e1a9
+#https://github.com/yannrichet/PiBoat
+
+
+**PROMPTLANGUAGE
+/*
+Ask the user for their name and say "Hello"
+*/
+
+Use code comment syntax for code generation.  
+base this on filetype.  
+<!-- html -->
+#python
+#python
+/*
+javascript
+*/
+etc.  
+
+Lets try shorter subsets of comment/code changes.  
+
+Use BOOK -> TOPIC -> Code changes structure.  
+Need to add surrounding code as well.  
+So pull Before and after sample?  
+
+User should select topic, just use last selected.  
+Have two modes - 
+code generation:
+Then we note [BOOK (date) -> TOPIC -> text -> change/commit] -> BOOK (today) -> TOPIC -> code comment -> last text -> Question -> before/current -> ...
+
+idea generation:
+[BOOK (date) -> TOPIC -> text] -> BOOK (today) -> TOPIC -> last text -> Question -> ...
+
+Order is important.  
+This will enable better responses I suspect.  
+Also smaller code snippets.  
+We need a correlation graph.  
+Find the full function that was changed.  
+
+before -> after.  
+
+topic -> change should be detected by time.  
+BOOK change date should be edited based on commit if possible.  
+Just order is fine for the most part.  
+
+Random selection with fine-tune how much to select the specified file vs other files.  
+
+Use changes along with similarity distance from WORD2VEC.  
+Rebuild or build different word2vec with commits.  This shows interdependence.  
+Use BOOK and/or CODE interdependence graph for similarity distance.  
+Pseudo-code:
+Get history of changes to selected TOPIC.  
+Search for changes in files which were committed at same time as selected topic between STARTDATE and ENDDATE/NOW.  
+TOPICSPECTRUM Generate TOPIC weights based on similarity metric with selected and/or mentioned topics.  
+if RAND > TOPICSPECTRUM[x] and RAND < TOPICSPECTRUM[x+1] then use selected TOPIC.  
+
+Done pseudo-code. 
+
+
+**web/public/book.html
+Keep selectionhistory from last session and load last X selection history.  
+
+
+**web/public/speech.js
+Need to have some sort of formula to recognize code.  
+DOT -> . and concatenate.  
+Search within codebase for this name, (and put full path for recognition?).  
+If this is not selected topic, make it same weight.  
+
+#https://github.com/wooorm/franc?tab=readme-ov-file
+
+**web/public/nlp/test.html
+Hmm...
+start here?  
+#https://winkjs.org/wink-nlp/custom-entities.html
+with filenames?  
+
+const patterns = [
+  { name: 'adjectiveAnimalPair', patterns: [ '[ADJ] [cats|dogs]' ], mark: [0, 0] }
+];
+nlp.learnCustomEntities( patterns );
+
+const patterns = [
+  { name: 'sourceName', patterns: [ '[|NOUN] [NOUN | ADJ] [dot] [js | py | html]' ]}
+];
+nlp.learnCustomEntities( patterns );
+
+
+generate all filenames here?  
+const patterns = [
+  { name: 'club', patterns: [ 'manchester united' ] },
+  { name: 'city', patterns: [ 'manchester' ] }
+];
+
+
+#https://github.com/brownhci/WebGazer
+#https://docs.pupil-labs.com/core/
+
+Interesting possibilities here.  
+Dont think people will want to wear this device though.  
+
+Really need essentially a wireless midi pad with high sensitivity.  Powered by keystroke energy.  
+#https://support.roli.com/support/solutions/articles/36000027154-seaboard-rise-adjusting-sensitivity#:~:text=It%20is%20also%20possible%20to,is%20called%20'Expression%20Mode'.
+
+**record.py
+#https://github.com/ajstensland/MIDIator
+Maybe use as sample?  Does this part still work?  
+#https://github.com/ajstensland/MIDIator/blob/master/src/windows/windows_io.py
+#https://github.com/SerpentAI/SerpentAI/blob/dev/serpent/input_controllers/native_win32_input_controller.py
+
+**web/public/keymap.js
+For now just make keymap more useable.  
+finish book.js
+Eventually add to record.py
+How can we share mappings?  
+What are other alternatives?  
+
+
+#https://dev.fitbit.com/build/reference/web-api/intraday/get-heartrate-intraday-by-date-range/
+Use?  
+Analyze across time.  
+
+#https://python-fitbit.readthedocs.io/en/latest/
+#https://github.com/Fitbit/sdk-oauth
+#https://www.npmjs.com/package/passport-fitbit-oauth2
+
+
+At least collect the data.  
+#https://pmc.ncbi.nlm.nih.gov/articles/PMC2515327/
+
+
+**language
+Why was no thought put into naming conventions....
+#https://en.wikipedia.org/wiki/Naming_convention_(programming)
+
+I use camelCase and flatcase with minimal distinction as to why.  
+Dont think I use Hungarian notation. 
+
+Rarely use UpperCamel I think.  
+Much of the code is just the way it is adopted from the origin.  
+
+**web/public/book.html
+#https://github.com/eslint/eslint
+
+Add something from an analysis of the code in the editor.  
+Perhaps have two tabs, general analyzer and then file analyzer (with outside connections)
+
+**web/public/testgraph.html
+#https://docs.esprima.org/en/latest/getting-started.html
+
+Do we want to format the JS?  
+
+#https://github.com/sverweij/dependency-cruiser?tab=readme-ov-file#user-content-fn-3-dc6667bc51bfef5a470665188e5889b2
+$$W
+> npm install --save-dev dependency-cruiser
+> pip install graphviz
+$$U
+> sudo apt install graphviz
+> npx depcruise word2vec-demo --include-only "^word2vec-demo" --output-type dot | dot -T svg > dependency-graph.svg
+> npx depcruise test --include-only "^test" --output-type dot | dot -T svg > dependency-graph.svg
+
+#https://nearley.js.org/docs/using-in-frontend
+#https://gajus.medium.com/parsing-absolutely-anything-in-javascript-using-earley-algorithm-886edcc31e5e
+Hmmm... interesting.  
+#https://humans-who-read-grammars.blogspot.com/2018/04/having-fun-with-phrase-structure.html
+
+#https://nearley.js.org/www/railroad-demo
+#https://hci.stanford.edu/winograd/shrdlu/
+
+#https://github.com/ChalmersGU-AI-course/shrdlite-course-project?tab=readme-ov-file
+#https://chalmersgu-ai-course.github.io/demo/shrdlite.html
+
+#https://github.com/ChalmersGU-AI-course/shrdlite-course-project/blob/master/Grammar.ne
+hmmm.. could be better.  
+Cool project though.  And like nearly.js I think.  
+#https://github.com/kach/nearley
+
+#https://github.com/oguimbal/pgsql-ast-parser/blob/master/src/syntax/base.ne
+This is an interesting implementation maybe to study.  
+Time...
+
+#https://github.com/appology/resp-parser/blob/master/src/grammar.ne
+
+#https://github.com/AntonShan/Celio/blob/develop/src/grammar/common.ne
+
+#https://github.com/calculemuscode/jaco/blob/master/syntax/expression.ne
+
+#https://github.com/justjake/dicetower/blob/master/grammar.ne
+
+#https://github.com/danigb/in-seconds
+#https://github.com/danigb/in-seconds/blob/master/src/parser.ne
+
+
+#https://github.com/andrejewski/solvent
+start with something simple.  
+
+#npm install -g nearley
+//npm install --global rollup
+//rollup test1.js --file bundle1.js --format iife
+
+**web/public/nlp/test1.html
+Not optimal.  
+
+I like that.  
+**web/public/grammar/grammar.ne
+> nearley-railroad grammar/grammar.ne -o grammar/grammar.html
+documentation of self.  
+
+#https://nearley.js.org/docs/using-in-frontend
+--compileGrammar
+not working.  
+
+
+
+
+#https://github.com/ballercat/walt
+
+#https://github.com/acornjs/acorn
+
+
+#https://github.com/calculemuscode/jaco/blob/master/syntax/expression.ne
+#https://github.com/calculemuscode/jaco/blob/master/src/lex.ts
+
+Get comments from JS files.  
+Try to use this syntax in general.  
+See if it is sufficient for now.  
+Good sample I think.  
+Hmmm... 
+
+
+
+> git clone https://github.com/calculemuscode/jaco.git
+> npm install -D ts-node
+> npm install ./jaco
+
+> nearleyc grammar/expression.ne -o grammar/expression.js
+> nearleyc grammar/statement.ne -o grammar/statement.js
+> nearleyc grammar/program.ne -o grammar/program.js
+
+./grammar/
+rollup -c
+rollup --config rollup.config.mjs
+//browserify nlp/test1.js -o nlp/bundle1.js
+
+browserify grammar/python.js -o grammar/python-bundle.js
+Ugh should be using rollup?  
+
+rollup test1.js --file bundle1.js --format iife
+
+> npm install @rollup/plugin-typescript --save-dev
+
+Wow these packaging tools are not nice.  
+
+npm install webpack webpack-cli --save-dev
+npx webpack 
+
+Dont like either of these mechanisms.  
+It makes the code less readable.  
+
+Lets try to use without these packagers.  
+Plain JS.  
+Start with this:
+https://github.com/kach/nearley/blob/master/examples/calculator/arithmetic.ne
+
+**web/public/grammar/arithmetic/index.html
+
+how to combine this with 
+**web/public/nlp/test.js
+After browserify:
+//set the object globally.  
+global.nlp = nlp
+Why does this have to be so annoying...
+The whole method of exporting is poorly done in these packaging tools.  
+I guess it is not easy...
+Guess most people just run under node.js
+
+
+Anyway, play with this combination.  
+Try to create a few syntaxes.  
+-arithmetic
+-simple code parser (python/js)
+-simple language parser (english)
+--integrate with winkjs
+-expand arithmetic
+-book
+
+Then determine how to approach syntax for speech/keymap.  
+
+This is interesting for the Speech parser perhaps and create a grammar for this.  
+But not really what we want for investigating source.  
+
+#https://github.com/fkling/astexplorer
+This is more realistic.  
+
+#https://babeljs.io/docs/babel-standalone
+
+**web/public/grammar/testbabel.html
+Babel.packages.generator
+Babel.packages.parser
+Babel.packages.template
+Babel.packages.traverse
+Babel.packages.types
+
+
+Maybe use for javascript.  
+maybe try...
+#https://github.com/peter-leonov/picojs
+
+Do we want to spend this time?  
+
+Best would be just to use something like astexplorer module, but doesnt appear to be a component.  
+
+Other possibility just use the 
+**web/public/js/codeeditor/codemirror/mode/javascript/javascript.js
+We are already ingesting here.  
+Just modify/extend these files as needed?  
+See if we can pull from here i.e. comments.  
+-tokenComment
+Or write a mode for book.  
+
+
+#https://lezer.codemirror.net/
+
+meh, lets try to use what is there already.  
+CodeMirror V5?  
+
+**web/public/js/codeeditor/codemirror/mode/diff/diff.js
+Can we use some of the other modes?  
+
+**web/public/js/codeeditor/codemirror/mode/shell/shell.js
+Can we figure out how to create a useful token tree?  
+create 
+**web/public/js/codeeditor/codemirror/mode/book/book.js
+
+
+
+>nearleyc arithmetic.ne -o arithmetic.js -e arithmetic
+
+
+**web/public/testparse.html
+for now just search for functions/dependencies.  
+JS:
+function xxx()
+or 
+xxx = function()
+require(yyy)
+import { xxx } from yyy
+
+HTML:
+dependencies.  
+script src=...
+same as JS.  
+const parser = new DOMParser();
+const htmlDoc = parser.parseFromString(txt, 'text/html');
+
+can we get includes here?  
+const scriptTags = doc.getElementsByTagName("script");
+
+
+PY:
+import yyy
+from yyy import xxx
+
+def xxx():
+
+Then search all xxx identifiers.  
+Put in order...
+Same word2vec graph.  
+
+If we have the yyy file, color differently.  
+
+Hmmm... I guess do myself in the end.  
+Dont actually need to parse everything.  
+
+function\s+(?<functionName>\w+)\s*\((?<functionArguments>(?:[^()]+)*)?\s*\)\s*(?<functionBody>{(?:[^{}]+|(?-1))*+})
+
+for now just JS/PY/HTML
+
+**web/public/testacorn.html
+hmmm only JS, but easy to use.  
+
+
+

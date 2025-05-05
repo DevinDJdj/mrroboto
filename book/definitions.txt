@@ -1,0 +1,63 @@
+<!--
+reference from document
+-->
+
+<!--
+"WORK" - the entirety of what I do and share.  
+"BOOK" - the non-realtime written portion
+"ACT" - each period of time
+"SOC" - start of chapter
+
+"messy" - several notes or rhythms played unintentionally which did not sound nice.  
+"oops" - one or two notes or chords missed
+"kind of like that" - there are aspects about the sequence, usually not in the written piece, which I enjoyed.  But it also contained some less pleasing sounds.  
+"like that" - there are aspects about the sequence, usually not in the written piece, which I enjoyed
+"lost" - lost place in the music caused less pleasing sounds
+-->
+
+> CMD operation
+
+** source code file name (with separator) OR videoID > 10 chars, otherwise content/topic tag
+<!-- 
+May have some problematic names.  
+-->
+
+@User
+
+@@ Question
+
+== Answer
+
+=== QA history start.  
+==== QA history end.  
+
+$$ ENVIRONMENT
+
+!! Log output or error
+
+- sub task
+
+-- NOTE
+
+--:+ note (even)
+
+-:+ subtask (odd)
+
+Shorthand
+-%d- (cant start subtask with digit.)
+
+
+: alternate line separator
+
+-> Leads to
+
+# comments to something or reference from
+## referenced lookup again.  
+
+// filepath or DB path
+
+"XX" = key phrase or WORD
+<!--
+"_var" = end state
+"var_" = potential state
+-->

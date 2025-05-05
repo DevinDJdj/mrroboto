@@ -1,0 +1,126 @@
+**server/transcription/server.py
+Need update of STT to use Deepspeech or similar.  
+I guess try this:
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+
+**testing/DeepSpeech
+git clone https://github.com/mozilla/DeepSpeech.git
+
+python3 -m venv /mnt/c/devinpiano/testing/deepspeech-venv/
+source /mnt/c/devinpiano/testing/deepspeech-venv/bin/activate
+pip3 install -r requirements_transcribe.txt
+pip3 install deepspeech
+pip3 install ds_ctcdecoder
+pip3 install tensorflow
+pip3 install -U numpy
+pip3 install sox
+
+
+import tensorflow as tf
+print(tf.test.is_gpu_available())
+
+
+**generate/tennis3.py
+Try a new tack.  
+**generate/exceltocsv.py
+See if we can generate something interesting just with this data.  
+Unfortunate the data doesnt have time of match.  
+See other datasets.  
+
+Kaggle match dataset
+https://www.kaggle.com/datasets/mexwell/ultimate-tennis-matches-dataset
+This looks ok I guess, nothing significantly better.  
+Use data after 2005. 
+Before that slightly different format.  
+20 years of data should be sufficient.  
+Generate track for each player.  
+Time must stand for time.  
+But otherwise how to represent?  
+Type of court = timbre
+??Tournament GPS location use to adjust time forward/backward.  
+Series/Tier = volume
+Round increase = Crescendo or time play, slow down for further rounds 1.25, 1.5, etc.  
+use * 5/4 as time increase.  
+5/4 ^ 7 ~ 5.  Final round 5* as slow as initial?  
+non-playing time will shorten by 4/5 for each day not playing.  
+Next played day will go back to unity 1 second.  
+
+What to represent notes?  
+Create player note combo which represents current ranking along with opponent ranking?  
+How to represent numbers in general with key combos.  
+Arithmetic Sequential, Geometric/Exponential, Triangular, Cyclical
+
+Each location is a round?  
+Higher point tournaments echo more
+Later rounds echo into further games/time.  
+
+Scores used as is for each game.  
+i.e. 6-2,6-3 = 6,2,6,3
+Each day is 1 second except for shortening/lengthening rules.  
+
+Octave/base note determined by difference in player rank.  
+ -> log2(Opponent rank / own rank) = octave / 2
+i.e. log2(2/1) = 1 / 2 = G below c
+log2(1/128) = -6 / 2 = middle C - 3 octaves.  
+max 3 octaves.  
+
+
+Each location can use instrument/timbre.  
+All clay should use particular type.  
+i.e.
+Clay = string
+Grass = Brass
+Hard = Piano
+
+**basepattern.py
+use this?  
+Nah, just use record.py MidiFile
+import mido
+from mido import Message, MidiFile, MidiTrack
+    mid = MidiFile()
+    track = MidiTrack()
+    mid.tracks.append(track)
+
+    track.append(Message('program_change', program=12, time=0))
+    track.append(Message('note_on', note=64, velocity=64, time=32))
+    track.append(Message('note_off', note=64, velocity=127, time=32))
+    track.append(Message('note_on', note=65, velocity=64, time=32))
+    track.append(Message('note_off', note=65, velocity=127, time=32))
+    
+    mid.save(fn[0] + '.mid')
+
+Generate the same for each tournament track?  
+All players, #matches per day = seconds per day.  
+How to identify players in this case?  
+
+Different for individual players.  
+
+
+OK have a start.  
+Need more distinction for each match.  
+Distinction for each tournament name.  
+Set instruments.  
+
+Need dataset with exact start times or end times, or both.  
+Cant find.  
+We should generate video along with this.  
+Users should have identifier.  
+Play simultaneously.  
+
+
+**generate/notes.py
+https://medium.com/@gallaghersam95/extract-piano-notes-from-wav-files-in-python-3954a1876e8e
+https://pypi.org/project/audio-to-midi/
+https://github.com/NFJones/audio-to-midi
+use activation_level = 0.05 perhaps, see if we can get notes from standard 
+
+audio-to-midi ./new-home-in-the-stars-16k.wav -b 120 -t 30
+
+audio-to-midi ./new-home-in-the-stars-16k.wav -b 60 --activation-level 5
+audio-to-midi ./new-home-in-the-stars-16k.wav -b 60 --activation-level 5 -C 10
+
+git clone https://github.com/NFJones/audio-to-midi.git
+python3 ./setup.py install
+meh.. broken.
+

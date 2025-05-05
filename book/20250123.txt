@@ -1,0 +1,875 @@
+**news.py
+Yep:
+#https://github.com/codelucas/newspaper
+
+**server/ollama/custom.py
+Lets see if we can make a custom model here instead of langchain RAG.  
+**server/ollama/custom.parameter
+
+#https://llm.mlc.ai/docs/deploy/webllm.html
+create custom model for this.  
+Eventually.  
+
+**timestep.py
+call 
+**git/clone.py
+
+
+**server/ollama/custom.py
+really need to go ahead and make the fine-tune process.  
+But am too surprised at the junk responses I get with base model.  
+
+#https://medium.com/@rschaeffer23/how-to-fine-tune-llama-3-1-8b-instruct-bf0a84af7795
+#https://www.datacamp.com/tutorial/fine-tuning-llama-3-2
+
+
+Just create a training dataset which takes the BOOK as input and the next commit in the same file as answers?  
+
+
+#https://github.com/TensorSpeech/TensorFlowTTS
+Can we use these models in browser?  
+
+#https://github.com/playerony/TensorFlowTTS-ts
+Can we use in browser?  
+
+**web/public/test/tfjs-tts/index.html
+
+
+**MISSINGTOPICS
+store in DB under content and have a redirect.  
+
+**0606
+Need to do one match in order to have sample data.  
+Did we ever finish creating the language?  
+
+
+**web/public/js/codeeditor/codemirror/mode/diff/diff.js
+Can we use some of the other modes?  
+
+**web/public/js/codeeditor/codemirror/mode/shell/shell.js
+Can we figure out how to create a useful token tree?  
+create 
+**web/public/js/codeeditor/codemirror/mode/book/book.js
+
+
+**web/public/testparse.html
+for now just search for functions/dependencies.  
+JS:
+function xxx()
+or 
+xxx = function()
+require(yyy)
+import { xxx } from yyy
+
+HTML:
+dependencies.  
+script src=...
+same as JS.  
+const parser = new DOMParser();
+const htmlDoc = parser.parseFromString(txt, 'text/html');
+
+can we get includes here?  
+const scriptTags = doc.getElementsByTagName("script");
+
+
+PY:
+import yyy
+from yyy import xxx
+
+def xxx():
+
+Then search all xxx identifiers.  
+Put in order...
+Same word2vec graph.  
+
+If we have the yyy file, color differently.  
+
+Hmmm... I guess do myself in the end.  
+Dont actually need to parse everything.  
+
+function\s+(?<functionName>\w+)\s*\((?<functionArguments>(?:[^()]+)*)?\s*\)\s*(?<functionBody>{(?:[^{}]+|(?-1))*+})
+
+for now just JS/PY/HTML
+
+**web/public/test/testacorn.html
+hmmm only JS, but easy to use.  
+
+
+**web/public/test/testdomparser.html
+
+**web/public/test/testfilbert.html
+--OK
+#https://github.com/differentmatt/filbert
+
+for now this should be enough
+JS/PY/HTML
+
+
+practical approach.  
+
+Eventually..
+Still try to use nearley grammar to do something with generation.  
+TEXT -> JS generation.  
+
+nearley-unparse or similar.  
+
+
+**CUSTOMVOICE
+#https://github.com/ccoreilly/vosk-browser
+test this.  
+Seems to be better than built-in browser speechrecognition.  How/why...
+<script type="application/javascript" src="https://cdn.jsdelivr.net/npm/vosk-browser@0.0.5/dist/vosk.js"></script>
+
+
+#https://github.com/alphacep/vosk-api/tree/master/training
+Then we can just correct the data while reviewing.  
+#https://github.com/matteo-convertino/vosk-build-model
+
+#https://github.com/mbasso/awesome-wasm
+
+
+#https://whisper.ggerganov.com/talk/
+
+#https://github.com/ggerganov/whisper.cpp/blob/master/examples/whisper.wasm/index-tmpl.html
+
+Yeah lets use part of this for TTS and then 
+#https://github.com/lxe/wasm-gpt?tab=readme-ov-file
+
+
+
+**web/public/book.html
+Need to change voice.  
+customizing this voice will come eventually.  
+For now just use a different voice.  
+But have the option to use recognition.  
+
+
+
+
+Button to copy the question/response chain, or download.  
+Add 
+@@Question
+and 
+==
+Answer
+
+Formatting for now.  
+
+
+If we customize voice model and STT model, we should be able to correct in real-time while reviewing.  
+Ah yes, we should correct the nearest comment with the browser STT as we watch.  
+
+
+
+**web/public/grammar/book/book.ne
+See if we can get this to work.  For now it has compiled.  
+--here.  
+
+
+**web/public/midi.js
+#https://mimugloves.com/
+yes please
+
+#https://github.com/shanteacontrols/OpenDeck
+
+#https://genkiinstruments.com/products/wave
+
+See if it is useful.  
+
+For now just Translate input to output for keyboard which is master control panel.  
+Set up to pick up new function from this device.  
+
+#https://openeeg.sourceforge.net/doc/
+
+#https://www.brainaccess.ai/hardware/brainaccess-midi/
+
+#https://www.youtube.com/watch?v=LoqCdGppGd8
+
+#https://bionichaos.com/
+
+#https://bionichaos.com/tools/
+
+#https://bionichaos.com/EEG_Music/
+#https://bionichaos.com/GraphIt/
+#https://bionichaos.com/EyeTracker/
+#https://bionichaos.com/GestureGroove/
+
+**web/public/test/sensors/gesture.html
+See if we can get this app to work.  
+Why no github??
+This is kind of nice though.  
+Basically what I started to do in python a long time ago.  
+
+
+**web/public/page.html
+Detailed parsing of one file.  
+For now use new page, maybe eventually just adjust components in book.html
+use book.ne grammar to parse book.  
+Otherwise use code parsing tool to get a meaningful graph of function calls.  
+Should be communication between book and page.  
+particularly selectionhistory and any further context for book interaction.  
+
+do a chat with the transcripts from around the times where there were edits to the page.  
+
+
+
+
+**web/public/book.html
+Need to have multiple open to allow for different context building.  
+When tab becomes active it turns off the mic for all the other tabs.  
+This should be one of the initial things.  
+
+
+on open tab - communicate activate mic
+Do we want to log the internal communication?  
+Probably not, at least not yet.  
+
+
+**web/public/pipes.js
+Need multi-tab communication.  
+const channel = new BroadcastChannel('app-data');
+channel.postMessage(data);
+const channel = new BroadcastChannel('app-data');
+
+channel.addEventListener ('message', (event) => {
+ console.log(event.data);
+});
+
+This way we can investigate then start other actions.  
+Use this to add to local storage window details.  
+
+Book -> analyze -> rec 
+
+
+**web/public/book.html
+Need to be able to traverse Git Tree.  
+put all folders on top and ..
+Or just make a folder view and a file view.  
+--ok
+
+Need to be able to add external content to context.  
+
+**news.py
+#feedparser
+#feedgen
+
+**timestep.py
+Add 
+#https://github.com/lkiesow/python-feedgen
+generate feed each time we run timestep.py
+add feed generation here.  
+All questions/answers to be generated as RSS feed based on existing content.  
+-respondtoComments
+
+Most of this will still be garbage but it will be fun.  
+
+**rss/gen.py
+Need to test.  
+--kind of works.  
+Need to make the perma-link actually work.  
+Also how do we want to manage the data.  
+Do we want in RTDB?  
+
+**timestep.py
+-respondtoComments
+Put into timestep.  
+
+**web/public/rss/view.html
+Need simple reader.  
+
+**GENBOOK
+What is genbook exactly?  
+is it answers I find interesting?  
+Do we need the negative samples?  
+I dont think we really need the negative sample responses, but not sure.  
+Other sample questions we have, but most of them will just be unseen.  
+How to distinguish between unseen and not preferred question/answer.  
+
+**chat.js
+-addChatRow
+
+Do we need to put this in DB?  
+Probably dont want to save except for random sample.  
+Only if de-linked from user.  
+
+Better not to save for now maybe.  
+
+
+**server/ollama/server.py
+@@How can we add a time component which is used to weight more recent contributions?  
+
+lastspokenword="comment";
+MyChat(..)
+
+**web/public/book.html
+Need some sort of loading indicator.  
+
+@@Does a LLM RAG system allow for giving weights to entries?
+
+If we can add weight, just add a weight based on the date.  
+
+
+@@How can I add a document weight to Chroma.from_documents
+
+**server/ollama/load.py
+
+#https://docs.trychroma.com/docs/querying-collections/metadata-filtering
+Need something numeric, not just category-driven.  
+Could use this for tagging though.  
+Probably dont need each individual vectorstore.  
+Cant find good answer.  
+
+
+How to deal with embedded question/answer.  
+Perhaps need to indent any question/answer we find to not confuse.  
+ @@question
+ ==answer
+
+This is to not confuse the parser.  
+So prior to actual question we indent everything?
+
+**web/public/book.html
+-filterprompt
+-filterregex
+not used yet.  
+How to use this?  
+
+Use in selectionhistory and book topics?  
+Also add delete button to all selectionhistory.  
+--ok.  
+
+
+**web/public/recent.html
+Add stats like number of transcribed words and/or summary of transcript.  
+
+Add similar table in book.html.  
+Show videos from most recent selection.  
+After pulling changes, show videos from this timeframe of most recent commit.  
+
+**web/public/recent.js
+Separate for use with other pages.  
+Really should work better on variable naming.  
+We should search for most used variables.  
+And work our way from them.  
+Use acorn for this especially need to do this with JS, because of the way we are doing legacy (global) variable usage.  
+But really we want minimal reuse of names anyway.  This is a simple way to refactor.  
+
+
+**web/public/book.html
+Should have word2vec change size dynamically based on number of lines.  
+
+How do we provide feedback on responses immediately?  
+Maybe lets interact with DB instead of gitbook.  
+Or can have both is fine.  
+UI should interact with DB.  
+Just use "base" language.  
+Need more words.  
+
+Chrome speechSynthesis sometimes fails.  
+Not sure cause.  
+
+Copy the question to -> transcript.  
+Have two links, jump to last response @@question
+or ask again @@question.  
+
+Why is Edge so much slower at loading the model?  
+
+Really need loading indicator.  
+
+Scroll comment window to bottom each time.  
+
+As video plays, need to scroll through the comments and originaltranscript portion.  
+
+Need to start saving settings data in localStorage.  
+Save local transcript by date_time, and list local Transcripts.  
+Allow for naming them as well.  
+For now just in local storage.  
+All actions.  
+Need to list loadTopic in Transcript as well.  
+
+Run transcript and copy responses.  
+What are the recent changes.  
+Can we answer this meaningfully?  
+
+**web/public/rec.js
+saveTranscript/loadTranscripts
+saveLocal/saveRemote
+indicate whether this is private/public.  
+Does this need to be associated with video.  
+I think probably best if we do.  
+This should be optional for now.  
+Just record under 
+
+if recording, save transcript here:
+//misterrubato/date_time
+if not:
+//watch/date_time
+
+how to handle partial occasions?  
+
+--Optional localrecorder.  
+If localrecorder is available, utilize this, to pick up local input.  
+5MB is usual limit.  
+#https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
+Need to use this.  
+localStorage for any settings and perhaps some cache.  
+IndexedDB for transcripts and recordings.  
+
+
+**web/public/rec.html
+
+
+**web/public/test/testindexeddb.html
+Define local data struct
+Perhaps just use same datastruct.  
+//misterrubato/date_time
+//watch/date_time
+//dictionary/language
+//dictionary/languages
+
+Simplify data structure for video/feedback structure.  
+So when record -> 
+//misterrubato/date_time/transcript/transcript
+should add
+//misterrubato/date_time/transcript/midi
+
+Locally we will have 
+//misterrubato/date_time/data/
+Automatically will be saved locally unless explicitly deleted for "space?"  
+
+This will be used similar to comments/uid/midi onload.  
+//misterrubato/date_time/snippet/description, publishedAt, title, tags
+inside description
+-MEDIAFILE: link to uploaded file.  Everything is local until it is uploaded, and MEDIAFILE in description overwritten?  
+Just have a sync mechanism.  
+with public/local link.  
+
+-MIDI
+//misterrubato/date_time/comments/uid/
+
+
+#https://dexie.org/docs/Tutorial/Hello-World
+#https://github.com/dexie/Dexie.js/tree/master
+
+#https://github.com/localForage/localForage
+
+#https://dexie.org/docs/API-Reference#quick-reference
+
+Guess this will be sufficient.  
+db.version(1).stores({
+  friends: '++id, name, age' // don't index "picture"
+});
+
+db.friends.put({
+  name: 'Camilla',
+  age: 25,
+  picture: await getBlob('camilla.png') // but store it
+});
+
+So see if we can store images/videos 
+
+
+**web/public/rec.html
+Add rec, and change DB to dexie.js.  
+Save local saves to dexie.js
+save remote saves video and addl JSON file to remote upload location and adds mediafile: to description.  
+rec API calls redirect to localDB.  
+Still not public until reviewed.  
+-Public uploads get pushed to Youtube?  
+--here.
+
+
+**web/public/rss/data
+**server/ollama/server.py
+Seems most answers generated are similar, or almost always using the same sources.  
+
+Should display date from comment in youtube?  
+
+**web/public/db.js
+Use this for DB interaction.  
+
+**web/public/config.js
+loadUserConfig
+
+**web/public/config.html
+UI to adjust config
+
+**web/public/db.html
+sample UI for contents.  
+
+#https://github.com/lucaong/minisearch
+
+#https://olivernn.github.io/moonwalkers/
+
+
+#https://github.com/LiamOSullivan/flexsearch-demo#options
+#https://github.com/LiamOSullivan/flexsearch-demo
+
+**web/public/js/flexsearch/test.html
+Need front-end FTS.  
+ok, this seems to work.  
+
+**web/public/book.html
+Ingest all book etc.  
+Need to filter prompt.  
+
+
+Should we do remote CLI access.  
+#https://github.com/getsavvyinc/savvy-cli
+#https://github.com/theonewolf/TermRecord?tab=readme-ov-file
+#https://github.com/elisescu/tty-record
+
+how much more do we get really than 
+> history
+
+Anyway add fts to book.html
+
+
+**ES6
+#https://github.com/ericdouglas/ES6-Learning
+#https://www.programiz.com/javascript/ES6
+
+really should start using this syntax more.  
+A bit late...
+Some of these things...
+
+Start to use Promise
+let countValue = new Promise(function (resolve, reject) {
+    setTimeout(function () {
+        resolve("Promise resolved!");
+    }, 5000);
+});
+countValue.then(function successValue(result) {
+    console.log(result);
+});
+
+more class 
+class Student extends Person
+
+and import/export
+
+
+for of loop.  
+function(...args)
+use Map() instead of dictionary
+
+let is local.  
+var is global.  
+
+and import/export
+
+end of file:
+export { value1, value2, add };
+to start.  
+
+
+
+**web/public/keymap.js
+Try to just get the comma-delimited IDs and write a nearley parser to change to words.  
+Still how to combine MIDI with speech intelligently.  
+
+
+**web/public/grammar/book/book.ne
+Lets check Book commands against Keymap commands.  
+Does book.ne work?  
+
+
+**web/public/page.html
+Basically book, but with only contents relevant to that page.  
+All dependencies (as detected)
+Do we need a separate page?  
+perhaps just pass topics=... in url.  
+Then auto-loads based on this topic/topics.  
+
+
+**web/public/recent.js
+--PAGE
+In the videos as well as word2vec contents, only show topics which transcripts include the TOPIC names or come up in the FTS or similarity search.  
+
+gitstruct["alltopics"]
+    var windowSize = Number($("#windowSize").val());
+    Adjust this as needed.  
+    This should be visible/setting.  
+
+What is the search depth 
+So find all words next to topic.  
+Use windowSize for this as well?  
+or just use windowSize/2 for this?  
+Correlation through BOW.  
+
+
+
+
+**web/public/grammar/book/book.ne
+?Lets check Book commands against Keymap commands.  
+Does book.ne work?  
+
+Then create 
+**web/public/grammar/midi.ne
+Try simplistic number sequence -> word generation.  
+
+
+Something needs to be adjusted here.  
+All in error at the moment.  
+
+> nearley-test -i "**MYTOPIC\nSome comment" grammar/book/book.js
+Not sure.  
+nearley-unparse is what I think I liked to begin with.  
+This mixed with LLM would be nice.  
+
+--How to pass \n to nearley-test
+
+How do we get the expected form.  I think it will learn form.  
+We are still at very low context string numbers.  
+If this is scalable, we dont need to be too worried about form I think as long as we can 
+send multiple samples of expected form in context window.  
+
+How scalable is this.  
+Seems pretty scalable at the moment.  I think it is more of a model generation style.  
+rolling context window may be ok as well anyway.  
+
+Then we send a set of book/commits.  
+And get structured output, and confirm the form with the parser.  
+If there is an error, fix it if we can, otherwise, add this to the pipeline of queries until we get a useful and parseable response.  
+
+
+**web/public/grammar/book/book.ne
+--This is not so easy to formulate a grammar.  
+
+Seems to work, but is this scalable with keepHistory?  
+
+Why are we getting so much in p.results 
+This is exponential based on the number of lines.  
+grammar recursion problem?  
+Probably cant use this?  
+
+**web/public/grammar/csv.ne
+Test this see if we have same recursion problem.  
+How to fix?  
+Dont give up ...
+
+
+**web/public/grammar/keys/keys.ne
+Try to make a simple interpreter for this.  
+Maybe better suited.  
+How do we limit this recursion in general.  
+
+**web/public/grammar/book/booka.ne
+--Finally a start.  
+We may be able to use.  
+
+Try to add comment logic.  
+Have to be very careful with this, or end up with unwanted recursion/nesting.  
+
+
+**web/public/rss/view.html
+Add Speech
+
+Really should make a complete header module with MIDI, SPEECH and LLM
+Set UI and module combo.  
+Or build UI via javascript?  
+Can test this here.  
+Then change book.  
+Just build context function should be different.  
+This should be unique to each page. 
+And can include queries to LLM eventually.  
+For now just build context string.  
+Try to use ES6.  
+Build login module as well?  
+
+
+**web/public/rss/recent.html
+List recent dates.  
+Use recent.js
+
+**web/public/rss/view.html
+**web/public/speech.js
+**web/public/book.html
+OK finally have some ES6 module code integrated.  
+Still need to fix speech.js for analyze.html
+**web/public/analyze.html
+And maybe broke analyze.html
+But 
+Now use speech.js as module to start with.  
+
+
+**web/public/recent.js
+Change the link for the recent.js in book.html
+Load the video in the page.  
+Have separate option to analyze.  
+--OK
+
+
+**web/public/book.html
+--ChatLocalUpdate
+--ChatLocalDone
+adjust the answer for speech purposes.  
+Run through a parser.  
+Maybe make a simple parser for this.  
+**web/public/grammar/book/bookspeech.ne
+code pronunciation etc.  
+
+```javascript
+is this a marker?  
+add responses with this to codemirror window?  
+Dont speak except comments.  
+// -> comment
+{ -> ...
+
+--mouseOverGit(title, content)
+Just use this for now.  
+
+
+
+**web/public/git.js
+--loadTopicGraph
+Need to load GIT struct from DB without actual content just file size.  
+Then base TOPIC font-size on recency and num changes and/or num lines.  
+Some combined calculation
+--selectFont
+--OK, rudimentary calculation done.  
+
+**web/public/book.html
+add a different codemirror for mouseover snippets.  
+So we will have code selected/investigating.  
+And then mouseover or other code from chat responses.  
+
+
+Can we use multiple git repositories efficiently.  
+Right now limited by book existence.  
+Lets try without this, and just get change history, or build book from change history and comments.  
+
+If there are some code files/pages which are not found, need to note this, and suggest updating book.  
+And keep track of this so we make sure it is displayed as deprecated.  
+Should have an option to show deprecated, and also should be able to select timeline of words to be displayed.  
+Keep track of where the earliest/latest date they are mentioned.  
+If they do not fall within the timeline, remove from the graph, or make invisible.  
+Can we update this as the timeline zooms in/out?  Or do we want another date selection component?  
+This may be sufficient to essentially make less visible.  
+--selectOpacity
+
+
+
+**web/public/rss/view.html
+Get the speech working.  
+Function to read particular entry, or read/skip next.  
+
+
+and LLM summarization. 
+Or perhaps do this on 
+**rss/gen.py
+
+
+
+**SOFTWAVE
+settings:
+Active input
+Widi master
+wave
+MIDI output
+Widi master
+
+--kind of works.  
+Do we want to use this?  
+Simple setup:
+CH10 = up
+CH11 = middle
+CH12 = down
+CH16 = TILT = scroll
+CH17 = PAN = scroll left Right
+CH19 = ROLL = scroll left Right
+
+
+Multiple 
+Use same selection with ROLI keyboard.  
+
+Need to show a way to select items in UI.  
+Also should work without this.  
+
+If word map is selected use ROLL and tilt.  
+Tilt only works if vertically aligned.  
+Use tilt for scroll perhaps.  
+
+Problem is still need this softwave running, which is horrible.  
+Cant get it to work without.  
+See if the use-case is viable, then fix this perhaps.  
+
+
+**web/public/test/sensors/gesture.html
+Probably more meaningful.  
+And much cheaper.  
+
+Yeah lets focus energy here.  
+What are the facial movements we can use.  
+
+Determine baseline...
+
+Initial thoughts:
+Eyebrow raise (long) = zoom out
+Eyebrow lower (long) = zoom in
+Eyebrow raise (short) = scroll
+Eyebrow lower (short) = scroll
+Head nod up/down/left/right (long) = scroll
++wink = select/focus next component
+Head nod up/down/left/right (short) = item selection 
+
+Current component/selection
+Wink = select
+
+Eyes close (short) = read
+Eyes close (long) = "comment"
+
+
+For now dont use hands.  
+Hand wave up/down/left/right = current component control?  Mouse alternative
+
+
+
+#https://en.wikipedia.org/wiki/Microexpression
+
+
+**web/public/book.html
+Each user/group can potentially have their own book (folder).  
+Lets try to adjust this, and use i.e. genbook.  
+Add topics to genbook.  
+Then change the setting to point here.  
+Book doesnt have to be same giturl as source.  
+timewindow can display book or git commits.  
+Be able to freely switch between branches as well.  
+
+What is the second repository to check.  
+Maybe try to understand this:
+#https://github.com/google-deepmind/alphageometry
+
+
+**genbook
+This is essentially a SFT dataset, but do we need full context?  
+
+
+
+Also try to use the time window.  
+Have this on/off, allow 
+
+
+**extension
+#https://github.com/n4ze3m/page-assist?tab=readme-ov-file
+May be a good reference.  
+
+
+**web/public/test/sensors/gesture.js
+--onFaceResults
+
+Adjust this to recognize 
+Eyebrow raise/lower
+Head nod/NESW
+Eye closure
+
+
+**web/public/git.js
+--selectFont
+--selectColor 
+seems to work ok.  
+
+**web/public/timewindow.js
+When item is selected, this window jumps to the bottom.  
+Need to fix that. 

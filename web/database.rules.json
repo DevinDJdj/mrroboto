@@ -1,0 +1,38 @@
+{
+	"rules": {
+		"misterrubato": {
+			".indexOn": ["snippet/title", "snippet/description", "snippet/publishedAt", "snippet/channelId", "updated", "uid/uid"],
+			"$videoid":{				
+				"snippet": {
+					".write": "!data.exists() || auth.token.admin === true || auth.uid === data.parent().child('uid').child('uid').val()"
+				},
+				"stats": {
+					".write": "!data.exists() || auth.token.admin === true || auth.uid === data.parent().child('uid').child('uid').val()"
+				},
+				"uid": {
+					".write": "!data.exists()"
+				},
+				"comments": {
+					"$uid": {
+						".write": "$uid === auth.uid"
+					}
+				}
+			}
+		},
+		"watch": {
+			".indexOn": ["snippet/title", "snippet/description", "snippet/addedAt", "snippet/publishedAt", "updated"]
+		},	  
+		"users": {
+			".indexOn": ["name", "firstlogin", "lastlogin"],
+			"$uid": {
+				".write": "$uid === auth.uid",
+				"settings": {
+					".read": "auth.uid === $uid"
+				}
+			  }
+		},		
+		".read": "auth != null",
+			".write": "'ZW130KE3xXMvdDoIXTe9kbOkp003' === auth.uid || auth.token.admin === true"
+		}
+
+}

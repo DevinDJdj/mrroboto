@@ -1,0 +1,341 @@
+Not sure 
+#al8cyr-gH6M
+#https://github.com/facebookresearch/llama
+#./download.sh
+#stack-exchange-paired
+#https://huggingface.co/datasets/lvwerra/stack-exchange-paired
+
+#https://github.com/huggingface/trl/tree/main/examples/research_projects/stack_llama_2/scripts
+
+#DPO -> Chosen/rejected pair
+Perhaps we can list multiple answers and then choose the preferred answer.  
+
+Not sure we can generate this data well though.  
+
+tiny GPU so for now just use the GPT2 sample and see where we can get.  
+
+**server/llmtune/testing
+https://medium.com/@ogbanugot/notes-on-fine-tuning-llama-2-using-qlora-a-detailed-breakdown-370be42ccca1
+Looks to work perhaps, but need better GPU.  
+Needs further work.  
+--continue testing.  
+peft - parameter efficient fine-tuning (just cheap tuning, but not precise)
+sft  - supervised fine tuning (usually human generated/approved control)
+QLora - Quantized LoRA (Low-Rank Adaptation of Large Language Models)
+
+
+**server/ollama/server.py
+Also look at prompting doc for llama2:
+https://huggingface.co/blog/llama2#how-to-prompt-llama-2
+Allow this to be a free parameter in the interaction.  
+Add this to current 
+
+
+
+Potential to investigate:
+5L4s9mi9eUc
+LR3BmWCg7Y0
+LitybCiLhSc
+
+
+
+**extension/handsfree/audio
+pulled from here.  https://github.com/gregjopa/piano-flash-cards/tree/main/public/audio
+Lets use these sounds.  
+OK, change to these sounds.  
+WebMidi initialized.  
+Also why incompatible with **web/public/analyze.html
+
+**extension/handsfree/sidepanel.js
+need to interact with history object for browser.  
+Can we put the JS function in the config file?  
+This would be cleanest.  
+Anyway, just start implementing.  
+Maintain cursors for each window.  
+Do we want this in the QR Code as well?  
+
+
+document.elementFromPoint(cursorX, cursorY)
+
+Need to fix focus issues.  
+Need to voice switch channel/tab.  
+Name channel/tab.  
+Or perhaps just use the keys to represent channel/tab.  
+and/or site name for new tabs.  
+Assign tab to 2-key combo.  
+Use time sensitivity.  
+Assign name -> hotkey
+3-key+ with *48* within 2 second is a name.  
+read-back the name.  
+Then this hotkey combo and name and/or command are associated with this tab.  
+So we could associate "where am i" with a 3-key+ combo if entered and spoken at the same time.  
+Could have default combos, for now just make the creation function.  
+
+addl keywords:
+new tab ... (use name or )
+new search ...
+open search results new tab
+search ...
+open latest search tab if exists with new results
+save ... save current tab/config and scroll location and location as ...
+chrome.storage.sync.set({ mytext: txtValue });
+eventually have playback functionality.  Start saving sequences and timings now.  
+Midi perhaps cant do this unless we have a lookup for all.  
+Each tab can be a midi track?  
+
+
+Need a cut mic and start mic hotkey.  
+If possible more than just MIDI keys.  
+
+load ... load config from 
+chrome.storage.sync.get('mytext', function(data) {
+    yourTextArea.value = data.mytext;
+});
+
+
+chrome.history.getVisits(
+  details: UrlDetails,
+  callback?: function,
+)
+chrome.history.search(
+  query: object,
+  callback?: function,
+)
+
+occurs before page is loaded.  
+chrome.history.onVisited.addListener(
+  callback: function,
+)
+
+otherwise, just switching channel/tab.  
+Save all config after each action.  
+
+need to save options.  
+Need to deactivate and activate.  
+
+--Think of better name.  
+--Need search functionality in page.  
+How can we use the saved midi/transcript?  
+Yeah use the transcript along with the QR Code
+to generate the same results.  
+We dont really need to be sharing all of the Images.  
+But how do we match viewport?  
+
+"page down", "page up"
+"layout" - Generate sound heatmap of visible page.  
+Simple design i.e. link sound
+"link layout"?
+"text layout"?
+
+Same feedback as we move around the page.  
+Certain sound for link, image, text.  
+Use velocity or instrument selection to describe type of element.  
+Stick with 25 keys for now.  
+
+playNote(..., instrument)
+for now static:
+link = trill for cello/viola/violin (volume indicates density)
+image = french horn
+text = piano (volume and repetition indicates density)
+https://philharmonia.co.uk/resources/sound-samples/
+
+
+
+
+List commands on side panel.  
+"help" - list most used or all commands.  
+"help ..." - describe command.  
+
+
+Should really create JS object to contain all variables.  
+This could actually be embedded in other sites as well, but I think it would work better as an extension.  
+Otherwise you have a bunch of sites fighting over the mic and midi inputs.  
+Anyway create prototype which contains all the needed functions.  
+
+Top = Right white
+Bottom = Left white
+Right = Right black
+Left = Left black
+
+move + keys = %-wise movement within full page
+step + keys = %-wise movement within selected area.  
+layout = gives feedback on selected box.  
+
+
+
+
+**timestep.py
+add functionality to respond to any Youtube comments.  
+Perhaps just pick the latest during timestep and respond to that.  
+After 1-2 weeks for any video that has been published.  
+Then set done flag.
+
+Use server/ollama/server.py API to generate response and adjust links.  
+POST https://www.googleapis.com/youtube/v3/comments
+https://www.googleapis.com/youtube/v3/commentThreads?key={your_api_key}&textFormat=plainText&part=snippet&videoId={video_id}&maxResults=100&pageToken={nextPageToken}
+
+
+
+**languages
+use 2^n option as well as base 10.  
+Negative and positive numbers.  
+
+This will be easier for representing numbers.  
+Most things dont need to be exact anyway.  
+For now lets just represent numbers with midi.  
+Utilize context to determine meaning.  
+
+
+Should we try to use this?  
+github.com/facebookresearch/jepa
+or new text->video?  
+Not really what we are after at the moment.  
+
+**web/public/chat.html
+create test Chat() feedback here.  
+
+**record.py
+Allow to switch config.json to adjust destination of recording.  
+Need to fix "rerun" with MEDIAFILE.  
+
+
+
+OK, base heatmap populated.  
+Continue.  
+
+dont think we need an options page, just put any settings in the side-panel page itself.  
+-SpeechRecognition Language
+-SpeechSynth voice
+
+only 4 hotkeys allowed.  
+-mic on/off (hotkey) (feedback in badge).  
+-record/stop (hotkey)
+use these actions.  
+
+
+Did we check this?
+https://github.com/mlc-ai/web-llm
+
+
+**extensions/handsfree/sidepanel.js
+On-close adjust icon status.  
+
+
+need to search for nearest text when we are moving/scrolling.  
+Need to fix 
+need to just start part of the way down the text if we are having to move a large amount.  
+Track where we have moved to.  Search not just straight up/down etc.  
+
+Initial detection is also bad for new/updated tabs.  
+add a click functionality.  
+
+As we read we should highlight the words, or at least track the x, y position so that we can click at any moment.  
+
+Just control this by the keys:  
+keys -> Chat -> action
+--Mark
+--Pause
+--Continue
+--click
+
+C3 is control key.  C5 is control key.  
+
+then we have 24 bits or 23 bits to represent something.  
+
+a href with the text which we just read.  
+
+
+commands
+--listen (open any media on page or list media)
+--mute (mute any media playing)
+--start/stop feedback
+
+Define feedback langauge.  
+
+Lot of pages not working, why?  
+--must interact with page before tts will work.  (click/space)
+--Can we simulate this?  
+
+create 25-key images with selected items.  
+These images will be 
+
+
+**web/public/testtinymidi.html
+Use this to generate some images perhaps.  
+Should be able to just get the canvas image from this.  
+Or just use this library to generate images of what this looks like.  
+Can we select keys etc?  
+
+
+Continue with keyboard.  
+window.innerHeight not quite right.  
+Closer though to what we need.  
+
+each note make sure to check phrase combinations and wait briefly if there is no match
+move select, channel, open to mr.  
+
+Not finding deleted stuff when using tabs.  
+
+Somehow I have multiple scripts loaded.  
+This is why there is some weird stuff going on like paging up twice/3 times.  
+Need to fix this.  --OK I think.  
+How can we tell if there are functions there?  
+Perhaps there is a better way.  
+
+
+Try some commands.  
+What other commands to add?  
+
+
+need arg --config flag for other batch jobs.  
+
+Try to test video/audio playback.  
+Appears ok.  
+
+Why is the initial tabs command not working?  
+how do we make this our home page?  
+Use the Chrome On Startup to open these pages.  
+Then we just need to start chrome on OS boot.  
+
+--Need search functionality in page.  
+List all of these and then select -> read.  
+"find"
+
+C:\Users\devin\AppData\Local\Google\Chrome\User Data\Default\Extensions
+
+Probably need to get data from Iframe components.  
+docment.getElementByTag("iframe") ...
+Not sure we want to bother with this.  
+But this will be a limitation until we do.  
+
+
+have some history of find commands.  
+Then allow to search in documents for all these words.  
+
+Right now this is too language focused.  
+I think this must be language-based.  
+If we need to do in another language, we need to rewrite large sections.  
+Do we want to do another language?  
+Not right now.  
+
+
+**web/public/analyze.html
+What do we have running on a timer?  
+Seems some Chrome memory issues if leave up the page for long time.  
+
+
+--Test move.  
+
+Need feedback sound once loaded.  
+Should we do the feedback of each command set?  
+
+OK, move and scroll are working ok.  
+Now check if we can use all midi.  
+Are we ok using the 48 and 72 in the move/scroll etc.  
+Perhaps we should use all but 60. 
+adjust right a bit.  
+
+
+Increase disk for learning machine:
+https://learn.microsoft.com/en-us/windows/wsl/disk-space#how-to-locate-the-vhdx-file-and-disk-path-for-your-linux-distribution
+

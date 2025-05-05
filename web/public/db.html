@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+  <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+  <script src="https://unpkg.com/dexie-export-import/dist/dexie-export-import.js"></script>
+  <!--
+  <script src="https://cdn.jsdelivr.net/npm/minisearch@7.1.1/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/nextapps-de/flexsearch@0.7.41/dist/flexsearch.bundle.min.js"></script>
+-->
+  <script type="text/javascript" src="config.js"></script>
+  <script>
+
+    var cfg = loadUserConfig();
+    //can potentially have multiple DBs we interact with 
+    //change config.html, then reload.  
+    var db = new Dexie(dbname);
+
+    db.version(1).stores({
+      misterrubato: `
+        &id, 
+        snippet.channelId,
+        snippet.description, 
+        snippet.title, 
+        snippet.publishedAt,
+        status.privacyStatus,
+        transcript.transcript`,
+    });
+
+    // Now add some values.
+    db.misterrubato.bulkPut([
+      { id: "20250203130000", comments: "", 
+        snippet: {channelId: channelId, description: "Test ", publishedAt: "2023-11-07T02:30:09Z", title: "Test"}, 
+        status: {privacyStatus: "private"}, 
+        transcript: {transcript: ""}
+    }
+    ]).then(() => {
+
+      return db.misterrubato.where("id").startsWith("20250203").toArray();
+      /*
+      const sample = db.misterrubato.where(["snippet.channelId", "id"])
+    .between([channelId, "20250203"], [channelId, "20250204"], true, true)
+    .toArray();
+        */
+
+    }).then(vids => {
+
+      console.log("Found vids: " +
+        vids.map(vid => vid.snippet.title));
+
+      return db.misterrubato
+        .orderBy("id")
+        .reverse()
+        .toArray();
+
+    }).catch(err => {
+
+      alert("Ouch... " + err);
+
+    });
+
+    function progressCallback ({totalRows, completedRows}) {
+      console.log(`Progress: ${completedRows} of ${totalRows} rows completed`);
+    }
+    
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const exportLink = document.getElementById('exportLink');
+
+      async function downloadDatabase(databaseName, filename) {
+  const blob = await exportDatabase(databaseName);
+ 
+}
+      // Configure exportLink
+    exportLink.onclick = async ()=>{
+      try {
+        const blob = await DexieExportImport.exportDB(db);
+        //db.export({prettyJson: true, progressCallback});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mrrubato-export.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+     } catch (error) {
+        console.error(''+error);
+      }
+    };
+  });
+  </script>
+</head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RXPM3QHNJ3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-RXPM3QHNJ3');
+    </script>
+    
+<body>
+  <a id="exportLink" href="#">Click here to export the database</a>
+</body>
+</html>

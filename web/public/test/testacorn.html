@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/5.2.1/acorn.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/5.2.1/walk.js"></script>
+<script type="text/javascript" src="../codewindow.js"></script>
+
+</head>
+<body>
+
+    <script>
+
+    
+    console.log(acornGetFunctionNames(`
+    
+    var sampleFunc = function() {
+        return 'hello';
+    }
+    /*
+      function thisIsNotReallyAFunction() {} 
+    */
+    
+    alert(sampleFunc());
+    function /* undesired comment */ sampleTest() {
+        var sampleTestVar = 'one';
+    };
+    var sampleFunc=
+    // still OK!
+    function() {
+        return 'hello';
+    }
+    alert(sampleFunc());
+    function
+    // all sotrts of comments
+    sampleTest()
+    /* Even
+     * Block ones
+     */
+    
+    {
+        var sampleTestVar = 'one';
+    };
+    var sampleFuncEDIT;
+    sampleFunEDIT = function (){};
+    var functionNameEDIT = "sampleFunc";
+    
+    `));
+
+</script>
+
+</body>
+</html>

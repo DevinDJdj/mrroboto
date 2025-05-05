@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LLM.js - Playground</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      html, body, #map {
+        height: 480px;
+        width: 640px;
+      }
+      #overpass-api-controls {
+        padding: 10px;
+        background-color: rgb(255, 255, 255);
+      }
+      #overpass-api-controls a {
+        display: inline;
+      }
+    </style>
+</head>
+<style>
+#llm_list {
+    display: grid;
+}
+
+#llm_list > div {
+  
+}
+
+</style>
+<body>
+    <div id="map">
+    
+        <div class="leaflet-control-container">
+          <div class="leaflet-top leaflet-right">
+            <div id="overpass-api-controls" class="leaflet-bar leaflet-control">
+              <input id="query-textfield" value="leisure=playground" size="50">
+              <input id="query-button" type="button" value="Laden">
+            </div>
+          </div>
+        </div>
+      
+      </div>
+
+<table width="640px">
+<tr>
+<td>
+
+<div class="container">
+      <h1><a href="https://rahuldshetty.github.io/llm.js/#/" target="_blank">LLM.js</a> - Playground</h1>
+
+      <p>
+        Run <b>Large-Language Models (LLMs)</b> 🚀 directly in your browser 🌐! 
+      </p>
+
+      <p>
+        Learn More: 📜 <a href="https://rahuldshetty.github.io/llm.js/#/api_guide" target="_blank">API Reference</a>
+      </p>
+
+      <p>
+        Developed By: ✒️ <a href="https://rahuldshetty.github.io/" target="_blank">RDS </a>
+      </p>
+
+
+      <h2>Demo</h2>
+
+      <p>
+        This web demo enables you to run LLM models from Hugging Face (GGUF/GGML/tiny-llama2/starcoder/etc) directly in your browser.
+      </p>
+
+      <form onsubmit="event.preventDefault();">
+        <div>
+            <span>Pick a Model:</span>
+            <progress id="progress" hidden></progress>
+            <div id="llm_list">
+            </div>
+            <button id="loadBtn">Load Model</button>
+        </div>
+
+        <label for="textInput">Craft your <i>prompt</i>📄:</label>
+        <textarea id="textInput" name="textInput" rows="10"></textarea>
+                
+        <button id="submitBtn" disabled>Run</button>
+      </form>
+
+      <div id="result">
+        <h3>Result</h3>
+        <pre><code id="output" style="white-space: pre-wrap;"></code></pre>
+      </div>
+    </div>
+
+	<!--for speech.js-->
+	<div class="words" contenteditable style="display: none;">
+		<input type="text" id="p" name="p">
+    </div>
+    <!--for midi.js-->
+    <div id="devices">	</div>
+    <div id="out"></div>	
+    
+</td>
+<td>
+    <div id="transcriptcontainer" style="width: 100%;height: 960px;overflow:auto;">
+    <pre><code id="transcript" style="white-space: pre-wrap;" height="900px"></code></pre>
+    </div>
+
+</td>
+</tr>
+
+</table>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
+    
+    <script src="../config.js"></script>
+    <script src="../midi.js"></script>
+    <script src="speech.js"></script>
+
+    <!-- map script -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/osmtogeojson@2.2.12/osmtogeojson.js"></script>
+
+    <script>
+        function getRandLocation(latlon){
+            if (latlon[0] == 0){
+                //initialize map to anywhere with land.  
+                //for now, Bremen, Germany
+                return [53.079, 8.81308];
+            }
+            else{
+                var lat = latlon[0] + (Math.random() - 0.5);
+                var lon = latlon[1] + (Math.random() - 0.5);
+                return [lat, lon];
+
+            }
+        }
+        var zoomlevel = 14;
+        var randStart = getRandLocation([0,0]);
+        var randGoal = getRandLocation(randStart);
+
+      var map = L.map('map').setView(randStart, zoomlevel);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      function getStartLocation(){
+        var queryTextfieldValue = $("#query-textfield").val();
+        var overpassApiUrl = buildOverpassApiUrl(map, queryTextfieldValue);
+        
+        $.get(overpassApiUrl, function (osmDataAsJson) {
+          var resultAsGeojson = osmtogeojson(osmDataAsJson);
+          var resultLayer = L.geoJson(resultAsGeojson, {
+            style: function (feature) {
+              return {color: "#ff0000"};
+            },
+            filter: function (feature, layer) {
+              var isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
+              if (isPolygon) {
+                feature.geometry.type = "Point";
+                var polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
+                feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
+              }
+              return true;
+            },
+            onEachFeature: function (feature, layer) {
+              var popupContent = "";
+              popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
+              var keys = Object.keys(feature.properties.tags);
+              keys.forEach(function (key) {
+                popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
+              });
+              popupContent = popupContent + "</dl>"
+              layer.bindPopup(popupContent);
+            }
+          }).addTo(map);
+        });
+
+      }
+
+      function buildOverpassApiUrl(map, overpassQuery) {
+        var bounds = map.getBounds().getSouth() + ',' + map.getBounds().getWest() + ',' + map.getBounds().getNorth() + ',' + map.getBounds().getEast();
+        var nodeQuery = 'node[' + overpassQuery + '](' + bounds + ');';
+        var wayQuery = 'way[' + overpassQuery + '](' + bounds + ');';
+        var relationQuery = 'relation[' + overpassQuery + '](' + bounds + ');';
+        var query = '?data=[out:json][timeout:15];(' + nodeQuery + wayQuery + relationQuery + ');out body geom;';
+        var baseUrl = 'https://overpass-api.de/api/interpreter';
+        var resultUrl = baseUrl + query;
+        return resultUrl;
+      }
+
+      $("#query-button").click(function () {
+        var queryTextfieldValue = $("#query-textfield").val();
+        var overpassApiUrl = buildOverpassApiUrl(map, queryTextfieldValue);
+        
+        $.get(overpassApiUrl, function (osmDataAsJson) {
+          var resultAsGeojson = osmtogeojson(osmDataAsJson);
+          var resultLayer = L.geoJson(resultAsGeojson, {
+            style: function (feature) {
+              return {color: "#ff0000"};
+            },
+            filter: function (feature, layer) {
+              var isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
+              if (isPolygon) {
+                feature.geometry.type = "Point";
+                var polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
+                feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
+              }
+              return true;
+            },
+            onEachFeature: function (feature, layer) {
+              var popupContent = "";
+              popupContent = popupContent + "<dt>@id</dt><dd>" + feature.properties.type + "/" + feature.properties.id + "</dd>";
+              var keys = Object.keys(feature.properties.tags);
+              keys.forEach(function (key) {
+                popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
+              });
+              popupContent = popupContent + "</dl>"
+              layer.bindPopup(popupContent);
+            }
+          }).addTo(map);
+        });
+      });
+
+    </script>
+    <!-- end map script -->
+
+    <script type="module">
+        //for midi.js
+        var currentlanguage = "mistral";
+
+        import {LLM} from "../llm.js/llm.js";
+
+        let LLMEngine;
+
+        let progress = document.getElementById('progress');
+        let loadButton = document.getElementById('loadBtn');
+        let submitButton = document.getElementById('submitBtn');
+
+        let inputElement = document.getElementById('textInput');;
+        let outputElement = document.getElementById('output');
+        let transcriptElement = document.getElementById('transcript');
+
+        const available_llms = [
+            {
+                "id": 0,
+                "name": "TinyMistral-248M-SFT-v4 (264 MB)",
+                "link": "https://huggingface.co/Felladrin/TinyMistral-248M-SFT-v4",
+                "model": "https://huggingface.co/rahuldshetty/llm.js/resolve/main/TinyMistral-248M-SFT-v4.Q8_0.gguf",
+                "prompt": "<|im_start|>user\nWho is Sherlock Holmes?<|im_end|>\n<|im_start|>assistant\n",
+                "type": "LLAMA"
+            },
+            {
+                "id": 1,
+                "name": "LLaMa Lite (289 MB)",
+                "link": "https://huggingface.co/Felladrin/llama2_xs_460M_experimental_evol_instruct",
+                "model": "https://huggingface.co/rahuldshetty/llm.js/resolve/main/llama2_xs_460m_experimental_evol_instruct.q4_k_m.gguf",
+                "prompt": "### Instruction:\n{prompt}\n\n### Response:\n",
+                "type": "LLAMA"
+            },
+            {
+                "id": 2,
+                "name": "TinyLLama 1.5T (482 MB)",
+                "link": "https://huggingface.co/Corianas/tiny-llama-miniguanaco-1.5T",
+                "model": "https://huggingface.co/rahuldshetty/llm.js/resolve/main/tiny-llama-miniguanaco-1.5t.q2_k.gguf",
+                "prompt": "{prompt}\n",
+                "type": "LLAMA"
+            },
+            {
+                "id": 3,
+                "name": "TinyMistral-248M-Alpaca (156 MB)",
+                "link": "https://huggingface.co/Felladrin/TinyMistral-248M-Evol-Instruct",
+                "model": "https://huggingface.co/afrideva/TinyMistral-248M-Alpaca-GGUF/resolve/main/tinymistral-248m-alpaca.q4_k_m.gguf",
+                "prompt": "### Instruction:\n{prompt}\n\n### Response:\n",
+                "type": "LLAMA"
+            },
+            {
+                "id": 4,
+                "name": "Tiny StarCoder-Py (257 MB)",
+                "link": "https://huggingface.co/bigcode/tiny_starcoder_py",
+                "model": "https://huggingface.co/rahuldshetty/ggml.js/resolve/main/starcoder.bin",
+                "prompt": "def factorial(n):",
+                "type": "STARCODER"
+            }
+        ]
+        
+        // Show Available LLMs
+        const populate_llm_list = () => {
+            const head = document.getElementById('llm_list');
+            
+            let div = document.createElement('div');
+
+            for(const llm of available_llms){
+                // Radio Button
+                let top = document.createElement('div');
+
+                let item = document.createElement('input');
+                item.type = 'radio';
+                item.id =  llm.id;
+                item.name = 'llm'
+                item.value = llm.name
+
+                if(llm.id == "0"){
+                    item.checked = true;
+                    inputElement.textContent = available_llms[0].prompt;
+                }
+                
+                // Label
+                let label = document.createElement('label');
+                item.for =  llm.id;
+
+                // Link
+                let anchor = document.createElement('a');
+                anchor.href = llm.link;
+                anchor.target = "_blank";
+                anchor.appendChild(document.createTextNode(llm.name))
+
+                label.appendChild(
+                    anchor
+                );
+
+                top.appendChild(item);
+                top.appendChild(label);
+
+                head.appendChild(top);
+                head.appendChild(document.createElement('br'));
+
+
+                // Event handler: Selecting Radio Button
+                item.addEventListener('change', (e)=>{
+                    if(e.target.id)
+                        inputElement.textContent = available_llms[Number.parseInt(e.target.id)].prompt;
+                    submitButton.disabled = true;
+                    div.hidden = true;
+                })
+            }
+
+            // Custom
+            let top = document.createElement('div');
+            
+            let item = document.createElement('input');
+            item.type = 'radio';
+            item.id =  -1;
+            item.name = 'llm'
+            item.value = 'Custom'
+
+            let label = document.createElement('label');
+            item.for =  -1;
+            label.appendChild(document.createTextNode('Custom '));
+            
+            // Input Text
+            div.hidden = true;
+
+            let url_input = document.createElement('input');
+            url_input.type = 'text';
+            url_input.id =  'customURL';
+            url_input.value = "https://huggingface.co/rahuldshetty/ggml.js/resolve/main/gpt2-roleplay.bin"
+            url_input.placeholder = "URL"
+            url_input.size = 60
+            div.appendChild(url_input);
+
+            let type_input = document.createElement('input');
+            type_input.type = 'text';
+            type_input.id =  'customType';
+            type_input.value = "GPT_2"
+            type_input.placeholder = "TYPE"
+            div.appendChild(type_input);
+
+            top.appendChild(item);
+            top.appendChild(label);
+
+            head.appendChild(top);
+            head.appendChild(div);
+
+            // Event handler: Selecting Radio Button
+            item.addEventListener('change', (e)=>{
+                inputElement.textContent = "";
+                submitButton.disabled = true;
+                div.hidden = false;
+            })
+        }
+
+        // Event Listener Functions
+        const on_loaded = () => {
+            loadButton.disabled = false;
+            submitButton.disabled = false;
+            progress.hidden = true;
+        }
+
+        const write_result = (line) => {
+            outputElement.textContent  += line + "\n";
+            //add other info here (time etc if needed)
+            speak(line);
+        }
+
+        const run_complete = () => {
+            submitButton.disabled = false;
+            transcriptElement.textContent += outputElement.textContent + "\n";
+        }
+
+        const load_llm_from_url = (link, type) => {
+            progress.hidden = false;
+            loadButton.disabled = true;
+
+            LLMEngine = new LLM(
+                type,
+                link,
+                on_loaded,
+                write_result,
+                run_complete
+            );
+
+            LLMEngine.load_worker();
+        }
+
+        // Actions
+
+        const load_model = (e) => {
+            const selected = document.querySelector('input[name="llm"]:checked').id;
+            let llm;
+            if(selected != -1)
+            {
+                llm = available_llms[Number.parseInt(selected)];
+            } else {
+                llm = {
+                    model: document.getElementById("customURL").value,
+                    type: document.getElementById("customType").value,
+                }
+            }
+            load_llm_from_url(llm.model, llm.type);
+        }
+
+        const run_model = (e) => {
+            const text = document.getElementById("textInput").value;
+            submitButton.disabled = true;
+            outputElement.textContent = ""; // clead old content
+            LLMEngine.run({
+                prompt: text,
+                max_token_len: 100,
+                top_k: 1,
+            });
+        }
+
+
+        // Loader Scripts
+        populate_llm_list();
+        loadButton.addEventListener("click", load_model);        
+        submitButton.addEventListener("click", run_model);
+
+        loadButton.click();
+        setTimeout(()=>{
+            submitButton.click();
+        }, 15000);
+
+
+        function MyChat(transcript) {
+				mychat = transcript; //$('#p').val();
+				if (mychat == "stop"){
+					window.speechSynthesis.cancel();
+					return;
+				}
+				//get prompt
+				myprompt = $('#prompt').val();
+//                addComment(mychat, helpme());
+				//this should be linked to the video being watched loosely perhaps.  
+				$.getJSON(chatdomain + ':8000/api/?query=' + encodeURIComponent(mychat) + '&prompt=' + encodeURIComponent(myprompt),function(data){
+                  
+				  if (typeof(data.answer) != "undefined") {
+					addChatRow(data.query, data.answer, data.sources);
+					ss = new SpeechSynthesisUtterance(data.answer);
+					ss.rate = myrate;
+					ss.pitch = mypitch;
+					window.speechSynthesis.speak(ss);
+
+                    console.log('query ' +  data.query);
+//                    addComment(data.answer, helpme())
+					console.log('response  ' + data.answer);
+					console.log('sources  ' + data.sources);
+					for (j=0; j<data.sources.length; j++) {
+						console.log('content ' + data.sources[j].content );
+                        console.log('metadata ' + data.sources[j].metadata);
+                        vid = getVidFromMetadata(data.sources[j].metadata);
+//                        addSource(data.sources[j]);
+                        
+					}
+				   } 
+				   else {
+					console.log('chat failed');
+                    console.log(data);
+				   }   
+				});
+			
+			}
+
+
+    </script>
+
+    </body>
+</html>

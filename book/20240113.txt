@@ -1,0 +1,181 @@
+**web/public/synth.html
+Simple sample, utilize this to provide sound feedback in analyze.html
+How do we get better sounds?  
+https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Simple_synth
+https://medium.com/geekculture/building-a-modular-synth-with-web-audio-api-and-javascript-d38ccdeca9ea
+
+
+
+This combines with Recordrtc
+Variety of things to do.  
+Image recognition and description generation.  
+Essentially real-time descriptive audio generation.  
+In time feedback generation for communication in analyze.  
+I would like to use the midi controller, but we can always allow for just clicking on the 
+language definition in the page.  
+Need to do languages.html.  
+
+pip install torchviz
+pip install tensorboard
+https://appsilon.com/visualize-pytorch-neural-networks/
+
+Can we use this?  
+peertube.org
+Use this with the recordrtc results.  
+And then expand this with the midi info as well?  
+
+Not sure using Youtube is best.  
+At least create a scaffolding for using another service.  
+Need to do this with DB as well as Video Service.  
+
+Advantages to peertube, we could probably make a plugin to do some things we want.  
+But it is very minor.  
+Just be able to play youtube videos as well, and should be ok.  
+Annoying to maintain.  
+They are already using webrtc as well, which is a bonus.  
+Probably can hook into this somehow without much coding.  
+
+Either way play with it a bit before we go down the road of recreating a lot of this UI.  
+What does the embedding look like?  
+23$/TB/month is standard S3, so perhaps doable to just use S3 storage.  
+This further confuses things though.  
+
+First see if it even works ok.  
+
+Create a script for server deploy components as well.  
+Need single installation script and single startup/shutdown.  
+ollama and transcription
+
+
+**web/public/plan.html
+
+Create a UI to display this latest info from github at least the book folder.  
+
+Peertube basic running.  
+Similar interface to Youtube with embedding.  
+**record.py
+See if we can add Peertube info and upload video.  
+
+**web/public/analyze.html
+See if we can load from Peertube instead of Youtube.  
+I see no reason to get rid of the Youtube functionality, just add an option.  
+At the same time try to modularize the code around the video management.  
+
+**server/startup.py
+start up all servers in threads.  
+Need single startup job for whatever servers we will have involved.  
+
+**server/install.py
+Also need to document/script the setup of the server portion.  
+So much work, maybe later for script but at least document here and automate what we can.  
+
+**server/ollama/server.py
+we should be storing the past questions, these are great to see for the siteholder.  
+
+**web/public/languages.html
+Need to start with possible words.  
+For now lets just make a translation to english.  
+This will help us make the infrastructure, and perhaps help as a guide to what is really distinguishable.  
+Just use a small subset, say 1000 or 10,000 words.  
+Utilize sequences of 5 around 10^5 possibilities.  
+What can we actually distinguish, and can we organize the words in a meaningful way.  
+testing/unigram_frequency.csv 
+from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
+
+
+**web/public/analyze.html
+Should be displaying piano roll in the video itself perhaps as an overlay.  
+
+
+**web/public/chat.html
+Should just have one DIV perhaps with response and then sources in different color.  
+Or have to line up the request/response better.  
+
+
+**web/public/testvideo.html
+upload video and use that link to test videojs component.  
+Thought about using recordRTC for this, but doesnt look like this is a general player for that purpose, it is focused on the recording.  
+Unfortunate we have to use two different components.  
+https://www.webrtc-experiment.com/RecordRTC/simple-demos/
+OK, this works now at least initially.  
+
+Now need to add the component for playback for that file.  
+Try to load this.  
+https://storage.googleapis.com/misterrubato-test.appspot.com/videos/2024-01-29%2016-47-54.mp4
+
+
+**server/llmtune.py
+modify this to utilize llama2 our test case and get reward feedback from UI.  
+https://huggingface.co/docs/trl/main/en/using_llama_models
+Do we need a smaller model?  
+Perhaps this will be possible sometime in the future.  
+>80GB RAM to train
+
+
+
+**record.py
+need to upload MP4 to GCP for videojs
+use analyze.html getFile
+
+**web/public/analyze.html
+**web/public/chat.html
+generate webvtt format to load after we are using video component.  
+This can be generated I guess, no need to have two transcription formats.  
+Just use what we have already and automate with start and length based on text length.  
+
+
+**server/ollama/server.py
+This is stopping at the moment sometimes, not sure the reason.  
+
+
+**web/public/analyze.html
+Put for now side by side the videos.  
+Then replace after we have other things working with them.  
+Need to just adjust the call mostly I think to get the time of the video.  
+Should we have a counter after the seconds digits so that things can be added at the same time in a video?  
+Perhaps this would be good, but then we may need to redo the link finding logic.  
+
+
+**testing/chrome-extensions-samples-main
+https://github.com/GoogleChrome/chrome-extensions-samples/tree/main?tab=readme-ov-file
+chrome://serviceworker-internals/?devtools
+chrome-extensions-samples-main\functional-samples\cookbook.offscreen-dom
+chrome-extensions-samples-main\functional-samples\cookbook.sidepanel-global
+combine these.  And use SpeechRecognition component.  
+\AppData\Local\Google\Chrome\User Data\Default\Extensions
+added this:
+chrome-extensions-samples-main\checkmylinks
+chrome-extensions-samples-main\speech-recognition-anywhere\sr.js
+combination of these three to start will allow for some navigation without using hands perhaps.  
+Lets include this I guess.  
+
+**extensions/handsfree
+
+
+**testing/nanoGPT-master
+https://github.com/karpathy/nanoGPT
+Lets play with this a bit.  
+Train it just with the dataset we have perhaps.  
+
+
+For now just store the data, but use Youtube for playback except for testing.  
+Create a switch for this.  
+
+Can we use a tiny LLM for browser interaction?  
+i.e. https://github.com/rahuldshetty/llm.js
+https://rahuldshetty.github.io/ggml.js-examples/playground.html
+Can we add RAG to this?  
+
+
+
+**extensions/handsfree
+We have speechrecognition for now, but this is problematic I think to have multiple pages using this component.  
+Really this needs to be managed in a more intelligent way by the browser.  
+Really you need one overarching function which is listening and then results are sent to whatever the active tab and component is.  
+List anything that is wanting access to the mic, and then indicate which is active at the moment.  
+
+Can we receive events from the extensions?  
+Then we can do something useful perhaps.  
+OK, some basic functions there, now just need to choose the right tab, and make sense of the DOM perhaps.  
+
+**testllm.html

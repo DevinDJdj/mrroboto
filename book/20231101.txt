@@ -1,0 +1,376 @@
+**analyze.html
+We really want a realtime meeting to be an option when recording or when reviewing.  
+Not sure if this is feasible to integrate this.  
+
+https://developers.google.com/calendar/api/guides/create-events
+
+In any case, lets create an event in calendar to start.  
+Have to ponder what exactly we want.  
+
+GNN
+Geometric analysis.  
+We need this.  
+Need to read this.  
+https://arxiv.org/pdf/2310.01089.pdf
+
+Topological Neural networks
+https://github.com/awesome-tnns/awesome-tnns
+What frameworks do we have?  
+https://pytorch-topological.readthedocs.io/en/latest/
+https://www.youtube.com/watch?v=GOSdahsCUjs
+
+
+**Feedback
+How can I give feedback on normal videos without using this UI?  
+Or perhaps I just want to allow for the UI to be opened from a browser plugin or something.  
+Best is if we can just get any youtube video playing to provide feedback for it without needing to open the UI.  
+
+So we would want something like this, but dont make it the focus.  
+https://chrome.google.com/webstore/detail/improve-youtube-%F0%9F%8E%A7-for-yo/bnomihfieiccainjcjblhegjgglakjdd
+Add a button which will allow you to set the default Destination for feedback, and then load the webmidi 
+and update button.  
+Enable voice feedback or not, and by default just webmidi feedback.  
+
+
+**analyze.html
+We need to display the feedback language expected at least in some popup.  
+
+**feedback.html
+Lets make a new page to explain this.  
+
+
+First octave is for preference feedback
+Use second octave for understanding feedback
+C=clear
+G=Good
+F=Unclear
+E=
+
+
+Language not yet decided.  
+But we can provide info now at least.  
+
+If we have a feedback window, do we really need to launch what is being watched.  
+Maybe best strategy is to have a plugin which you can launch just a monitoring window, which will detect
+playing youtube videos in other windows?  
+Maybe not possble, but see.  
+
+
+For other videos, need to get the title etc and save the data.  
+
+**timestep.py
+Print out recent comments for memory.  
+Dont need all the details of github printed.  
+
+
+How do we create some structure so the language is simple yet has possibility to be diverse.  
+Need some underlying structure which will be similar.  
+Maybe just the sentiment structure is ok.  
+
+Learning vs preference is there enough of a difference?  
+
+We should just visualize the Midi in some meaningful way and use this in a variety of ways.  
+i.e. 1 particular color for each combination of notes.  
+Then we have a time->color distribution, and we can create different width images each representing
+variable time distinctions along with those colors for each quantized time-step.  
+
+
+https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+**analyze/Torch/test.py
+
+https://github.com/yunjey/pytorch-tutorial/tree/master/tutorials/03-advanced/image_captioning
+
+
+
+**analyze.html
+Should have option to generate a subtask which will essentially make a branch with that video as previousIteration.  
+This will go onto their server, but will point back to the previous server used to create citation.  
+Branch to  -> URL ...
+Not sure if we can get previousIteration, probably annoying work.  But at least make the framework to leave citation.  
+Should we separate analyze.html from watch.html?  
+Maybe.  
+
+**android
+Need a wireless app which connects to bluetooth midi piano and detects youtube being played via API.  
+Can we get this?  
+If we can get this, then we may not need to embed.  
+Otherwise just make the URL easy.  
+Make some sort of interaction between Youtube UI queue or watchlist.  Can we get this from API?  
+player.cueVideoById(videoId:String,
+                    startSeconds:Number):Void
+player.cueVideoByUrl(mediaContentUrl:String,
+                     startSeconds:Number):Void
+player.getPlaybackRate():Number
+
+How do we make this more seemless with the interaction with youtube?  
+
+
+
+**timestep.py 
+test the update of watch videos.  
+this is coded.  
+
+
+
+**testspeech.html
+This should be ok.  
+We can get the speech recognition and the actual audio.  
+Now now sure how we want to do the audio.  
+I think we should have to continually press some button to get audio.  
+Should have similar functionality for keyboard and midi keyboard.  
+But mapping should be midi keyboard prioritized.  
+So press to record.  
+But how to store the recordings?  
+For now lets just make a struct in the RTDB.  
+In comments with the midi, make a base64 along with start time offset of recording.  
+Array struct
+
+
+**DB
+really should move
+/misterrubato/xyzabcde to /misterrubato/videos/xyzabcde
+
+
+**analyze.html
+Need feedback after update.  
+
+
+
+**ControlSchema
+All this must have feedback on the screen to show mode and state information.  
+: = simultaneous
+; = divided
++ = up octave
+- = down octave
+
+C:C+ (octave) = mode change (if not already in this mode)
+otherwise means equal
+C:C+ C:C+ = functionaly semicolon (statement complete)
+Once a word is defined, they can be used to represent their longer set.  
+12 octaves = 12 modes for now.  Can potentially have submodes.  
+key of C = motion
+middle C = draw in combination with other keys.  
+C-:C:C+ = complete.  
+
+Oct+ = C;C+
+Oct- = C-;C
+
+key of D = object definition.  
+Can define objects drawn from i.e. key of C
+
+
+key of E = feedback
+
+
+**database.rules
+https://firebase.google.com/docs/auth/admin/custom-claims#python
+Lets change this to be just group instead of UID.  
+
+These dont expire.  
+So we just have to set this and they are valid for our app I guess.  
+Python
+**timestep.py or separate?  
+auth.set_custom_user_claims(uid, {'admin': True})
+# Verify the ID token first.
+claims = auth.verify_id_token(id_token)
+if claims['admin'] is True:
+    # Allow access to requested admin resource.
+    pass
+
+JS:
+firebase.auth().currentUser.getIdTokenResult()
+  .then((idTokenResult) => {
+     // Confirm the user is an Admin.
+     if (!!idTokenResult.claims.admin) {
+       // Show admin UI.
+       showAdminUI();
+     } else {
+       // Show regular user UI.
+       showRegularUI();
+     }
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
+database.rules -> admin
+    "adminContent": {
+      ".read": "auth.token.admin === true",
+      ".write": "auth.token.admin === true",
+    }
+
+--Done
+OK, this is good enough for now.  
+timestep.py --admin MYID to add as admin.  
+
+
+Not really used to github, but try to use this with VSCode so we can use the copilot stuff perhaps.  
+
+
+Midi frequency how to change based on the rules?  
+Perhaps just use output on another channel.  
+Which then should get passed back to the midi and recorded.  
+However, can we adjust to 24-note etc.  or 48 note.  
+
+https://mido.readthedocs.io/en/latest/meta_message_types.html
+New or custom meta messages
+
+Not sure we can do what we want.  
+Right now just thinking to accept the midi value as is on Channel 0, and send the output to another channel.  
+Channel 0,1 input from piano directly would have no volume.  
+This may work, but not sure if I can actually change the scale of the output like I want.  
+Yes this and pitch bend.  
+We can use multiple channels, this becomes more complex though.  
+i.e. https://www.matthiaskronlachner.com/?p=817
+
+This is a general solution, not a pretty one though.  
+So once we adjust to our control plane, we silence 0, 1 and then enable other channels and send messages.  
+Will other channels be vocalized?  
+
+Just test with an octave up on channel 3.  
+Press the [CHANNEL ON/OFF] button several times to call up the Channel On/Off
+(Song) display
+
+Yeah lets try for now to send an octave change to i.e. channel 4, then mute channel 0 and see what happens.  
+
+
+**web/public/JZZ/JZZ.js
+changed line 1563.  Not sure if this will mess up other things, but for some reason the JZZ library 
+has issues reading some of the midi messages.  
+The actual notes look there.  I suspect it is just the control messages, but not entirely sure.  
+Anyway, something caused problems with the analyze.py since 11/11, if this gets fixed, perhaps 
+
+
+**analyze/analyze.py
+Top right of video should have QR code identifier.  
+This should encode previous videoid's hash.  
+This should also include some metadata info about this video chain.  
+Not sure exactly what.  
+
+
+
+https://github.com/tryptech/obs-zoom-and-follow
+pip install pynput
+pip install screeninfo
+
+That was crappy.  
+Just use ZoomIt standard.  
+https://learn.microsoft.com/en-us/sysinternals/downloads/zoomit
+
+
+create an eye tracker.  
+This is the mouse and then the piano is the clicks for things like highlighting etc.  
+So if eye tracker is on keys or on input or output.  
+Output is the screen.  
+I think eye tracking wont work, so just use touching the screen to initiate or as an input parameter.  
+
+Add this to recording 
+https://pynput.readthedocs.io/en/latest/mouse.html
+
+
+
+Mouse Control function and highlight.  
+
+from pynput.mouse import Listener
+def click(x,y,button,pressed):
+    print("Mouse is Clicked at (",x,",",y,")","with",button)
+with Listener(on_click=click) as listener:
+    listener.join()
+
+from pynput.mouse import Button, Controller
+
+mouse = Controller()
+# Set pointer position
+mouse.position = (10, 20)
+print('Now we have moved it to {0}'.format(
+    mouse.position))
+
+# Move pointer relative to current position
+mouse.move(5, -5)
+# Press and release
+mouse.press(Button.left)
+mouse.release(Button.left)
+
+# Double click; this is different from pressing and releasing
+# twice on macOS
+mouse.click(Button.left, 2)
+
+# Scroll two steps down
+mouse.scroll(0, 2)
+
+
+
+
+https://github.com/reasoning-machines/CoCoGen
+
+
+**analyze/analyze.py
+Lets try to make this work.  
+https://github.com/CompVis/stable-diffusion
+Create an image from any comments.  
+Where do we display this?  
+Something like a banner, which is same as previousIteration height.  
+Display while previousIteration is on same with 60% alpha perhaps.  
+
+
+
+**todo**
+finish so that we have two clicks for start/stop/pause etc.  
+And then add some sort of visualization screen, just use the manim stuff for now.  
+Create a DB query UI.  
+Should be able to search for previous videos on perhaps a new page.  
+Allow for searching other DBs as well.  
+Create essentially a Favorites, and then randomly select a few to search whenever we do a search.  
+Like the Netx stuff in the past.  
+For now of course just do local.  
+Should search all content and all transcripts and comments.  
+Lets move the transcript to the DB for this.  
+Do we just want to move the midi to the RTDB as well?  
+This is minimal I think.  100kb per iteration.  *1000 = 100MB should be fine I think.  
+Looks like the RTDB limit is 100GB.  
+I suspect this will increase eventually.  
+
+
+
+
+Biomorphs can we use this library?  
+Kind of what we want, some set of shapes in some location with some rotational properties.  
+Not sure we need a library like this.  
+
+https://cs.lmu.edu/~ray/notes/biomorphs/
+
+
+How do we utilize the reinforcement learning tools which are already done?  
+
+https://neptune.ai/blog/the-best-tools-for-reinforcement-learning-in-python
+
+
+Auth mechanism for remote API calls?  
+I hate this kind of tedium.  
+
+
+**generate/testmanim.py
+WHY DO I NEED TO LAUNCH A COMMAND LINE?
+This is a great tool with a stupid design decision.  
+
+
+**web/public/analyze.py
+We need a overall image which shows where comments are and where the current PianoRoll Canvas shows.  
+
+Also need to display youtube description info somewhere if it is not our video.  
+  
+
+**mykeys.py
+Need to check integrity of 
+KEYS->Function mapping.  
+Do we allow multiple calls.  
+i.e. if [100, 101] -> F and [99, 100, 101] -> G, how do we handle this.  
+Either have integrity check, or just allow multiple functions to be called.  
+Separate file for each dict, but how do we control the functions?  
+
+**languages/hotkeys.py
+Lets use this first and see if we can replace the record.py functionality.  
+If the mechanism works, I think this will be ok to start.  
+dynamically loading libraries in /languages directory and then we have to select the languages.  
+So gradually use this functionality then remove the hotkey functionality from record.py
+

@@ -1,0 +1,149 @@
+**server
+Try Deepspeech insead of Coqui for STT/TTS training.  
+There is some poor compatibility with the NVIDIA driver that Coqui causes.  
+Functionality is the same.  
+
+**server/transcription/server.py
+Need update of STT to use Deepspeech or similar.  
+I guess try this:
+
+https://medium.com/visionwizard/train-your-own-speech-recognition-model-in-5-simple-steps-512d5ac348a5
+
+python3 -m venv $HOME/tmp/deepspeech-train-venv/
+source $HOME/tmp/deepspeech-train-venv/bin/activate
+
+git clone -b 'v0.6.0' --single-branch --depth 1 https://github.com/mozilla/DeepSpeech.git
+
+cd DeepSpeech
+pip3 install -r requirements.txt
+pip3 install deepspeech==0.6.0
+pip3 install ds_ctcdecoder
+pip3 install tensorflow-gpu==1.14.0
+pip3 install tensorflow
+pip3 install -U numpy
+pip3 install sox
+https://github.com/mozilla/DeepSpeech/releases/download/v0.6.0/deepspeech-0.6.0-checkpoint.tar.gz
+
+
+wav_filename,wav_filesize,transcript
+train.csv, dev.csv, and test.csv
+
+What data do we have up to this point?  
+Download all data.  
+myhome + "/TTS/recipes/ljspeech/LJSpeech-1.1/metadata.csv"
+
+Reformat, and then ingest.  
+
+
+https://rasa.com/blog/how-to-build-a-voice-assistant-with-open-source-rasa-and-mozilla-tools/
+
+https://github.com/mozilla/TTS
+
+Try to just use this first.  
+
+https://stackoverflow.com/questions/66307611/how-do-i-get-started-training-a-custom-voice-model-with-mozilla-tts-on-ubuntu-20
+See if we can get any TTS first, then go to the Deepspeech model to ingest the data better.  
+Fix text in metadata.csv if we want.  
+
+
+Can we make a pipeline to add incoming to voice recognition STT, and then also to TTS engine.  
+Have two custom engines.  
+STT needs context probably.  At least pace of speech etc.  
+
+Anyway for now just try to get both into pipeline and generate custom models.  
+
+python3 ./TTS/bin/compute_statistics.py --config_path /mnt/c/devinpiano/music/server/tts/mozilla/config.json --out_path /mnt/c/devinpiano/music/server/tts/scale_stats.npy
+
+-->Here
+python3 ./TTS/bin/train_tacotron.py --config_path /mnt/c/devinpiano/music/server/tts/mozilla/config.json
+
+pip install protobuf==3.20.*
+pip install numpy==1.19.*
+
+OK, ljspeech wav files were not saving correctly.  
+Need to fix this.  
+Also after training runs ok, check why cant we use these generated wav files for training?  
+Could have been the japanese text.  
+    "batch_size": 16,       // Batch size for training. Lower values than 32 might cause hard to learn attention. It is overwritten by 'gradual_training'.
+    "eval_batch_size":4,
+
+
+
+TTS is not working well.  
+Lets try this:
+https://github.com/CorentinJ/Real-Time-Voice-Cloning
+
+sudo apt update
+sudo apt install ffmpeg
+pip install torch
+pip install -r requirements.txt
+
+python3 ./demo_cli.py
+RequestsDependencyWarning: urllib3 (1.26.7) or chardet (3.0.4) doesn't match a supported version!
+pip install -U urllib3 requests
+
+python3 ./demo_cli.py
+/mnt/c/devinpiano/music/server/tts/ljspeech/LJSpeech-1.1/zDetmYS9-5E_589.wav
+Real-Time-Voice-Cloning\demo_output_00.wav
+OK, so this package works.  
+Lets just use this for now.  
+Audio input quality is quite poor.  
+
+Maybe we can create the model and then utilize it with another Box.  
+
+Can we adjust to train with a larger amount of data?  
+
+**server/tts/download_wavs.py
+I guess we can just generate the wav files as needed.  
+Just pull videos and generate wavs.  
+For now this will not be in pipeline.  
+Boo...
+
+
+Is this sort of thing an option?  
+https://eduardoleao052.github.io/js-pytorch/site/
+may as well use a service and return the wav file to the browser.  
+Practically having the TTS module on the browser makes more sense.  
+But dont see this component.  
+
+Try this?  
+https://medium.com/@gpj/making-your-ai-sound-like-you-a-guide-to-creating-custom-text-to-speech-8b595d5cf259
+
+Start marking dependencies with something.  
+##tortoise-tts
+not working out-of-the-box.  
+
+
+
+Text -> Mel-scale spectrogram -> wav
+
+
+For now just use this Real-Time-Voice-Cloning
+
+##server/tts/Real-Time-Voice-Cloning/demo_cli.py
+
+# - Directly load from the filepath:
+preprocessed_wav = encoder.preprocess_wav(in_fpath)
+How do we adjust to use longer input, will this even improve the model?  
+How good is this cloning actually?  
+Do we care right now?  
+This could make some voices for a voice-interactive game.  
+
+##server/tts/Real-Time-Voice-Cloning/encoder/audio.py
+preprocess_wav(in_fpath)
+
+Perhaps just try with a few samples.  
+
+**server/tts/train.py
+**server/tts/Real-Time-Voice-Cloning/train.py
+Download and run a python script similar to demo
+
+
+cp /mnt/c/devinpiano/music/server/tts/ljspeech/LJSpeech-1.1/zDetmYS9-5E_589.wav /mnt/c/devinpiano/music/server/tts/Real-Time-Voice-Cloning/wavs/input.wav
+
+
+python3 ./train.py --wav xxxx.wav
+
+Lets say this is good enough for now.  
+Should be able to generate multiple voices for fun usage.  
+
