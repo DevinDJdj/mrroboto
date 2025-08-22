@@ -2,6 +2,7 @@
 #link, title, GroupName, Published date, Iteration#, PlayedInSeconds, #notesplayed-calculated
 #for now just generate a csv file.  
 #dont download the videos, just get the written description
+#    subprocess.call('python ./analyze/analyze.py --title "' + args.title + '"')
 
 
 #notesplayed
@@ -18,7 +19,7 @@ sys.path.insert(1, 'c:/devinpiano/music')
 import config  
 
 import os
-import cred
+#import cred
 import pandas as pd
 import requests
 import json
@@ -29,7 +30,7 @@ from mido import Message
 import math
 
 #generate image from midi
-import cv2
+#import cv2
 import numpy as np
 #print(cred.APIKEY)
 
@@ -47,7 +48,7 @@ import matplotlib.ticker as ticker
 import firebase_admin
 from firebase_admin import credentials, initialize_app, storage, firestore, db
 # Init firebase with your credentials
-
+from collections import Counter
 import webbrowser
 
 #from subprocess import Popen
@@ -58,7 +59,7 @@ EMBEDDING_DIM = 10
 
 import mymidi
 
-#pip install qrcode
+#> pip install qrcode
 import qrcode
 
 from PIL import Image, ImageDraw
@@ -67,8 +68,10 @@ from PIL import Image, ImageDraw
 mappgram = {} #map [ SIGNGRAM ] [PGRAM]
 mapsgram = {} #map [seqngram][pgram]
 
-channel_id = cred.CHANNELID
-api_key = cred.APIKEY
+#cred.CHANNELID
+channel_id = config.cfg["youtube"]["CHANNELID"] 
+#cred.APIKEY
+api_key = config.cfg["youtube"]["APIKEY"] 
 def get_channel_stat() -> dict:
     url = f'https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={api_key}'
 
@@ -246,14 +249,13 @@ def getRelativeTime(it, currentTime, starttimes, endtimes):
     reltime /= div
     return reltime
 
-def midiToImage(t, midilink):
+def midiToImage(t, midilink, starttimes, endtimes):
     
     print('Track: {}'.format(t.track.name))
     notes = [Message('note_on', channel=0, note=60, velocity=0, time=0)] * 109
     pedal = 0
     height = 88*2
     iwidth = 1
-    starttimes, endtimes = getTrackTimes(t)
     print(starttimes)
     print(endtimes)
     midi_image = None
@@ -277,6 +279,8 @@ def midiToImage(t, midilink):
         on = 0
         for mymsg in t.notes:
             if (on > 0):
+                #only do this once.  
+                mymsg.time = mymsg.msg.time
                 currentTime += mymsg.msg.time
                 #not very efficient, but good enough for now.  
                 i = getIteration(currentTime, starttimes, endtimes)
@@ -284,6 +288,86 @@ def midiToImage(t, midilink):
                 if (on > 0 and i > -1):  
                     mymsg.msg.time = currentTime
                     notes[mymsg.note] = mymsg.msg
+                    fillImage(midi_image, notes, currentTime, prevTime, mymsg.pedal, i, starttimes[i])
+                    prevTime = currentTime
+                on = isOn(mymsg.note, on)
+                
+#            print(mymsg.msg)
+    print(t.length)
+    print(starttimes)
+    print(endtimes)
+    
+    return midi_image
+
+
+def ngramToImage(t, midilink, starttimes, endtimes):
+    
+    print('Track: {}'.format(t.track.name))
+    notes = [Message('note_on', channel=0, note=60, velocity=0, time=0)] * 109
+    pedal = 0
+    height = 88*2
+    iwidth = 1
+    #calling this twice is a problem,
+#    starttimes, endtimes = getTrackTimes(t)
+    print(starttimes)
+    print(endtimes)
+    midi_image = None
+    if len(starttimes) != len(endtimes) or len(starttimes) < 1:
+        print("Incorrect data, please fix" + midilink)
+    else:    
+        for i, st in enumerate(starttimes):
+            w = int((endtimes[i]-starttimes[i])/100)
+            print(w)
+            if w > iwidth:
+                iwidth = w +1
+        height = (i+1)*88*2
+        if (iwidth > 40000):
+            print("Width too large, skipping " + midilink)
+            return None
+        midi_image = np.ones((height,iwidth,3), np.uint8)
+        midi_image = 255*midi_image
+        currentTime = 0
+        prevTime = currentTime
+        i = 0
+        on = 0
+        #logic here to analyze ngrams.  
+
+        for mymsg in t.notes:
+            if (on > 0):
+                #this is already set.  just get value.  
+                currentTime += mymsg.time
+                #not very efficient, but good enough for now.  
+                i = getIteration(currentTime, starttimes, endtimes)
+            if (mymsg.msg.type=='note_on'):
+                if (on > 0 and i > -1):  
+                    mymsg.msg.time = currentTime
+                    notes[mymsg.note] = mymsg.msg
+
+                    """wrds = mymsg.getWords()
+                    #print(wrds)
+                    pgram = mymsg.getPGram(wrds)
+                    seqgram = mymsg.getSeqNGram(wrds)
+                    signs = mymsg.getSigns(wrds) 
+                    
+                    mappgram[ signs ] [ pgram ]
+                        
+                    it = getIteration(currentTime, starttimes, endtimes)
+                    reltime = getRelativeTime(it, currentTime, starttimes, endtimes)
+
+                    #get relative time within this word and iteration.  
+                    mappgram[ signs ] [ pgram ]['time'].sort()                                       
+                    mappgram[ signs ] [ pgram ]['iteration'].sort()  
+                    #count per iteration
+                    it_counts = Counter(mappgram[ signs ] [ pgram ]['iteration'])     
+                    #use prevmsg N times to get previous pgram/seqgram
+
+                    mapsgram[ seqgram ] [ pgram ]['time'].sort()
+                    mapsgram[ seqgram ] [ pgram ]['iteration'].sort()                    
+                    #count per iteration
+                    it_counts = Counter(mapsgram[ seqgram ] [ pgram ]['iteration'])
+                    """
+
+
                     fillImage(midi_image, notes, currentTime, prevTime, mymsg.pedal, i, starttimes[i])
                     prevTime = currentTime
                 on = isOn(mymsg.note, on)
@@ -606,6 +690,15 @@ def printMidiGif(t, midilink):
                         startpointy = round(center + radius*oct1 * math.sin(math.radians(startangle1)))
                         endpointx = startpointx + round(math.cos(math.radians(startangle1))*vol1)
                         endpointy = startpointy + round(math.sin(math.radians(startangle1))*vol1)
+                        if (endpointx < startpointx):
+                            temp = endpointx
+                            endpointx = startpointx
+                            startpointx = temp
+                        if (endpointy < startpointy):
+                            temp = endpointy
+                            endpointy = startpointy
+                            startpointy = temp
+
                         color_2 = (255 - round(abs(startangle1-startangle)/2), 0, 255 - round(abs(startangle1-startangle)/2))
 #                        color_2 = (50, 50, 50)
  #                       draw.line((startpointx, startpointy, endpointx, endpointy), fill=color_2, width=round(vol/2))
@@ -627,14 +720,14 @@ def printMidiGif(t, midilink):
                 save_all=True, append_images=images[1:], optimize=False, duration=40, loop=0)
     
 
-def printMidi(midilink, title, GroupName, videoid):
+def printMidi(midilink, title, GroupName, videoid, force=False):
     path = './output/'
     midilink = midilink.replace("\r", "")
     midiname = os.path.basename(midilink)
     midiname = os.path.splitext(midiname)[0]
     filename = midiname + '.jpg'
     #dont redo this.  Live with the analysis of the time for now.  
-    if (os.path.exists(os.path.join(path , filename))):
+    if (os.path.exists(os.path.join(path , filename)) and not force):
         print("Skipping " + midilink)
         return
     
@@ -649,27 +742,41 @@ def printMidi(midilink, title, GroupName, videoid):
         f.write(r.content)
     mid = MidiFile(path + midiname + ".mid")
 
-    #outputMidi(mid)
+    #outputMidi(mid)    
     t = enhanceMidi(mid)    
     if (t is None):
         return
 
  #   printNgrams(t, title, GroupName, videoid, midilink)
-    img = midiToImage(t, midilink)
+    starttimes, endtimes = getTrackTimes(t)
+
+    img = midiToImage(t, midilink, starttimes, endtimes)
+
+#this is to only generate the midi data which has not been created yet.      
+    if (img is not None):
+        plt.imsave(os.path.join(path , filename), img)
+#        cv2.imwrite(os.path.join(path , filename), img)
+        uploadanalyze(filename, os.path.join(path, filename))
 
     printMidiGif(t, midilink)
     data, rythmdata = getNgrams(t)
     if (data is None):
         return
-        
+
+
+    nimg = ngramToImage(t, midilink, starttimes, endtimes)    
+    if (nimg is not None):
+        print("Saving ngram image")
+        filename = 'ngram_' + midiname + '.png'
+        plt.imsave(os.path.join(path , filename), nimg)
+        uploadanalyze(filename, os.path.join(path, filename))
+    else:
+        print("No ngrams, skipping")
+    #analyze mapngrams.  
 
     height = 200
     width = 200    
 
-#this is to only generate the midi data which has not been created yet.      
-    if (img is not None):
-        cv2.imwrite(os.path.join(path , filename), img)
-        uploadanalyze(filename, os.path.join(path, filename))
     
     #what is the note distribution for each and the interval distribution look like?  
     #show a distribution of previous->max
@@ -802,7 +909,7 @@ def uploadanalyze(file, fullpath):
 def getSecsFromTime(time):
     minsec = time.split(":")
     if (minsec == time):
-	    return 0
+        return 0
     return int(minsec[0])*60 + int(minsec[1])
 
 def calctimes(starttimes, endtimes):
@@ -849,6 +956,7 @@ if __name__ == '__main__':
     argparser.add_argument("--video", help="Video ID", default="4flRJWtfY9c")
     #for now this is kind of getting annoying.  We can always calculate this later.  
     argparser.add_argument("--skipfinger", help="Skip finger test", default="true")
+    argparser.add_argument("--force", help="Force reanalyze", default="false")
     args = argparser.parse_args()
 
 
@@ -932,7 +1040,7 @@ if __name__ == '__main__':
             if (midis > 0):
                 midie = desc.find("\n", midis)
                 midilink = desc[midis+5:midie]
-                midisize = printMidi(midilink, title, GroupName, videoid)
+                midisize = printMidi(midilink, title, GroupName, videoid, args.force=="true")
                 if (videoid==latestvideo):
                     latestmidilink = midilink
                     latestvideoitem = item

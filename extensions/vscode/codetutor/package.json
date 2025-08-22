@@ -13,20 +13,191 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "mrrubato",
+      "properties": {
+          "mrrubato.webbookurl": {
+              "type": "string",
+              "default": "https://www.misterrubato.com/page.html?codefile=",
+              "description": "URL for web book/page."
+          },
+          "mrrubato.runinbackground": {
+              "type": "boolean",
+              "default": "false",
+              "description": "Setting to automatically run and edit code"
+          },
+          "mrrubato.robocodemode": {
+            "type": "string",
+            "default": "git",
+            "description": "git, book, test"
+          },
+        "mrrubato.runinterval": {
+              "type": "number",
+              "default": 30000,
+              "description": "Interval to run steps."
+          },
+          "mrrubato.numworktopics": {
+            "type": "number",
+            "default": 10,
+            "description": "Number of prompts to remain while running."
+          },
+          "mrrubato.numworkprompts": {
+              "type": "number",
+              "default": 10,
+              "description": "Number of prompts to remain while running."
+          },
+          "mrrubato.workprompt": {
+            "type": "string",
+            "default": "Improve My Code",
+            "description": "LLM base prompt."
+          },
+          "mrrubato.bookfolder": {
+            "type": "string",
+            "default": "book",
+            "description": "Relative path for book to read."
+          },
+          "mrrubato.bookvectorfolder": {
+            "type": "string",
+            "default": "vecbook",
+            "description": "Relative path for book to read."
+          },
+          "mrrubato.genbookfolder": {
+            "type": "string",
+            "default": "genbook",
+            "description": "Relative path for transcript generation."
+          },
+
+          "mrrubato.defaultprompts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "title": "Default prompts and topics to use one or the other can be blank.",
+                "properties": {
+                    "prompt": {
+                      "type": "string",
+                      "description": "Prompt to use"
+                    },
+                  "topic": {
+                    "type": "string",
+                    "description": "Category of prompt"
+                },
+
+                    "weight": {
+                        "type": "number",
+                        "description": "Weight for topic use"
+                    }
+                }
+            },
+            "default": [],
+            "description": "Default topics to use when nothing specified"
+          
+          },
+
+
+          "mrrubato.workprompts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "title": "Prompt",
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "Prompt to use"
+                    },
+                    "topic": {
+                      "type": "string",
+                      "description": "Category of prompt"
+                  },
+
+                    "weight": {
+                        "type": "number",
+                        "description": "Weight for prompt use"
+                    }
+                }
+            },
+            "default": [],
+            "description": "Work prompts to use"
+          
+          },
+      
+
+          "mrrubato.roboprompts": {
+              "type": "array",
+              "items": {
+                  "type": "object",
+                  "title": "Prompt",
+                  "properties": {
+                      "prompt": {
+                          "type": "string",
+                          "description": "Prompt to use"
+                      },
+                      "topic": {
+                        "type": "string",
+                        "description": "Category of prompt"
+                    },
+
+                      "weight": {
+                          "type": "number",
+                          "description": "Weight for prompt use"
+                      }
+                  }
+              },
+              "default": [],
+              "description": "Work prompts to use"
+          
+          }                    
+      }
+    },    
     "commands": [
       {
         "command": "mrrubato.mytutor.start",
         "title": "Start handling Uris"
+      },
+      {
+        "command": "mrrubato.mytutor.generate",
+        "title": "Run selected statement"
+      },
+      {
+        "command": "mrrubato.mytutor.search",
+        "title": "Search for current line key"
       }
     ],
+    "keybindings": [
+      {
+          "command": "mrrubato.mytutor.generate",
+          "key": "ctrl+shift+8",
+          "mac": "cmd+shift+8"
+      },
+      {
+        "command": "mrrubato.mytutor.search",
+        "key": "ctrl+shift+9",
+        "mac": "cmd+shift+9"
+    }      
+    ],    
     "chatParticipants": [
       {
         "id": "mrrubato.mytutor",
         "fullName": "Mr Rubato",
-        "name": "tutor",
+        "name": "mr",
         "description": "What can I teach you?",
         "isSticky": true,
         "commands": [
+          {
+            "name": "summary",
+            "description": "Create summary of topic(s)."
+          },
+          {
+            "name": "summarize",
+            "description": "Create summary of topic(s)."
+          },
+          {
+            "name": "similar",
+            "description": "Find Similar text entries via vector search."
+          },
+          {
+            "name": "stats",
+            "description": "List statistics for extension robot."
+          },
           {
             "name": "exercise",
             "description": "Provide exercises to practice a concept."
@@ -36,9 +207,17 @@
             "description": "Read the book."
           },
           {
-            "name": "play",
-            "description": "Play a bit."
-          }
+            "name": "start",
+            "description": "Start playing in background."
+          },
+          {
+            "name": "stop",
+            "description": "Stop playing."
+          },
+          {
+            "name": "list",
+            "description": "List prompts."
+          }          
         ]
       },
       {
@@ -84,4 +263,5 @@
     "@vscode/prompt-tsx": "^0.3.0-alpha.23",
     "ollama": "^0.5.15"
   }
+
 }

@@ -14,12 +14,15 @@ import { renderPrompt } from '@vscode/prompt-tsx';
 import { posix } from 'path';
 import { PlayPrompt } from './prompts';
 import * as Book from './book';
+import * as Worker from './worker';
 import ollama from 'ollama';
 
 import { LanguageModelPromptTsxPart, LanguageModelToolInvocationOptions, LanguageModelToolResult } from 'vscode';
 
 
-import { registerStatusBarTool, registerCompletionTool, registerToolUserChatParticipant } from './toolParticipant';
+import { startWatchingWorkspace, updateStatusBarItem, registerStatusBarTool, registerCompletionTool, registerToolUserChatParticipant } from './toolParticipant';
+import { start } from 'repl';
+import { get } from 'http';
 
 const BASE_PROMPT =
   'You are a helpful code tutor. Your job is to teach the user with simple descriptions and sample code of the concept. Respond with a guided overview of the concept in a series of messages. Do not give the user the answer directly, but guide them to find the answer themselves. If the user asks a non-programming question, politely decline to respond.';
@@ -27,14 +30,172 @@ const BASE_PROMPT =
   const EXERCISES_PROMPT =
   'You are a helpful tutor. Your job is to teach the user with fun, simple exercises that they can complete in the editor. Your exercises should start simple and get more complex as the user progresses. Move one concept at a time, and do not move on to the next concept until the user provides the correct answer. Give hints in your exercises to help the user learn. If the user is stuck, you can provide the answer and explain why it is the answer. If the user asks a non-programming question, politely decline to respond.';
 // define a chat handler
+let max_context_length = 512000; //for now using this max context length.  
 
+let activeEditor = vscode.window.activeTextEditor;
+
+let isWorking = false;
+let workFunc = null;
+let workPrompt = "Improve my code";
 
 function get_current_weather(city: string): string {
 	return `The current weather in ${city} is sunny.`;
 }
 
 
-async function Chat(request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
+
+function validateChange(topkey: string, change: string): boolean {
+	//check if the change is valid.
+	const allDiagnostics = vscode.languages.getDiagnostics();
+	//get diagnostics for all open files.  
+	//if there is some error, prompt to try to fix.  
+	//return the diagnostic info.  
+	console.log(allDiagnostics);
+
+	return true;
+}
+
+function getRandomPrompt(promptonly : boolean = true): string {
+	const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+
+	if (promptonly){
+		//get a random work prompt.  
+		if (mySettings.workprompts.length > 0){
+			let rand = Math.floor(Math.random() * mySettings.workprompts.length);
+			let prompt = mySettings.workprompts[rand].prompt;
+			return prompt;
+		}
+		else{
+			//get a random default prompt.  
+			if (mySettings.defaultprompts.length > 0){
+				let rand = Math.floor(Math.random() * mySettings.defaultprompts.length);
+				let prompt = mySettings.defaultprompts[rand].prompt;
+				return prompt;
+			}
+		}
+	}
+	else{
+		//return topics with the prompt.  
+		//continue thought.  
+		if (mySettings.roboprompts.length > 0){
+			let rand = Math.floor(Math.random() * mySettings.roboprompts.length);
+			let prompt = mySettings.roboprompts[rand].prompt;
+			let topics = mySettings.roboprompts[rand].topics;
+			return topics + "\n" + prompt;
+		}
+		else{
+			return "Just starting, help me figure things out.";
+		}
+	}
+
+}
+
+async function updatePrompts(topkey: string, topics: string, fullMessage: string) {
+	//update the prompts here.
+	const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+
+	let addltopics = Book.findInputTopics(fullMessage);
+
+	const topicArray = mySettings.defaultprompts.map(obj => obj.topic); 
+	let bookdata = Book.pickTopic(addltopics, topicArray, 5);
+	if (mySettings.codingmode === "git"){
+		let git = await Book.gitChanges(addltopics); //get the git changes for the topic.
+//		bookdata[1] += git;  //add the git changes to the full context of topics.
+		bookdata[1] += git.slice(-max_context_length/4);
+	
+	}
+	else if (mySettings.codingmode === "book"){
+		//get the book context for the topic.
+		//nothing additional.  
+	}
+
+	topics = topics + bookdata[1].slice(-max_context_length/2); //dont want to overwrite the full context.  
+	topics = topics.slice(-max_context_length);
+
+	//need to determine weight of prompt.  
+	mySettings.roboprompts.push({'prompt': fullMessage, 'topics': topics, weight: 0.5});
+	//random delete a prompt.  
+	if (mySettings.roboprompts.length > mySettings.numworkprompts){
+		let val = mySettings.roboprompts.shift();
+
+		val.weight = val.weight*(Math.random());
+		if (val.weight > 0.125){
+			//iterate around 2-3 times.  
+			//delete the first one.
+			//keep thinking about this or not.  
+			mySettings.roboprompts.push(val);
+		}
+		if (val.weight < 0.0125){
+			//switch prompt
+			mySettings.roboprompts.push({'prompt': getRandomPrompt(), 'topics': topics, weight: 0.5});
+		}
+	}
+	//for now add this prompt.  
+	//probably need several steps here..
+	//maybe one call to rewrite this.  
+	mySettings.update('workprompt', getRandomPrompt(false));
+
+
+}
+
+function roboupdate(topkey: string, topics: string, fullMessage: string) {
+	//update the source code and highlight what chnaged.
+	if (validateChange(topkey, fullMessage)){
+//		Book.updatePage(topkey, fullMessage);
+		updatePrompts(topkey, topics, fullMessage);
+	}
+	//Book.updatePage("book/20230110.txt", "hello");
+	if (activeEditor) {
+
+		updateStatusBarItem();
+		//show the change made and switch to this page.  
+	}
+}
+
+async function getWorkPrompt(mySettings: vscode.WorkspaceConfiguration): Promise<string> {
+	let workPrompt = mySettings.workprompt;
+	workPrompt = ""; //reset the work prompt.
+	//iterate through work and see what is next.  
+	if (Worker.worktopics.length > 0) {
+		let worker = await Worker.incrementWorker(); //increment the worker to next step.
+		//found a worker, get the prompt.
+		workPrompt = worker.workflow.prompts[worker.workflow.step];			
+		//use context from worker to formulate query.  
+	}
+
+	if (workPrompt === ""){
+		//no worker found, get a random prompt.
+		workPrompt = getRandomPrompt();
+	}
+
+	return workPrompt;
+
+}
+
+async function work(request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
+	const mySettings = vscode.workspace.getConfiguration('mrrubato');		
+	let workPrompt = await getWorkPrompt(mySettings); //get the work prompt from settings.
+	if (!mySettings.runinbackground){
+		//not running in background per settings.
+		//controlled by /stop
+		return;
+	}
+
+	else{
+		//run the work function here.
+		console.log('Running background agent');
+//		stream.markdown('**Running background agent**  \n' + mySettings.runinbackground);
+		if (!isWorking){
+			isWorking = true;
+			workFunc = setInterval(() => {
+				//call the function here.
+				work(request, context, stream, token);
+			}, mySettings.runinterval); 
+			//this must be restarted to change runinterval.  
+		}
+	}
+
+
 	try {
 
 		//connect remote
@@ -43,10 +204,47 @@ async function Chat(request: vscode.ChatRequest, context: vscode.ChatContext, st
 		//actual_response = response['response']
 
 
-		Book.read(request, context);
+		let [topkey, topicdata] = await Book.read(workPrompt, Book.GIT_CODE);
+		//get topic to work on and context.  
+		//const topics = "test"
+		workPrompt = workPrompt.slice(-max_context_length/2); //limit the prompt length to max_context_length/4
+
+		topicdata = topicdata.slice(-max_context_length+workPrompt.length); //limit the context length to max_context_length/2
+		//right now getting the recent data only.  
+		//maybe need to be more random.  
+		let fullMessage = await Chat(topicdata + workPrompt, context, null, token);
+
+		roboupdate(topkey, topicdata, fullMessage);
+
+
+	} catch (error) {
+	   console.error('Error calling Ollama:', error);
+
+	}
+
+}
+
+//only stream being used here.  
+async function Chat(prompt: string, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
+	let ret = "";
+	try {
+
+		//connect remote
+		//client = ollama.Client(host='http://192.168.1.154:11434')
+		//response = client.generate(model='llama3.2b', prompt=my_prompt)
+		//actual_response = response['response']
+
+
+		await Book.read(prompt);
 	  const response = await ollama.chat({
-		model: 'llama3.1:8b',
-		messages: [{ role: 'user', content: request.prompt }],
+//		model: 'llama3.1:8b',
+		model: 'deepseek-coder-v2:latest',
+		//deepseek-r1:latest 
+		//granite-code:latest
+		//codegemma:latest 
+		//gemma3n:latest
+		//granite3.3:8b
+		messages: [{ role: 'user', content: prompt }],
 		stream: true,
 /*
 		tools: [{
@@ -71,39 +269,198 @@ async function Chat(request: vscode.ChatRequest, context: vscode.ChatContext, st
 	  });
 	  for await (const part of response) {
 		process.stdout.write(part.message.content);
-		stream.markdown(part.message.content);	
-		if (token.isCancellationRequested) {
-		  break;
+		if (stream !==null){
+			stream.markdown(part.message.content);	
 		}
+		ret += part.message.content;
+//		if (token.isCancellationRequested) {
+//		  break;
+//		}
 		console.log(part.message.tool_calls);
 	}
 	} catch (error) {
 	   console.error('Error calling Ollama:', error);
 	}
+	return ret;
   }
   
 
 
+function getTopicFromLocation(editor: vscode.TextEditor){
+	//find last topic.  
+	let topic = "";
+	let offset = editor.selection.active;
+	let topsearch = editor.document.getText(new vscode.Range(0, 0, offset.line, offset.character));			
+	let topsearches = topsearch.split("\n");
+	for (let i = topsearches.length - 1; i >= 0; i--) {
+		if (topsearches[i].startsWith("**")) {
+			//found a topic
+			topic = topsearches[i].substring(2, topsearches[i].length);
+			topic = topic.replace(/[\n\r]+/g, '');
+			break;
+		}
+
+	}
+	if (topic === ""){
+		//default here if cant find one.  
+		topic = Book.selectedtopic;
+	}
+	return topic;
+
+}
+function getTextFromCursor(editor: vscode.TextEditor) {
+	const selection = editor.selection;
+	let text = editor.document.getText(selection);
+	let topic = "";
+	if (text === "") {
+
+		let offset = editor.selection.active;
+		//get the text from the cursor to the end of the line.
+		if (offset.character === 0){
+			//select to end of line
+			offset = new vscode.Position(offset.line, editor.document.lineAt(offset.line).text.length);
+		}
+
+		//					editor.selection = new vscode.Selection(offset.line, 0, offset.line, offset.character);
+		text = editor.document.getText(new vscode.Range(offset.line, 0, offset.line, offset.character));
+		if (text.length > 1 && text.charAt(0) === '*' && text.charAt(1) === '*'){
+			//remove the first character.
+			//potential topic.  
+			topic = text.substring(2, text.length);
+		}
+		else{
+			topic = getTopicFromLocation(editor);
+		}
+	}
+	return [text, topic];
+}
 export function activate(context: vscode.ExtensionContext) {
 	//not being activated until chatted to...
     registerToolUserChatParticipant(context);
 	registerCompletionTool(context);
 	registerStatusBarTool(context);
+	startWatchingWorkspace(context); //watch for changes to book.  
+
 	Book.open(context); //open the book.  
+
+
 	// define a chat handler
 	const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) => {
 		//vscode.window.showInformationMessage('Hello world!');
 		// initialize the prompt
 		let prompt = BASE_PROMPT;
+		console.log(`Chat request: ${request.command} with prompt: ${request.prompt}`);
 
+		const wsUri = vscode.workspace.workspaceFolders[0].uri;				
+
+
+		if (request.command === 'stats'){
+			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+
+			stream.markdown('**My agent default prompts**  ' + mySettings.defaultprompts.length + '  \n');
+			stream.markdown('**My agent work prompts** ' + mySettings.workprompts.length + '  \n');
+			stream.markdown('**My agent run in background** ' + mySettings.runinbackground + 	'  \n');
+			stream.markdown('**My agent run interval** ' + mySettings.runinterval + '  \n');
+			stream.markdown('**My agent coding mode** ' + mySettings.codingmode + '  \n');
+			stream.markdown('**My agent work prompt** ' + mySettings.workprompt.slice(-255) + '  \n');
+
+		}
+		if (request.command === 'summarize' || request.command=== 'summary'){
+			//find similar topics.  
+			//do we have a topic?  
+			//do same on Ctrl+Shift+9
+
+			let summary = await Book.summary(request.prompt);
+
+			//replace topics.  
+			stream.markdown(await Book.markdown(summary));
+
+
+			return;
+		}
+
+		if (request.command === 'similar'){
+			//find similar topics.  
+			//do we have a topic?  
+			//do same on Ctrl+Shift+9
+
+			let topics = await Book.similar(request.prompt);
+			stream.markdown('Similar topics to:  \n' + request.prompt + '  \n');
+			let doc = "";
+			for (let item of topics){
+				let filename = Book.getUri(item.topic);
+//				doc += `File: ${item.file}, Line: ${item.line}, Sort: ${item.sortorder}  \n`;
+				doc += `[${item.topic}](${filename})  \n`;
+				let fname = item.file.replace(wsUri.path, '');
+				doc += `[${fname}:${item.line}](${item.file}#L${item.line})  \n`;
+				let data = item.data.substring(item.topic.length+2, 300);
+				doc += `${data} $$  \n`;
+				
+			}
+			stream.markdown(doc);
+
+
+			return;
+		}
+		if (request.command === 'list') {
+			//list the files in the book.  
+			if (request.prompt === "prompts"){
+				stream.markdown('**Listing prompts**  \n');
+
+				const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+				//probably dont want this in the future.  
+				mySettings.update('runinbackground', true);
+
+				stream.markdown('**My agent default prompts**  \n ' + mySettings.defaultprompts);
+				//not in use yet...
+				return;
+			}
+		}
+		if (request.command === 'start') {
+			//start running in background.
+			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+			mySettings.update('runinbackground', true);
+			stream.markdown('**Starting background agent**  \n ' + mySettings.runinbackground);
+			//start the work function here.
+			//workPrompt = request.prompt;
+			mySettings.update('workprompt', request.prompt);
+
+
+			work(request, context, stream, token);
+			let [topkey, topics] = await Book.read(request.prompt);
+			mySettings.workprompts.push({'prompt': workPrompt, 'topics': topics, weight: 1});
+			mySettings.update('workprompts', mySettings.workprompts);
+
+			return;
+		}
+		if (request.command === 'stop') {
+			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+			//stop running in background.
+			mySettings.update('runinbackground', false);
+			stream.markdown('**Stopping background agent**  \n' + mySettings.runinbackground);
+			return;
+		}
 		if (request.command === 'exercise') {
 			prompt = EXERCISES_PROMPT;
 			stream.markdown('**Starting exercise**  \n');
 			stream.markdown('**Answering question**  \n');
-			await Chat(request, context, stream, token);
+			await Chat(request.prompt, context, stream, token);
 			stream.markdown('  \n**Getting Stats**  \n');
 			await getStats(request, context, stream, token);
 			stream.markdown('  \n**Exercise complete**  \n');
+			//possibly loop here.  
+			//test calling another prompt.  
+			//not working, may be a feature added in future...
+			let options = {
+				query: "@tutor /list prompts", 
+				isPartialQuery: false
+			};
+			vscode.commands.executeCommand(
+				"workbench.action.chat.open",
+				options
+			  );
+
+
 			return;
 		}
 
@@ -111,9 +468,11 @@ export function activate(context: vscode.ExtensionContext) {
 			//query book only.  
 			stream.markdown('Reading a book\n');
 			//get book snippet.  
-			readFile(request, context, stream, token);
 
+			readFile();
+			Book.updatePage("book/20230110.txt", "hello");
 			let myquery = "play with me and use tool #file:definitions.txt";  //calling via # doesnt work.  
+
 
 			//call external ollama.  
 			const { messages } = await renderPrompt(
@@ -190,14 +549,467 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 	//start listening for external URIs.  
 	vscode.commands.executeCommand('mrrubato.mytutor.start');
+
+	const searchcommand = vscode.commands.registerCommand('mrrubato.mytutor.search', async (text="", topic="") => {
+		//what else do we do here?  
+		//
+		if (text === "") {
+			const editor = vscode.window.activeTextEditor;
+
+			if (editor) {
+				[text, topic] = getTextFromCursor(editor);
+				if (text.startsWith("**")){
+					text = text.substring(2);
+					Book.select(text, Book.BOOK_OPEN_FILE | Book.BOOK_OPEN_WEB); //select and open topic
+				}
+				console.log("searching for: " + text);
+				vscode.commands.executeCommand('workbench.action.findInFiles', {
+					query: text,
+					triggerSearch: true,
+					matchWholeWord: true,
+					isCaseSensitive: false,
+				});
+
+			}
+		}
+	});
+
+	const gencommand = vscode.commands.registerCommand('mrrubato.mytutor.generate', async (text="", topic="") => {
+		let topiccmd = "";
+		if (text === "") {
+			//probably should remove header and then run ctrl+shift+f.  
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				[text, topic] = getTextFromCursor(editor);
+				if (topic !== "" && topic !== Book.selectedtopic) {
+					//select the topic.  
+					Book.select(topic, 0); //select and open topic
+//					Book.logCommand("**" + topic); //log the command to genbook.
+					if (text.startsWith("**") > 0){
+						//we are selecting topic, dont add twice.  
+					}
+					else{
+						topiccmd = "\n**" + topic + "\n";
+					}
+				}
+
+			}
+		}
+		const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+
+		let temptext = text;		  	  
+		//run the desired command here.  
+		//export var defstring = "~!@#$%^&*<>/;-+=";
+		let tokens = Book.getTokens(text);
+		Book.executeTokens(tokens);
+
+		let cmdtype = Book.getCommandType(text);
+		if (cmdtype[0] !== "*"){
+			//get previous topic.  
+		}
+		switch (cmdtype[0]) {
+			case "^":
+				//generate code.  
+				switch (cmdtype[1]) {
+					case "^":
+						//generate code from prompt.
+						if (topic === ""){
+							const editor = vscode.window.activeTextEditor;
+							if (editor) {
+								topic = getTopicFromLocation(editor);
+							}
+						}
+						if (text.length < 2) {
+							//generate code for topic.  
+						}
+						else{
+							if (text.charAt(2) === "#"){  //generate comments.  
+								//create code comments.  
+								//summarize this topic.
+								if (text.length < 3 || Book.findInputTopics(text).length === 0){
+									//summarize current topic.  
+									text = "**" + topic + " " + text;
+								}
+								//pass topic and chat.  does this work?  Dont remember.  
+								vscode.commands.executeCommand('workbench.action.chat.open', "@mr /similar " + text );
+								break;
+
+							}
+							else if (text.charAt(2) === "+"){
+								//create code suggestions.  
+							}						
+							else if (text.charAt(2) === "-"){
+								//remove code suggestions.  
+								//remove code suggestions for topic.  
+							}
+	
+						}
+						break;
+
+					default:
+						//generate code suggestions in chat.  
+					}
+				break;
+
+			case "%":
+				switch (cmdtype[1]) {
+					case "%":
+						//work on this topic.  
+						//show work and result if watch=true
+						if (topic === ""){
+							const editor = vscode.window.activeTextEditor;
+							if (editor) {
+								topic = getTopicFromLocation(editor);
+							}
+						}
+						if (text.charAt(2) === "-"){
+							//remove worker.  
+							console.log("Removing worker: " + topic);
+							let removed = await Worker.removeWorker(topic);
+						}
+						else if (text.charAt(2) === "+"){
+							//add worker.  
+							console.log("Adding worker: " + topic);	
+							let added = await Worker.addWorker(topic);	
+						}						
+						console.log("Workers: " + JSON.stringify(Worker.workers));
+						break;
+				}
+			case ">":
+				//run the command.
+				switch (cmdtype[1]) {
+					case ">":							
+						vscode.commands.executeCommand('workbench.action.terminal.focus');
+						vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(2) + "\n" });
+						break;
+
+					default:
+						vscode.commands.executeCommand('workbench.action.terminal.focus');
+						vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(1) + "\n" });
+						break;
+				}
+
+				break;
+
+			case "/":
+				//path search only.  
+				break;
+			case "@":
+				//open web link to interact with this question.  
+				//aggregate question/response.  
+				switch (cmdtype[1]) {
+					case "@":
+						//general question
+						break;
+					default:
+						//find person.  
+						let query = text.split(" ");
+						let entity = query[0].substring(1);
+
+						let system = entity.split(":")[0];
+						let person = entity.split(":").pop();
+						if (system === person){
+							//no system specified.
+							//find person.  
+							//use copilot query.  
+							vscode.commands.executeCommand('workbench.action.chat.open', text );
+						}
+						else{
+							//find system.  teams, slack, etc.  
+							//i.e. https://learn.microsoft.com/en-us/graph/api/chatmessage-post?view=graph-rest-1.0&tabs=http
+							//i.e. https://github.com/OfficeDev/Microsoft-Teams-Samples/tree/main/samples/incoming-webhook/nodejs
+							//launch implemented program to talk to other system.  Pass temp file input via cmd.  
+							//lookup command to use for system.  
+							//vscode.commands.executeCommand('workbench.action.terminal.focus');
+							//vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: "mycommand " + text + "\n" });
+
+						}
+						let question = query.slice(1).join(" ");
+						break;
+				}
+
+			case "#":
+				//open on web.
+				vscode.env.openExternal(vscode.Uri.parse(text.substring(1)));
+				break;
+			case "!":
+				//find in log files
+				//logdirs
+				switch (cmdtype[1]) {
+					case "!":
+						temptext = text.substring(1);
+					default:
+						temptext = temptext.substring(1);
+						console.log("searching for: " + temptext.substring(1));
+						vscode.commands.executeCommand('workbench.action.findInFiles', {
+							query: text,
+							triggerSearch: true,
+							matchWholeWord: true,
+							isCaseSensitive: false,
+						});
+						break;
+				}
+				break;
+			case "$":
+				//find env variables
+				switch (cmdtype[1]) {
+					case '$':
+						if (text.length < 3) {
+							//list env variables.  
+							Book.printENV();
+						}
+						else{
+							if (text.charAt(2) === "-"){
+								let kv = text.substring(3).split("=");
+								if (kv.length === 1){
+									if (kv[0].substring(0,2) === "**"){
+										Book.removeFromHistory(kv[0].substring(2));
+									}
+									else{
+										Book.removeFromEnvironment(kv[0]);
+									}
+								}
+								Book.printENV();
+							}
+							else if (text.charAt(2) === "+"){
+								let kv = text.substring(3).split("=");
+								if (kv.length === 2) {
+									Book.addToEnvironment(kv[0], kv[1]);
+								}
+								else if (kv.length === 1) {
+									//show variable value
+									if (kv[0].substring(0,2) === "**"){
+										Book.addToHistory(kv[0].substring(2));
+
+									}
+								}
+								Book.printENV();
+
+
+							}
+						}
+						//add to book.  
+//						const fileUri = folder.with({ path: posix.join(folder.path, name) });
+//						Book.loadPage(text, fileUri); //load the ENV for completion.  
+						//add new variable
+						//list variables and values.  
+						//$$
+						//show variable
+						//$$key
+						//set variable
+						//$$key=value
+
+						break;
+				}
+				break;
+			case "-":
+				//find env variables
+				//add the next "-" lines to book.  
+				//single is single line.  
+				break;
+			case "+":
+				//find env variables
+				break;
+			case "*":
+				//open the topic
+				console.log("Opening topic: " + text);
+				switch (cmdtype[1]) {
+					case "*":
+						temptext = text.substring(2);
+						Book.select(temptext); //select and open topic
+						break;
+					case "#":
+						//open references.html?topic=
+						break;
+					case "-":
+						//open book contents topic= 
+						break;
+					case "/":
+						//start thinking about topic
+						break;
+					case "$":
+						//open page.html?topic=
+						//show env info.  
+						break;
+					case "%":
+						//open graph.html?topic=
+						break;
+
+				}
+				break;
+			case ":":
+				//summarize this topic. 
+				switch (cmdtype[1]) {
+					case ":":
+						//summarize this topic.
+						if (text.length < 3 || Book.findInputTopics(text).length === 0){
+							//summarize current topic.  
+							const editor = vscode.window.activeTextEditor;
+							if (editor) {
+								topic = getTopicFromLocation(editor);
+								text = "**" + topic + " " + text;
+							}
+						}
+						else{
+							//pass topic and chat.  does this work?  Dont remember.  
+							vscode.commands.executeCommand('workbench.action.chat.open', "@mr /summary " + text );
+							
+						}
+						break;
+
+					default:
+						//summarize this topic with a different prompt.
+						//no single char handler.  
+						break;
+				}
+				case "~":
+					//summarize this topic. 
+					switch (cmdtype[1]) {
+						case "~":
+							//summarize this topic.
+							if (text.length < 3 || Book.findInputTopics(text).length === 0){
+								//summarize current topic.  
+								const editor = vscode.window.activeTextEditor;
+								if (editor) {
+									topic = getTopicFromLocation(editor);
+									text = "**" + topic + " " + text;
+								}
+							}
+							//pass topic and chat.  does this work?  Dont remember.  
+							vscode.commands.executeCommand('workbench.action.chat.open', "@mr /similar " + text );
+							break;
+	
+						default:
+							//no single char handler.  
+							break;
+					}
+					
+			case "":
+				//failure return?  
+				break;
+
+		}		
+		//log the command to genbook if valid.  
+
+		Book.logCommand(topiccmd + text);
+		//copy to the clipboard anyway by default.  
+		//if wanting to use in different environment.  
+
+		//not sure if this is needed or not.
+//		vscode.env.clipboard.writeText(text);
+
+		/*
+		vscode.env.clipboard.readText().then((text)=>{
+			clipboard_content = text; 
+		});
+		*/
+	});
+
+	context.subscriptions.push(disposable);
+	
 	//start the MCP server as well.  
 	//vscode.commands.createMcpServer('mrrubato.mytutor', tutor);
+	activeEditor = vscode.window.activeTextEditor;
 
+	vscode.workspace.onDidSaveTextDocument((document) => {
+		if (document.languageId === "plaintext" && document.uri.scheme === "file") {
+			// do work
+			triggerUpdateDecorations();
+			triggerGetBookContext();
+			updateStatusBarItem();
+		}
+	});
 
-
+	vscode.window.onDidChangeActiveTextEditor(editor => {
+		activeEditor = editor;
+		if (editor) {
+			triggerUpdateDecorations();
+			triggerGetBookContext();
+			updateStatusBarItem();
+		}
+	}, null, context.subscriptions);
 
 }
 
+let uitimeout: NodeJS.Timeout | undefined = undefined;
+
+
+//#https://code.visualstudio.com/api/references/vscode-api#DecorationRenderOptions
+
+const smallNumberDecorationType = vscode.window.createTextEditorDecorationType({
+	borderWidth: '1px',
+	borderStyle: 'solid',
+	overviewRulerColor: 'blue',
+	overviewRulerLane: vscode.OverviewRulerLane.Right,
+	light: {
+		// this color will be used in light color themes
+		borderColor: 'darkblue'
+	},
+	dark: {
+		// this color will be used in dark color themes
+		borderColor: 'lightblue'
+	}
+});
+
+// create a decorator type that we use to decorate large numbers
+const largeNumberDecorationType = vscode.window.createTextEditorDecorationType({
+	cursor: 'crosshair',
+	// use a themable color. See package.json for the declaration and default values.
+	backgroundColor: { id: 'myextension.largeNumberBackground' }
+});
+
+
+function updateDecorations() {
+	if (!activeEditor) {
+		return;
+	}
+	const regEx = /\d+/g;
+	const text = activeEditor.document.getText();
+	const smallNumbers: vscode.DecorationOptions[] = [];
+	const largeNumbers: vscode.DecorationOptions[] = [];
+	let match;
+	while ((match = regEx.exec(text))) {
+		const startPos = activeEditor.document.positionAt(match.index);
+		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
+		const decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: 'Number **' + match[0] + '**' };
+		if (match[0].length < 3) {
+			smallNumbers.push(decoration);
+		} else {
+			largeNumbers.push(decoration);
+		}
+	}
+	activeEditor.setDecorations(smallNumberDecorationType, smallNumbers);
+	activeEditor.setDecorations(largeNumberDecorationType, largeNumbers);
+}
+
+
+function triggerUpdateDecorations(throttle = false) {
+	if (throttle) {
+		uitimeout = setTimeout(updateDecorations, 500);
+	} else {
+		updateDecorations();
+	}
+
+}
+
+function getBookContext() {
+	//
+	if (!activeEditor) {
+		return vscode.window.showInformationMessage('No active editor found');
+	}
+	console.log("getBookContext: " + activeEditor.document.uri.toString());// + activeEditor.document);
+}
+
+
+
+function triggerGetBookContext(throttle = false) {
+	if (throttle) {
+		uitimeout = setTimeout(getBookContext, 500);
+	} else {
+		getBookContext();
+	}
+
+}
 
 async function getStats(request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
 	if (!vscode.workspace.workspaceFolders) {
@@ -240,13 +1052,13 @@ async function getStats(request: vscode.ChatRequest, context: vscode.ChatContext
 }
 
 
-function readFile(request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
+function readFile(fname : string = "book/definitions.txt") {
 	if (!vscode.workspace.workspaceFolders) {
 		return vscode.window.showInformationMessage('No folder or workspace opened');
 	}
 	const folderUri = vscode.workspace.workspaceFolders[0].uri;
 	// this should be a book path.  Use as you would work on the project.  
-	const fileUri = folderUri.with({ path: posix.join(folderUri.path, 'book/definitions.txt') });
+	const fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
 //	const fileUri = folderUri.with({ path: posix.join(folderUri.path, 'definitions.txt') });
 
 	vscode.window.showTextDocument(fileUri);

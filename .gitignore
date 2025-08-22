@@ -1,6 +1,7 @@
 *.mkv
 *.mid
 *.png
+*.log
 !icon*.png
 !web/public/images/*.png
 *.jpg
@@ -25,14 +26,32 @@ web/public/package-lock.json
 web/public/package.json
 
 web/public/models/*
-*/node_modules/*
+**/node_modules/**
+
+extensions/vscode/codetutor/out/*
 
 extensions/vscode/ayudarse/node_modules/*
 extensions/vscode/helloworld/node_modules/*
 extensions/vscode/codetutor/node_modules/*
+
+
 
 server/mcp/mcpiano/.git/*
 server/mcp/mcpiano/.vscode/*
 
 server/blockchain/mydb/*
 mydb/*
+
+server/transcription/asmcli
+*.db
+**/log.csv
+web/public/test/javascript-vector-database/
+
+*.pyc
+*.sqlite3
+*.model
+**/package-lock.json
+
+vecbook/*
+genbook/*
+.vscode/settings.json

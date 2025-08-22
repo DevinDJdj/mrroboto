@@ -35,6 +35,7 @@ class MyMsg:
   def __init__(self, msg, prev, pedal):
     self.msg = msg
     self.note = msg.note
+    self.time = msg.time
     self.currentTime = 0
     self.startmsg = None
     self.prevmsg = prev
@@ -105,7 +106,7 @@ class MyMsg:
       if (self.ngrams[i] - self.ngrams[i-1] > 0):
         temp = temp * 2 - 1
       else:
-        temp = -temp * 2
+        temp = temp * 2
       
       p = getprime(temp)
       words.append(p)
