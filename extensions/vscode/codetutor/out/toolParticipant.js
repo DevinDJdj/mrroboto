@@ -35,10 +35,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isTsxToolUserMetadata = isTsxToolUserMetadata;
 exports.registerStatusBarTool = registerStatusBarTool;
+exports.updateStatusBarItem = updateStatusBarItem;
 exports.registerCompletionTool = registerCompletionTool;
+exports.startWatchingWorkspace = startWatchingWorkspace;
 exports.registerToolUserChatParticipant = registerToolUserChatParticipant;
 const prompt_tsx_1 = require("@vscode/prompt-tsx");
 const vscode = __importStar(require("vscode"));
+const Book = __importStar(require("./book"));
 const toolsPrompt_1 = require("./toolsPrompt");
 let myStatusBarItem;
 function isTsxToolUserMetadata(obj) {
@@ -47,6 +50,23 @@ function isTsxToolUserMetadata(obj) {
         !!obj.toolCallsMetadata &&
         Array.isArray(obj.toolCallsMetadata.toolCallRounds);
 }
+function positionToString(pos) {
+    return `[${pos.line},${pos.character}]`;
+}
+function editorRanges(prefix, editor) {
+    if (editor === undefined) {
+        return;
+    }
+    if (editor.visibleRanges.length === 1) {
+        let visibleRange = editor.visibleRanges[0];
+        //        console.log(`${prefix} visible ${positionToString(visibleRange.start)} ${positionToString(visibleRange.end)}  selectionStart ${positionToString(editor.selection.start)} selectionEnd ${positionToString(editor.selection.end)}`);
+        editor.document.getText(visibleRange).split('\n').forEach((line, index) => {
+            //            console.log(`line ${index + visibleRange.start.line}: ${line}`);
+            //add this to context.  
+        });
+    }
+}
+;
 function registerStatusBarTool(context) {
     const myCommandId = 'sample.showSelectionCount';
     context.subscriptions.push(vscode.commands.registerCommand(myCommandId, () => {
@@ -59,12 +79,16 @@ function registerStatusBarTool(context) {
     context.subscriptions.push(myStatusBarItem);
     // register some listener that make sure the status bar 
     // item always up-to-date
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(updateStatusBarItem));
-    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(updateStatusBarItem));
+    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(changeEvent => {
+        updateStatusBarItem();
+    }));
+    //    vscode.window.onDidChangeTextEditorSelection( changeEvent => { editorRanges('selection changed: ', changeEvent.textEditor); }, null, context.subscriptions);
+    //    vscode.window.onDidChangeTextEditorVisibleRanges( changeEvent => { editorRanges('visible ranges changed: ', changeEvent.textEditor); }, null, context.subscriptions);
     // update status bar item once at start
     updateStatusBarItem();
 }
 function updateStatusBarItem() {
+    editorRanges('updateStatusBarItem: ', vscode.window.activeTextEditor);
     const n = getNumberOfSelectedLines(vscode.window.activeTextEditor);
     if (n > 0) {
         myStatusBarItem.text = `$(megaphone) ${n} line(s) selected`;
@@ -82,35 +106,182 @@ function getNumberOfSelectedLines(editor) {
     return lines;
 }
 function registerCompletionTool(context) {
+    //need multiple providers for "*", "#", ">", "@", "="
+    //# -> refs
+    //> -> commands
+    //@ -> users
+    //@@ -> questions
+    //== -> answers
     const provider2 = vscode.languages.registerCompletionItemProvider('plaintext', {
         provideCompletionItems(document, position) {
             // get all text until the `position` and check if it reads `console.`
             // and if so then complete if `log`, `warn`, and `error`
-            const linePrefix = document.lineAt(position).text.slice(0, position.character);
-            if (!linePrefix.endsWith('console.')) {
-                return undefined;
-            }
             let myarray = [];
-            let ci = new vscode.CompletionItem('log', vscode.CompletionItemKind.Method);
-            myarray.push(ci);
-            ci = new vscode.CompletionItem('warn', vscode.CompletionItemKind.Method);
-            myarray.push(ci);
-            ci = new vscode.CompletionItem('error', vscode.CompletionItemKind.Method);
-            myarray.push(ci);
-            let sortme = true;
-            if (sortme) {
-                for (let i = 0; i < myarray.length; i++) {
-                    myarray[i].sortText = i.toString(16).padStart(4, '0').toUpperCase();
+            let linePrefix = document.lineAt(position).text.slice(0, position.character);
+            if (position.character === 0) {
+                //new line, get previous line.  
+                //if topic, then logCommand.  
+                //not a good idea to do this here.  
+                /*
+                linePrefix = document.lineAt(position.line-1).text;
+                if (linePrefix.startsWith('**')) {
+                    //if it is a topic, then logCommand.
+                    Book.addToHistory(linePrefix.substring(2));
+                    Book.logCommand(linePrefix);
+                }
+                */
+            }
+            if (linePrefix.endsWith('**')) {
+                console.log(Book.topicarray);
+                myarray = Book.findTopicsCompletion("");
+                return myarray;
+            }
+            keyfind: for (let j = Book.defmap.length - 1; j >= 0; j--) {
+                for (const [k, v] of Object.entries(Book.defmap[j])) {
+                    //for now excluding the '-' key.
+                    if (linePrefix.endsWith(k)) {
+                        if (k.length === 1 && !linePrefix.startsWith(k)) {
+                            //cant do autocomplete for single characters.  
+                            //only from two characters to prevent overautocomplete.  
+                            continue;
+                        }
+                        else {
+                            for (const [key, value] of Object.entries(Book.arrays[k])) {
+                                if (value !== undefined && value.length > 0) {
+                                    let ci = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
+                                    ci.detail = `${k}: ${key}`;
+                                    let doc = "";
+                                    let sortText = "0000";
+                                    for (let item of value) {
+                                        let filename = Book.getUri(item.topic);
+                                        doc += `File: ${item.file}, Line: ${item.line}, Sort: ${item.sortorder}  \n`;
+                                        doc += `Topic: [${item.topic}](${filename})  \n`;
+                                        doc += `Link: [${item.file}](${item.file}#L${item.line})  \n`;
+                                        let data = item.data.substring(0, 255);
+                                        doc += `Data: ${data}  \n`;
+                                        //set sortText to top if it is in selection history.  
+                                        const found = Book.selectionhistory.findIndex((t) => t === item.topic);
+                                        if (found > -1) {
+                                            sortText = (Book.MAX_SELECTION_HISTORY - found).toString(16).padStart(4, '0').toUpperCase();
+                                        }
+                                    }
+                                    ci.documentation = new vscode.MarkdownString(`${doc}`);
+                                    if (sortText === "0000") {
+                                        sortText = value[0].sortorder.toString(16).padStart(4, '0').toUpperCase();
+                                    }
+                                    ci.sortText = sortText;
+                                    myarray.push(ci);
+                                }
+                            }
+                            return myarray;
+                        }
+                    }
                 }
             }
-            else {
+            if (linePrefix.endsWith('>') && linePrefix.startsWith('>')) {
+                console.log(Book.arrays['>']);
+                for (const [key, value] of Object.entries(Book.arrays['>'])) {
+                    if (value !== undefined && value.length > 0) {
+                        let ci = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
+                        ci.detail = `Command: ${key}`;
+                        let doc = "";
+                        let sortText = "0000";
+                        for (let item of value) {
+                            let filename = Book.getUri(item.topic);
+                            doc += `File: ${item.file}, Line: ${item.line}, Sort: ${item.sortorder}  \n`;
+                            doc += `Topic: [${item.topic}](${filename})  \n`;
+                            doc += `Link: [${item.file}](${item.file}#L${item.line})  \n`;
+                            let data = item.data.substring(0, 255);
+                            doc += `Data: ${data}  \n`;
+                            //set sortText to top if it is in selection history.  
+                            const found = Book.selectionhistory.findIndex((t) => t === item.topic);
+                            if (found > -1) {
+                                sortText = (Book.MAX_SELECTION_HISTORY - found).toString(16).padStart(4, '0').toUpperCase();
+                            }
+                        }
+                        ci.documentation = new vscode.MarkdownString(`${doc}`);
+                        if (sortText === "0000") {
+                            sortText = value[0].sortorder.toString(16).padStart(4, '0').toUpperCase();
+                        }
+                        ci.sortText = sortText;
+                        myarray.push(ci);
+                    }
+                }
+                return myarray;
             }
-            return myarray;
+            if (linePrefix.endsWith('/')) {
+                //include all topics with this.  
+                //need sorted keys.  
+                //                    console.log(Book.topicarray);
+                //allow to trigger even if we have already completed.  
+                if (linePrefix.startsWith('**')) {
+                }
+                else if (linePrefix.substring(linePrefix.lastIndexOf(' ') + 1).startsWith('**')) {
+                    //adjust linePrefix to be just the topic.
+                    linePrefix = linePrefix.substring(linePrefix.lastIndexOf(' ') + 1);
+                }
+                let myarray = Book.findTopicsCompletion(linePrefix);
+                //use Book.alltopics to get sorted array.  
+                return myarray;
+            }
+            else {
+                /*
+                for (const [key, value] of Object.entries(Book.topicarray)) {
+                    if (value !== undefined && value.length > 0) {
+                        let ci = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
+                        ci.detail = `Topic: ${key}`;
+                        let doc = "";
+                        for (let item of value) {
+                            doc += `File: ${item.file}, Line: ${item.line}, Sort: ${value[0].sortorder}\n`;
+                            doc += `Link: [${item.file}](${item.file}#L${item.line})\n`;
+                        }
+                        ci.documentation = new vscode.MarkdownString(`${doc}`);
+                        ci.sortText = value[0].sortorder.toString(16).padStart(4, '0').toUpperCase();
+                        myarray.push(ci);
+                    }
+                }
+                */
+                return myarray;
+            }
         }
-    }, '.' // triggered whenever a '.' is being typed
-    );
+    }, '*', //trigger single character
+    '>', '/', //trigger on '/'
+    '#', '@', '!', '-', '$');
     //add custom completions to the extension 
     context.subscriptions.push(provider2);
+}
+function getWorkspaceTestPatterns() {
+    if (!vscode.workspace.workspaceFolders) {
+        return [];
+    }
+    let bookPath = Book.getBookPath();
+    return vscode.workspace.workspaceFolders.map(workspaceFolder => ({
+        workspaceFolder,
+        pattern: new vscode.RelativePattern(workspaceFolder.uri.path + "/" + bookPath, '**/*.txt'),
+    }));
+}
+//this may reload unnecessarily.  
+function startWatchingWorkspace(context) {
+    return context.subscriptions.push(...getWorkspaceTestPatterns().map(({ pattern }) => {
+        const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+        watcher.onDidCreate(fileUri => {
+            vscode.workspace.openTextDocument(fileUri).then((document) => {
+                let text = document.getText();
+                console.log(`${fileUri.path} ... read`);
+                // parse this.  
+                Book.loadPage(text, fileUri.path);
+            });
+        });
+        watcher.onDidChange(async (fileUri) => {
+            vscode.workspace.openTextDocument(fileUri).then((document) => {
+                let text = document.getText();
+                console.log(`${fileUri.path} ... read`);
+                // parse this.  
+                Book.loadPage(text, fileUri.path);
+            });
+        });
+        return watcher;
+    }));
 }
 function registerToolUserChatParticipant(context) {
     const handler = async (request, chatContext, stream, token) => {

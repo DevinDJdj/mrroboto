@@ -17,7 +17,8 @@ reference from document
 
 > CMD operation
 
-** source code file name (with separator) OR videoID > 10 chars, otherwise content/topic tag
+** topic (source code file name with separator, OR videoID > 10 chars, otherwise content/topic tag)
+
 <!-- 
 May have some problematic names.  
 -->
@@ -31,7 +32,7 @@ May have some problematic names.
 === QA history start.  
 ==== QA history end.  
 
-$$ ENVIRONMENT
+$$ ENVIRONMENT (can also be direct link to topic)
 
 !! Log output or error
 
@@ -51,13 +52,72 @@ Shorthand
 
 -> Leads to
 
-# comments to something or reference from
+# comments (shell) to something or reference from (link)
 ## referenced lookup again.  
 
 // filepath or DB path
+
+~~ suggestion after @@
 
 "XX" = key phrase or WORD
 <!--
 "_var" = end state
 "var_" = potential state
 -->
+
+<!--
+Leading OPEN:
+& = and? (Latin)
++
+% = wild? or modulate/random? 
+^ = generate (Exponentiate)
+_ = pre-requisite
+/ = path
+\ = macro?  (TEX)
+: = line identification
+; = comment?
+~~ = suggestion or similarity check
+| = PIPE OR
+.. = time marker? continuation?  
+... = continuation later.  
+``` = code snippet?  
+
+QUOTESETS:
+< > = language?  
+<? ?> = inline macro (PHP)
+[ ] = internal clickable reference?  (markup)
+( )
+{ } 
+"" = key phrase
+? 
+
+Ending ...
+Annotate with leading space or something else?  
+
+defstring = "!@#$%^&*<>/-+=;"
+-->
+
+ ... Work to do
+ ? Open question
+ & trailing and removes from ENV.  
+<!--
+$$+MYVAR
+$$-MYVAR
+$$-**TOPIC removes all topic ENV variables.  
+TOPIC cant start with -
+-->
+
+
+**KEYS/vscode
+Ctrl+Enter = Continue
+Ctrl+I = voice chat
+
+0->11 = past->future
+
+
+
+**MAP
+<!--
+**->TOPIC->NEWTOPIC
+-->
+

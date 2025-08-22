@@ -1,0 +1,881 @@
+**timestep.py
+--Add spin up / spin down of backend.  
+And wait...
+Then we get some transcriptions if there is available hardware at the time of timestep.py
+Alternatively move transcriptions (enable/disable) to
+**web/public/analyze.html
+
+
+**FLOW
+--rec
+--analyze
+->
+--book
+--page
+--plugin
+--generate
+--review
+
+**GENBOOK
+Need to utilize these answers as input and see what the subsequent generation looks like.  
+Simple COT sequence.  
+
+Need to store and adjust the system prompt.  
+@@What are you doing?
+$$system prompt (make suggestions)
+==...
+
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+
+Accept or deny changes.  
+How to save this event chain.  
+In transcript.  
+Export/import transcript.  
+Need topic selection as part of transcript.  
+
+
+
+**timestep.py
+**web/public/analyze.html
+transcribe option in URL.  
+auto-start and save.  
+Instead of using server.  
+
+
+**extensions/vscode/codetutor/src/extension.ts
+continue..
+@tutor /exercise tell me a story
+@tutor /book 
+@tutor /find !!Error
+
+does autocomplete work inside of copilot chat?  
+use
+editor.action.triggerSuggest
+
+
+**news.py
+#https://github.com/unclecode/crawl4ai
+Maybe use.  
+
+
+**server/ollama/train.py
+**server/llmtune/server.py
+Eventaully start on model customization logic.  
+Just very basic using genbook.  
+
+#https://medium.com/@yuxiaojian/fine-tuning-llama3-1-and-deploy-to-ollama-f500a6579090
+
+So this will just be reinforcement learning for good answers.  
+Is it possible to get where we want with just that?  
+...
+this is incomplete...
+
+
+
+
+**0606
+Just use 
+$$BASE lang
+
+
+Wonder what library incompatibility will be the first real annoyance to me.  
+Hopefully I persevere through any that come up...at least the first few...
+vscode extension API may be one of them...
+
+
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/document-editing-sample
+            vscode.workspace.openTextDocument(fileUri).then((document) => {
+edit here...
+document.getText();
+document.setText
+
+Need to highlight the text 
+#https://github.com/microsoft/vscode-extension-samples/blob/main/code-actions-sample/
+Use this provider to highlight any of the references or topics etc.  
+Compare with master branch and highlight suggestions.  
+
+Generate suggestions in background, if too divergent, then reset copy master.  
+suggestions should be pre-generated, not on-demand.  
+Then we are just accepting full or partial suggestions.  
+Then track the accepted and tune.  
+How do we train the observer though?  
+Just rerun the transcript?  
+
+#https://github.com/openreplay/openreplay
+#https://github.com/rrweb-io/rrweb/blob/master/docs/recipes/record-and-replay.md
+--Try this...
+
+
+
+#https://en.wikipedia.org/wiki/Dyck_language
+#https://en.wikipedia.org/wiki/Catalan_number
+#https://njwildberger.com/
+#https://www.tandfonline.com/doi/full/10.1080/00029890.2025.2460966#d1e160
+
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+continue..
+@tutor /exercise tell me a story
+@tutor /book 
+@tutor /find !!Error
+
+@tutor /code **topic
+--scan all info regarding topic and make edit suggestion.  
+Or edit if settings for automatic edit.  
+weight more recent entries.  
+allow to edit 
+
+@tutor /book **topic
+generate entries for this topic in genbook.  
+
+
+Pseudo-code..
+ingest any selected topics.  
+Last selected topic is the primary focus.  
+
+Determine if this is a source file or not.  
+Use other selected topics as context.  
+
+If source file:
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+@@run and review
+Need previous test run scripts when changing this topic.  
+@@Summarize the changes and add to genbook
+
+
+$$context
+@@Here is a complete source file, given the modifications suggested above:
+--only use complete files for now, or git change.  This will make workflow easier.  
+Or patch text:
+> git log -p --reverse -- book/20250429.txt
+Parse these changes.  And/or send changes in this as context.  
+Just want to continue this chain.  
+Find the new entries in this chain.  
+Speak in git I think should be fine.  
+
+
+> git diff HEAD:book/20250429.txt book/20250429.txt
+@@ -269,3 +271,34 @@
+But need to compare, if file is too different.  
+Only want incremental changes.  
+
+
+
+
+If not source file:
+Determine if it is a coding action or not.  
+If coding action, pick topics at random and find source changes.  
+If not, 
+$$Context
+Given the above context, here are a few considerations regarding what to do next.  
+
+Eventually need to be able to accept from UI review.  
+
+
+Should add statistics about co-dependency.  
+Recency weighted as well as any other topic commits which includes selected topic.  
+Based on co-dependence, include recent changes potentially for other topics.  
+Perhaps include function structure and global variables as well for an overview.  
+
+
+Also can we monitor midi?  
+
+output to file full change log.  
+In the end we want this.  Not sure about context windows now.  
+> git --no-pager log -p --reverse -- book/20250429.txt > book/20250429.log
+
+Information technology will have a new meaning soon.  
+Information ownership and traceability/provenance is going to be an interesting field.  
+
+
+**provenance
+Need provenance chains.  
+#https://www.software.ac.uk/blog/provenance-tool-suite
+#https://pypi.org/project/prov/
+
+#https://github.com/VisualStorytelling/provenance-core
+
+Where are the good tools?  
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+
+
+
+**GITYA
+Need to generate a midi struct / SONG based on commit dates.  
+
+
+**web/public/graph.html
+Make new file with parameters:
+?direction=in/out/both
+?num=12
+?depth=1 -> follow topics within one step of specified topic.  Do same logic and add to provenance chain.  
+This will probably be far too large.  Step 
+<!--
+visnetwork
+vis.DataSet([
+        {
+      id: 1,
+      label: "1",
+      level: 1
+    },
+])
+--level: 1, 2, 3
+-->
+?topics=one,two
+Allow for multiple topics.  
+
+Pseudo-code:
+Parse parameters.
+read book.  
+generate provenance chart for selected topic.  
+TOPIC - 12
+Higher weight for closer to target topic.  
+
+This should be nice.  
+Get git commits for topics in question if exist.  
+And display bottom or right panel file as well as specific commits can be multiple when that provenance input is selected.  
+Each provenance should have one or multiple dates related.  
+Get commits for particular dates.  
+Just use network, not sankey for this.  
+Use DOT representation..
+Basically level is inherent in the data.  
+
+Parameter for provenance info (date, weight)
+Only look for commits in certain date ranges?  
+Too complex..
+
+Query should look something like this.  
+@tutor /start **web/public/netgraph.mjs **web/public/graph.html try to create an implementation of **web/public/graph.html
+Should adjust workprompt as needed.  
+Use temp file in workprompt.  
+generate needed context in there.  
+All subsequent queries will use that temporary topic.  
+
+
+
+vscode.commands.executeCommand('github.copilot.chat.generate');
+github.copilot.openLogs
+github.copilot.generate
+copilot-chat.focus
+github.copilot.buildLocalWorkspaceIndex
+github.copilot.collectDiagnostics
+github.copilot.completions.disable
+github.copilot.completions.enable
+github.copilot.chat.explain
+github.copilot.terminal.explainTerminalLastCommand
+github.copilot.terminal.explainTerminalSelection
+github.copilot.git.generateCommitMessage
+github.copilot.chat.generateDocs
+github.copilot.chat.generateTests
+github.copilot.openLogs
+github.copilot.chat.debug.showTools
+github.copilot.chat.debug.showElements
+github.copilot.createFile
+github.copilot.openFile
+github.copilot.executeSearch
+
+
+workbench.action.terminal.paste
+workbench.action.terminal.pasteSelection
+workbench.action.terminal.copySelection
+
+
+Book.updatePage
+
+Based on leading text, the shortcut to run should work differently.  
+Basically need command to copy selection and paste in the right location based on leading text.  
+@ -> Chat
+@@ -> Chat
+> -> CMD input
+!! -> search log files
+$$ -> search config files
+# -> open web
+** -> open file / secondary (open web page.html?topic / graph.html?topic / thispage.html)
+- -> ?  
+
+Framing is there, need to fill out the details.  
+For now using current selection should be fine.  
+If no selection, use current line.  
+
+
+OK basic function works.  
+**mrrubato.mytutor.generate
+ctrl+shift+8
+Keep testing.  
+Add functionality for this.  
+Try this:
+vscode.commands.executeCommand(
+  "workbench.action.chat.open",
+  "@participant /hello friend"
+);
+Not working...
+Do we need the chat actually?  
+Primary function can be done with generate command.  
+
+
+**web/public/analyze.html
+$$vidoe=wqjAg9r2UTE
+!!minimap not clickable when pianoroll images are not there.  
+Never fixed this...
+
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+If we are not using the chat, just use particular file and open it on certain commands.  
+
+Need shorter name.  
+
+genbook format is ok with @@ == $$?
+**extensions/vscode/codetutor/src/book.ts
+-- test Book.logCommand
+OK, seems to work.  
+Probably go back to the previous location.  
+Just keep it open.  
+
+
+**book/definitions.txt
+Utilize ... ending as potential to-do list.  
+
+
+OK, basic transcript generation should work.  
+3 .., 7 .., 8
+
+
+
+**mrrubato.mytutor.generate
+When running generate, add context of current file.  
+
+
+
+**extensions/vscode/codetutor/src/book.ts
+--loadBook
+Need reload after changing setting for $$mrrubato.bookfolder
+
+--readFilesInFolder
+Maybe this should be freer than per user etc.  
+Per user is one methodology.  
+But should read all subfolders.  
+
+
+>>
+##
+
+
+Add adjust ENV variables.  
+How do we distinguish what ENV we are talking about?  
+$$> = command env
+$$! = .. env?  
+
+
+**extensions/vscode/codetutor/src/extension.ts
+--gencommand
+case "#":
+    //open on web.
+How do we do substitution?  
+No time given now to this.  
+
+--workprompts
+vs
+--roboprompts
+How do we utilize this intelligently.  
+Still have no custom model, so not really going to work very well.  
+
+**extensions/vscode/codetutor/.vscode/settings.json
+    "mrrubato.defaultprompts": [
+        {
+            "topic": "book/definitions.txt",
+            "prompt": "You are a helpful assistant. You will be given a task and you will respond with the best possible answer. If you don't know the answer, say 'I don't know'.",
+            "weight": 0.5
+        },
+        {
+            "topic": "timestep.py",
+            "prompt": "You are a coding assistant. You will be given a task and you will respond with the best possible code. If you don't know the answer, say 'I don't know'.",
+            "weight": 0.5
+        }
+    ]
+
+
+Lot of changes.  
+Need to test.
+@mr /start think about coding **timestep.py
+
+!!Error calling Ollama: Error: Response stream has been closed
+This is occurring too much.  
+
+getting ok responses now.  
+
+But..
+--pickTopic
+still not working properly.  
+start here.  
+
+
+**MARKUP
+What are some models like this:
+#https://github.com/mwouts/jupytext
+Should adopt something from wiki.  
+[[]]
+Allow inline link to document or command search.  
+[[> dir ]]
+Just create a link from this which essentially calls generate with this text.  
+[[=$$VAR]] for substitution?  
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+$$PIANODIR=c:/devinpiano/music
+@something like this?  
+> cd [[=$$PIANODIR]]/extensions/vscode/codetutor
+
+> cd c:/devinpiano/music/extensions/vscode/codetutor
+> tsc -watch -p ./
+
+
+Need to test the decorations.  
+For now just squiggly line underline.  
+CodeLensProvider 
+this is probably what is needed for onclick actions.  
+
+Should really do this as a language server.  
+But...
+#https://code.visualstudio.com/api/references/vscode-api#DecorationRenderOptions
+
+vscode.env.clipboard.readText
+vscode.env.clipboard.writeText
+
+Think about the language a bit before moving forward.  
+Essentially this is like a shell scripting format.  
+
+
+**web/public/testparse.html
+Still dont have much regarding parser...
+
+
+**extension/vscode/codetutor/src/extension.ts
+
+When typing directory type struct, on slash, we need to understand if we are searching, 
+and adjust the return to include all files/folders in that directory.  
+Add on slash detection.  
+
+Anything changed in current interaction should automatically be added to the top recency category.  
+
+
+**extensions/vscode/codetutor/src/toolParticipant.ts
+
+I think this is ok that we have a delay for the path to load.  
+Perhaps will have too many topics this way, unclear.  
+
+
+**LISP
+Should learn this I think.  
+(Have to adopt Parentheses from this :)
+
+> sudo apt-get install sbcl
+
+**languages/lisp/test.lisp
+
+> sbcl --script languages/lisp/test.lisp
+> sbcl
+> (sb-ext:quit)
+
+#https://github.com/tirthraj07/Lisp-Tutorial/blob/main/Ls%2008%20Loop%20For.lisp
+
+Hmmm...
+
+
+Use for graph representation?  
+with topics and perhaps other things.  
+
+(1 (2 6 7 8) 3 (4 (9 12)) (5 10 11))
+
+**timestep.py
+Perhaps have a graph file which represents connections between topics and functions.  
+Just generate this while using/analyzing book.  
+measure directionality based on sequence.  
+Search depth = 12?  or something like this.  
+
+Export dot representation for now.  
+Then we can just load that dot representation and not have to re-analyze book.  
+
+Keeping previous notes at cutover will muddy this data.  
+But probably still interesting.  
+
+#https://diego-molina.medium.com/creating-testing-and-publishing-a-vscode-extension-2981e06ff441
+#portal.azure.com
+service issues...
+publish procedure.  
+'(+ 1 2)
+
+**web/public/grammar/lisp/parse.js
+Basic S-expression parsing.  
+Can use this to generate a dot graph.  
+
+Save each graph as a unit of time.  
+
+Create graph as dot graph representation.  
+How to adjust weight, must be int.  
+Use exponential function.  
+minweight is 2, maxweight is 2^12 (depth)
+Then add up all instance weights, and divide by total number of occurrences of topic.  
+Add recency multiplier as well.  
+Exponential relationship is preferrable.  This way we have mostly low weights.  
+
+digraph {
+  root -> a
+  root -> b [weight=2]
+
+
+#https://visjs.github.io/vis-network/examples/network/data/dotLanguage/dotEdgeStyles.html
+style="dashed", color="green", style="dotted"
+scale down to just a few widths.  
+guess we can just use width=5 (1-12)
+ahs -> normal[width=5,label="normal", arrowhead=normal]; 
+
+
+**web/public/page.html
+-Fix tabcontent display.  
+!!Somehow tempcodewindow is not keeping content.  
+If leave on Book Window it works, but not when switching tabs.  
+ok, 
+make graph, timewindow and REFs work...
+
+
+**extension/vscode/codetutor/src/extension.ts
+Copy to clipboard not working well.  
+
+**mrroboto
+Need to pull from origin.  
+
+#https://stackoverflow.com/questions/24815952/git-pull-from-another-repository
+
+
+**web/public/page.html
+--bookgraph
+generate DOT.  
+
+
+OK, moderate success..
+
+Layout not optimal, and recursive depth call not working.  
+
+OK, I think this is closer to what I want.  
+Closer...
+
+PAGE looking better.  
+Really could use more symbols.  
+**web/public/test/web/public/test/testfont2.html
+
+**extension/vscode/codetutor/src/extension.ts
+...
+
+Use php syntax <?
+closure ?> or ** fallback.  
+What do we include here though?  
+Or can we do with no closure?  
+Once line is unrecognized/unparseable, just close.  
+Close with ?> or ** as well.  
+
+This can be a generate transcript?  or ...
+point to a **genbook 1-2, etc...
+in genbook can group commands after the fact.  
+Add genbook reference
+
+or include the commands inline.  
+
+Need command to 
+start/list/stop thinking about...
+just pick a topic or series of topics.  
+By default it will start on the last entry.  
+And a random recency weighted topic.  
+
+^start 1-n
+^stop 1-n
+^list
++..... (optional 1-n=currentactive)
+add context to thought.  
+Immediately delete line after return?  
+
+This picks the previous topic mentioned.  
+Pascal pointer...
+
+
+
+Too much to do for autonomy.  
+Code change check.  
+Accept/decline logic.  
+
+when regenerating from genbook, 
+Ignore anything after ==
+But annotate some answers.  
+
+<? > xml style also accept.  
+< > different usage.  
+
+#https://en.wikipedia.org/wiki/Charles_Goldfarb
+SGML kind of nice, but too much perhaps.
+
+
+#https://en.wikipedia.org/wiki/Donald_Knuth
+#https://en.wikipedia.org/wiki/TeX
+#https://en.wikipedia.org/wiki/Web_(programming_system)
+
+
+
+Need time element to network graphs.  
+#https://github.com/nostr-protocol/nostr
+
+Current playground appears to be quite useful for single person, but how does this scale with multiple books?  
+
+
+**book/definitions.txt
+All other categories besides topic should be organized by date/topic.  
+With autocomplete listing, should be able to find date/topic or search for the command itself.  
+
+i.e. **> or >** should list topics commands.  
+**# or #** should list topic references.  
+Same by date mechanism.  
+Similar for any combo with topic **~~
+
+By default we should add the next 255 chars to the topic anyway.  
+How do we deal with multi-topic selection?  
+multitopicarray[top1][top2]?  
+Or perhaps just create temp struct by refilter on all topicarray[top] data.  
+
+#https://github.com/google-deepmind/alphafold3?tab=readme-ov-file
+#https://flax.readthedocs.io/en/latest/mnist_tutorial.html
+
+#https://github.com/google-deepmind/tree
+Is there similar javascript/typescript library
+#https://opendsa.cs.vt.edu/ODSA/Books/CS3/html/SequentialRep.html
+--General Tree Sequential representation
+
+**extensions/vscode/codetutor/src/extension.js
+--fix topic link in >
+OK..
+
+
+
+**web/public/codewindow.js
+--getCodeGraph
+Need to get includes, and have an include graph which searches depth 1 or 2.  
+Color functions differently than includes.  
+Show in same graph?  
+
+
+Dont really like that the digraph names are hashes.  
+Should really substitute a more readable name, in case we further use that structure.  
+
+#https://dreampuf.github.io/GraphvizOnline
+
+**extensions/vscode/codetutor/src/extension.js
+Be mindful of not making it too hard to change the meta language.  
+Cant be concerned about this now..
+
+selectionhistory is significant for context aware communication.  
+#https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28
+/repos/{owner}/{repo}/contents/{path}
+
+**web/public/git.js
+--getGitCommits
+Until date is possible.  
+So should be able to retrieve time-aware context.  
+@@github why is there no /repos/{owner}/{repo}/contents/{path}?until=
+
+
+Bookname (pathname) is important.  We should use a better sample value.  
+
+**extensions/vscode/codetutor/src/extension.js
+What to do with ENV.  
+
+@how to remove environment info?  
+Should we use this?
+$$+
+$$-
+
+
+> firebase hosting:clone SOURCE_SITE_ID:SOURCE_CHANNEL_ID TARGET_SITE_ID:live
+> firebase hosting:channel:create msroboto
+> firebase hosting:channel:deploy msroboto
+> firebase hosting:channel:create mrrubato
+> firebase hosting:channel:deploy mrrubato
+
+After one year or so..
+not sure its worth..
+> gsutil -m rewrite -s coldline gs://{site}.appspot.com/videos/2025
+
+> Manage Trusted Domains
+
+
+> workbench.action.showCommands
+How to distinguish between shell command and env command.  
+
+
+**GENBOOK
+Should be associated with topic.  
+Find current topic, if not selected topic, add topic as well.  
+
+Have to answer the question when selecting a topic are we generating or just annotating.  
+
+Need to select topic when it is generated.  
+
+Think about substitution logic.  
+
+
+**extensions/vscode/codetutor/src/extension.js
+--Chat
+Need to be able to select model with 
+$$model=...
+or some other way.  
+
+
+**analyze/analyze.py
+--getNgrams
+$$mappgram
+continue..
+  mapsgram[ seqgram ] [ pgram ] = { 'time': [], 'iteration': [] }
+  mappgram[ signs ] [ pgram ] = { 'time': [], 'iteration': [] }
+
+flatten and analyze by pgram as well as by seqgram etc.  
+pgrams that have common factors are similar.  
+And also usually close in number value.   
+
+
+Find avg times per iterations.  
+Find if time PCT offsets between iterations matches, we estimate that this is a 
+time anchor and the same location in the piece.  
+How many repetitions do we have, probably not many due to finger errors.  
+First what is the length of these maps.  
+Sort most frequent signs and seqgrams.  
+See if there is anything interesting in these patterns.  
+What does it look like per song and across songs.  
+
+Lets just search across the data.  
+analyze process doesnt need to be in time.  
+> python ./analyze/analyze.py --title  "Evil Ways (Sonny Henry)"
+
+!!File "C:\devinpiano\music\analyze\analyze.py", line 858, in getqrcode
+!!FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\prevIterationQR.jpg'
+~~> mkdir C:\Temp
+
+**analyze.py
+--printMidi
+@@how to force run
+==>python ./analyze/analyze.py --title  "Evil Ways (Sonny Henry)" --force true
+
+Single line response ok?  
+
+@@non-one line responses.  
+==
+...
+
+$$
+
+
+
+Should environment reset with file?  
+Retain from previous files for now.  
+
+$$ should list environment based on setting.  
+Prev X topics environment.  
+How to remove ENV from topic?  
+
+$$MYVAR shows this value.  
+$$MYVAR=value sets value.  
+$$+MYVAR add this env variable to current topic.  For now not keeping per topic env.  Just env history.  
+$$-MYVAR remove this env variable from current topic.  
+$$-**TOPIC remove TOPIC from selection history, rebuild ENV with selectionhistory.  
+
+$$ should show ENV and also show selectionhistory.  
+
+
+--Seems to work ok.  
+
+Should design new input characters for usage in defmap.  
+Test with DBCS standard characters.  
+Later ...
+
+
+..start here..
+
+How to query state?  
+%%
+queries all workers.  
+%%1
+queries worker 1.  
+%%1=5 sets worker 1 to worker 5
+%%+5 start worker
+%%-5 stop worker
+%%1=MYWORKERFRIEND name worker.  
+%%MYWORKERFRIEND=1 ok if unnamed, if name already exists and is assigned, error please stop or reassign.  
+Same if 1 is assigned to another name.  
+
+
+$$%%MYWORKERFRIEND shows env of this thread.  
+$$-%%MYWORKERFRIEND stops worker.  
+$$+%%MYWORKERFRIEND creates a numbered duplicate thread of this env.  MYWORKERFRIEND_1
+$$%%MYWORKERFRIEND++
+$$%%MYWORKERFRIEND--
+
+
+$$1 queries env from worker 1.  
+!!ENV VAR cant use only numeric values.  
+
+Ugh so much drudgery to code this.  
+Really need to make a better Language parser.  
+
+Build a tokenizer based on defmap.  
+or use something like this.  
+#https://github.com/kevinkhill/ts-tokenizr
+> npm install --save ts-lexer
+> npm install ts-tokenizr
+
+#https://balit.boxxen.org/lexing/basic/
+
+
+**extensions/vscode/codetutor/src/tokenizer.tsx
+For now just making a simple tokenizer.  
+--getTokens
+Should use the same for highlighting logic.  
+
+Is it ok to limit this to a single line language.  
+For now yes.
+Simplicity of this has a lot of advantages.  
+
+#https://github.com/tom-wolfe/markov-typescript
+Perhaps train the markov chain as to the likelihood of any particular next ngram.  
+And also within the sets of action types in 
+defmap,defstring.  
+Perhaps we can use this simple model locally to enhance speed.  
+This should be a time/duration/NGRAM -> time/duration/NGRAM
+
+Each NGRAM needs to have a time and duration associated.  
+
+
+**extensions/vscode/codetutor/src/book.ts
+--findTopicsCompletion
+This is too slow with large amount of data.  
+-Try to complete the self-deploy steps.  
+-Make sure site is viewable
+
+
+**web/public/rec.html
+Need to utilize this more.  
+Try to get this to an actual working state.  
+
+
+#https://www.misterrubato.com/page.html?codefile=web/public/page.html#
+..
+

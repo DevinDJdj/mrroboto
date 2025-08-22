@@ -56,7 +56,7 @@ export class NetworkGraph {
         this.network.on('selectNode', this.handleNodeSelect.bind(this));
         this.network.on('selectEdge', this.handleEdgeSelect.bind(this));
         
-        this.selectedCallback = null;
+//        this.selectedCallback = null;
     }
 
     /**
@@ -242,12 +242,46 @@ export class NetworkGraph {
                 navigationButtons: true,
                 keyboard: true //not sure if we want this.  
             };
+            //graph settings.  
+            this.options.physics = {
+                enabled: true,
+                barnesHut: {
+                    gravitationalConstant: -5000 // This is the default * 25.
+                  },
+                stabilization: {
+                  enabled: true,
+                  iterations: 10
+                }
+              }
     
             // create a network
             this.network = new vis.Network(this.container, data, options);
 
             this.network.on('selectNode', this.handleNodeSelect.bind(this));
             this.network.on('selectEdge', this.handleEdgeSelect.bind(this));
+            
+            this.network.on('click', function (properties) {
+                var clickedNodes = properties.nodes;
+                var clickedEdges = properties.edges;
+        
+                if (clickedNodes.length > 0) {
+                    // A node was clicked
+                    var nodeId = clickedNodes[0];
+//                    var nodeData = nodes.get(nodeId); // Access node data from your nodes DataSet
+                    console.log('Clicked node:', nodeId);
+                    // Perform actions based on the clicked node
+                } else if (clickedEdges.length > 0) {
+                    // An edge was clicked
+                    var edgeId = clickedEdges[0];
+//                    var edgeData = edges.get(edgeId); // Access edge data from your edges DataSet
+                    console.log('Clicked edge:', edgeId);
+                    // Perform actions based on the clicked edge
+                } else {
+                    // Background was clicked
+                    console.log('Clicked background');
+                    // Perform actions for background clicks
+                }
+            });
             
             this.selectedCallback = null; //callback for selection.  
 
@@ -310,6 +344,7 @@ export class NetworkGraph {
                 C -> A;
             }
         `){
+        /*            
         this.addNode({
             id: 1,
             label: 'Node 1',
@@ -320,6 +355,7 @@ export class NetworkGraph {
             to: 2,
             label: 'connects to'
         });
+        */
         this.setSelectionCallback(({ type, selected, data }) => {
             console.log(`Selected ${type}:`, data);
         });

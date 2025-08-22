@@ -1,0 +1,717 @@
+**timestep.py
+--Add spin up / spin down of backend.  
+And wait...
+Then we get some transcriptions if there is available hardware at the time of timestep.py
+Alternatively move transcriptions (enable/disable) to
+**web/public/analyze.html
+
+
+**FLOW
+--rec
+--analyze
+->
+--book
+--page
+--plugin
+--generate
+--review
+
+**GENBOOK
+Need to utilize these answers as input and see what the subsequent generation looks like.  
+Simple COT sequence.  
+
+Need to store and adjust the system prompt.  
+@@What are you doing?
+$$system prompt (make suggestions)
+==...
+
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+
+Accept or deny changes.  
+How to save this event chain.  
+In transcript.  
+Export/import transcript.  
+Need topic selection as part of transcript.  
+
+
+
+**timestep.py
+**web/public/analyze.html
+transcribe option in URL.  
+auto-start and save.  
+Instead of using server.  
+
+
+**extensions/vscode/codetutor/src/extension.ts
+continue..
+@tutor /exercise tell me a story
+@tutor /book 
+@tutor /find !!Error
+
+does autocomplete work inside of copilot chat?  
+use
+editor.action.triggerSuggest
+
+
+**news.py
+#https://github.com/unclecode/crawl4ai
+Maybe use.  
+
+
+**server/ollama/train.py
+**server/llmtune/server.py
+Eventaully start on model customization logic.  
+Just very basic using genbook.  
+
+#https://medium.com/@yuxiaojian/fine-tuning-llama3-1-and-deploy-to-ollama-f500a6579090
+
+So this will just be reinforcement learning for good answers.  
+Is it possible to get where we want with just that?  
+...
+this is incomplete...
+
+
+
+
+**0606
+Just use 
+$$BASE lang
+
+
+Wonder what library incompatibility will be the first real annoyance to me.  
+Hopefully I persevere through any that come up...at least the first few...
+vscode extension API may be one of them...
+
+
+**extensions/vscode/codetutor/src/extension.ts
+not being activated until chatted to...
+@@Is this a problem?  
+
+OK, status bar functions ok.  
+Wow this can be so powerful... 
+dont have many complaints yet...
+
+#https://ripeseed.io/blog/fine-tuning-open-source-llm-llama-3-mistral-and-gemma
+try this one...
+
+
+
+> python3.11  -m venv --upgrade /mnt/c/devinpiano/testing/finetuning-venv/
+> source /mnt/c/devinpiano/testing/finetuning-venv/bin/activate
+
+> sudo add-apt-repository ppa:deadsnakes/ppa
+> sudo apt update
+> sudo apt install python3.11
+
+> sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.11 11
+> sudo update-alternatives --config python
+
+...
+
+#https://www.llama.com/docs/how-to-guides/fine-tuning/
+try this...
+> pip install datasets
+> pip install trl
+> python3 ./trla/examples/scripts/sft.py --model_name meta-llama/Llama-2-7b-hf --dataset_name timdettmers/openassistant-guanaco --load_in_4bit --use_peft  --batch_size 4 --gradient_accumulation_steps 2 --log_with wandb
+
+> git clone https://github.com/artidoro/qlora
+> cd qlora
+> pip install -U -r requirements.txt
+> ./scripts/finetune_llama2_guanaco_7b.sh
+
+
+> pip install torchtune
+> tune download meta-llama/Meta-Llama-3-8B-Instruct --output-dir Meta-Llama-3.1-8B-Instruct --hf-token <ACCESS TOKEN>
+> mkdir /tmp/Meta-Llama-3.1-8B-Instruct
+> cp -r Meta-Llama-3.1-8B-Instruct/* /tmp/Meta-Llama-3.1-8B-Instruct
+> tune run lora_finetune_single_device --config llama3_1/8B_lora_single_device
+
+#https://pytorch.org/torchtune/stable/tutorials/e2e_flow.html#e2e-flow
+
+This seems to lock the machine...
+But seems to pass dataset.  
+Now need to figure how to alter the training dataset.  
+too much memory...
+
+
+#https://medium.com/@sntaus/building-a-mini-gpt-like-language-model-from-scratch-27257bf5c145
+Just use for now...no LLM creation/tuning...
+
+
+**extensions/vscode/codetutor/src/extension.ts
+continue..
+@tutor /exercise tell me a story
+@tutor /book 
+@tutor /find !!Error
+
+**testing/vscode/mrrubato/
+
+vscode://mrrubato.mytutor
+
+> npm i vscode-languageclient
+> npm i vscode-languageserver
+> npm i vscode-languageserver-textdocument
+
+
+Ctrl+Space brings up CompletionItem documentation
+--provideCompletionItems
+create multiple.  
+need to sort..
+OK, some semblance of this working.  
+
+
+**web/public/git.js
+--parsegitBook
+basic model here.  
+
+
+Dont like the TypeScript strict type checking.  
+**extensions/vscode/codetutor/tsconfig.json
+"strict": false
+Try this..
+
+#https://github.com/microsoft/vscode-extension-samples/tree/main/document-editing-sample
+            vscode.workspace.openTextDocument(fileUri).then((document) => {
+edit here...
+document.getText();
+document.setText
+
+Need to highlight the text 
+#https://github.com/microsoft/vscode-extension-samples/blob/main/code-actions-sample/
+Use this provider to highlight any of the references or topics etc.  
+Compare with master branch and highlight suggestions.  
+
+Generate suggestions in background, if too divergent, then reset copy master.  
+suggestions should be pre-generated, not on-demand.  
+Then we are just accepting full or partial suggestions.  
+Then track the accepted and tune.  
+How do we train the observer though?  
+Just rerun the transcript?  
+
+#https://github.com/openreplay/openreplay
+#https://github.com/rrweb-io/rrweb/blob/master/docs/recipes/record-and-replay.md
+--Try this...
+
+
+
+#https://en.wikipedia.org/wiki/Dyck_language
+#https://en.wikipedia.org/wiki/Catalan_number
+#https://njwildberger.com/
+#https://www.tandfonline.com/doi/full/10.1080/00029890.2025.2460966#d1e160
+
+
+**testing/vscode/mrroboto
+> git init
+> git remote add origin https://github.com/DevinDJdj/mrroboto.git
+> git branch -M main
+> git add .
+> git commit -m "first"
+> git push origin main
+> git branch -r 
+
+For now use completely different repo.  
+Only adjust web portion to start?
+
+> git branch -M maina
+> git add .
+> git push origin maina
+
+Two branches.  Compare maina with main, never change origin/main
+Change in maina and update.  
+For now just extend genbook with entries...
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+continue..
+@tutor /exercise tell me a story
+@tutor /book 
+@tutor /find !!Error
+
+@tutor /code **topic
+--scan all info regarding topic and make edit suggestion.  
+Or edit if settings for automatic edit.  
+weight more recent entries.  
+allow to edit 
+
+@tutor /book **topic
+generate entries for this topic in genbook.  
+
+These commands also adjust priority going forward.  
+
+
+@tutor 
+
+**testing/vscode/mrroboto/
+
+vscode://mrrubato.mytutor
+
+--work
+When do we call work?  
+-generate code
+-generate book
+
+$$mrrubato.workprompt
+Need array of multiple prompts possibly.  
+on stop clear only this prompt.  
+--start here.  workprompt not getting updated.  
+OK seems to be ok.  
+
+
+
+#https://code.visualstudio.com/api/references/contribution-points#contributes.configuration
+
+#https://code.visualstudio.com/api/references/contribution-points#contributes.grammars
+how to add a grammar?
+#https://code.visualstudio.com/api/references/contribution-points#contributes.languages
+add a language.  
+
+
+
+$$mrrubato.workprompts
+Maybe need 
+$$PREV
+
+Pseudo-code..
+ingest any selected topics.  
+Last selected topic is the primary focus.  
+
+Determine if this is a source file or not.  
+Use other selected topics as context.  
+
+If source file:
+@@Please propose GIT changes to my source file.  
+$$system prompt (teach me)
+@@Please correct any issues in the following suggested changes.  
+$$system prompt (check)
+@@run and review
+Need previous test run scripts when changing this topic.  
+@@Summarize the changes and add to genbook
+
+
+$$context
+@@Here is a complete source file, given the modifications suggested above:
+--only use complete files for now, or git change.  This will make workflow easier.  
+Or patch text:
+> git log -p --reverse -- book/20250429.txt
+Parse these changes.  And/or send changes in this as context.  
+Just want to continue this chain.  
+Find the new entries in this chain.  
+Speak in git I think should be fine.  
+
+
+> git diff HEAD:book/20250429.txt book/20250429.txt
+@@ -269,3 +271,34 @@
+But need to compare, if file is too different.  
+Only want incremental changes.  
+
+
+
+
+If not source file:
+Determine if it is a coding action or not.  
+If coding action, pick topics at random and find source changes.  
+If not, 
+$$Context
+Given the above context, here are a few considerations regarding what to do next.  
+
+add to genbook any response.  
+Use current date, and topic context.  
+
+Eventually need to be able to accept from UI review.  
+
+
+Should add statistics about co-dependency.  
+Recency weighted as well as any other topic commits which includes selected topic.  
+Based on co-dependence, include recent changes potentially for other topics.  
+Perhaps include function structure and global variables as well for an overview.  
+
+
+This requires a tuned LLM to get best results.  
+
+After changes, use this to check, and discard if we have errors.  
+const allDiagnostics = vscode.languages.getDiagnostics();
+
+When do we pull from github and overwrite mrroboto?
+
+Also can we monitor midi?  
+
+output to file full change log.  
+In the end we want this.  Not sure about context windows now.  
+> git --no-pager log -p --reverse -- book/20250429.txt > book/20250429.log
+
+Information technology will have a new meaning soon.  
+Information ownership and traceability/provenance is going to be an interesting field.  
+
+
+**provenance
+Need provenance chains.  
+#https://www.software.ac.uk/blog/provenance-tool-suite
+#https://pypi.org/project/prov/
+
+#https://github.com/VisualStorytelling/provenance-core
+
+Where are the good tools?  
+
+#https://developers.google.com/chart/interactive/docs/gallery/sankey
+**web/public/graph/sankey.html
+simple example.  
+Use this representation potentially for provenance graphing.  
+Or just use network.  
+
+**web/public/netgraph.mjs
+**web/public/page.html
+Can we represent provenance information about topic(s)?
+
+**vscode
+!!Clicking on timeline entry shouldnt perma-open window.  
+
+
+**extensions/vscode/codetutor/src/extension.ts
+How do we get timeline info.  Looks like not available.  
+git commits enough for now.  
+#https://visjs.github.io/vis-network/docs/network/#importDot
+Can we generate sankey from DOT..
+doesnt look like..
+Should create JS tool/function in visjs to generate sankey.  
+Good sample here.
+#https://github.com/kurkle/chartjs-chart-sankey
+
+
+
+**GITYA
+Need to generate a midi struct / SONG based on commit dates.  
+
+
+**web/public/graph.html
+Make new file with parameters:
+?direction=in/out/both
+?num=12
+?depth=1 -> follow topics within one step of specified topic.  Do same logic and add to provenance chain.  
+This will probably be far too large.  Step 
+<!--
+visnetwork
+vis.DataSet([
+        {
+      id: 1,
+      label: "1",
+      level: 1
+    },
+])
+--level: 1, 2, 3
+-->
+?topics=one,two
+Allow for multiple topics.  
+
+Pseudo-code:
+Parse parameters.
+read book.  
+generate provenance chart for selected topic.  
+TOPIC - 12
+Higher weight for closer to target topic.  
+
+This should be nice.  
+Get git commits for topics in question if exist.  
+And display bottom or right panel file as well as specific commits can be multiple when that provenance input is selected.  
+Each provenance should have one or multiple dates related.  
+Get commits for particular dates.  
+Just use network, not sankey for this.  
+Use DOT representation..
+Basically level is inherent in the data.  
+
+Parameter for provenance info (date, weight)
+Only look for commits in certain date ranges?  
+Too complex..
+
+Query should look something like this.  
+@tutor /start **web/public/netgraph.mjs **web/public/graph.html try to create an implementation of **web/public/graph.html
+Should adjust workprompt as needed.  
+Use temp file in workprompt.  
+generate needed context in there.  
+All subsequent queries will use that temporary topic.  
+
+
+
+vscode.commands.executeCommand('github.copilot.chat.generate');
+github.copilot.openLogs
+github.copilot.generate
+copilot-chat.focus
+github.copilot.buildLocalWorkspaceIndex
+github.copilot.collectDiagnostics
+github.copilot.completions.disable
+github.copilot.completions.enable
+github.copilot.chat.explain
+github.copilot.terminal.explainTerminalLastCommand
+github.copilot.terminal.explainTerminalSelection
+github.copilot.git.generateCommitMessage
+github.copilot.chat.generateDocs
+github.copilot.chat.generateTests
+github.copilot.openLogs
+github.copilot.chat.debug.showTools
+github.copilot.chat.debug.showElements
+github.copilot.createFile
+github.copilot.openFile
+github.copilot.executeSearch
+
+
+workbench.action.terminal.paste
+workbench.action.terminal.pasteSelection
+workbench.action.terminal.copySelection
+
+
+Book.updatePage
+
+Based on leading text, the shortcut to run should work differently.  
+Basically need command to copy selection and paste in the right location based on leading text.  
+@ -> Chat
+@@ -> Chat
+> -> CMD input
+!! -> search log files
+$$ -> search config files
+# -> open web
+** -> open file / secondary (open web page.html?topic / graph.html?topic / thispage.html)
+- -> ?  
+
+Framing is there, need to fill out the details.  
+For now using current selection should be fine.  
+If no selection, use current line.  
+
+
+OK basic function works.  
+**mrrubato.mytutor.generate
+ctrl+shift+8
+Keep testing.  
+Add functionality for this.  
+Try this:
+vscode.commands.executeCommand(
+  "workbench.action.chat.open",
+  "@participant /hello friend"
+);
+Not working...
+Do we need the chat actually?  
+Primary function can be done with generate command.  
+
+
+**web/public/analyze.html
+$$vidoe=wqjAg9r2UTE
+!!minimap not clickable when pianoroll images are not there.  
+Never fixed this...
+
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+If we are not using the chat, just use particular file and open it on certain commands.  
+
+Need shorter name.  
+
+genbook format is ok with @@ == $$?
+**extensions/vscode/codetutor/src/book.ts
+-- test Book.logCommand
+OK, seems to work.  
+Probably go back to the previous location.  
+Just keep it open.  
+
+
+**book/definitions.txt
+Utilize ... ending as potential to-do list.  
+
+$$workbench.action.focusActiveEditorGroup
+Ctrl+Shift+7
+
+$$workbench.panel.chat.view.copilot.focus
+Ctrl+Shift+3
+
+
+
+OK, basic transcript generation should work.  
+3 .., 7 .., 8
+
+
+**GENBOOK
+How to deal with multiple books.  
+
+Read all books, but only write to one.  
+Setting for which book/genbook being used.  
+This could be user genbook/user/xxxxxxxx.txt
+Or book/user/xxxxxxxx.txt
+
+Or just a logical folder.  
+Default to user perhaps if nothing set.  
+Make sure we read all subfolders when loading.  
+
+Rating for any response
+
+--use $$n (n=1-10)
+Simple rating should be used in training.  
+
+auto-complete should work from any file type.  
+finish adding auto-complete for other types.  
+
+**mrrubato.mytutor.generate
+When running generate, add context of current file.  
+
+
+
+**extensions/vscode/codetutor/src/book.ts
+--loadBook
+Need reload after changing setting for $$mrrubato.bookfolder
+
+--readFilesInFolder
+Maybe this should be freer than per user etc.  
+Per user is one methodology.  
+But should read all subfolders.  
+
+
+Use -- with currently or recently selected topics.  
+Should return any functions in files selected in the popup.  
+Functions should be parsed when we open a page to populate the list same as loadBook.  
+Could use $$ the same way with variable names.  
+
+
+Need to monitor any book folder.  
+
+**extensions/vscode/codetutor/src/toolParticipant.ts
+--startWatchingWorkspace
+test this... ok, working, but not actually doing anything but adding to topic array.  
+Seems one behind, but do we care?  
+OK, looks better.  
+
+Need better sort for most recently used topics etc.  
+These should be automatically displayed.  
+Straight order for last 10-20 topics or so, then by avg day like we are doing.  
+Same with all others.  
+Should probably use double entry for lookup so we dont do this inadvertently.  
+>>
+##
+
+Accept single to execute though.  
+And when scanning for adding entry in history.  
+
+OK basic functionality works.  
+
+**extensions/vscode/codetutor/.vscode/settings.json
+$$files.associations
+
+
+How do I add link to location where the command is?  
+OK, thats nice..
+Have a shortcut to open this as well.  
+Too much for now.  
+
+Just adjust sort order to something more meaningful.  
+
+Add adjust ENV variables.  
+How do we distinguish what ENV we are talking about?  
+$$> = command env
+$$! = .. env?  
+
+
+**extensions/vscode/codetutor/src/extension.ts
+--gencommand
+case "#":
+    //open on web.
+How do we do substitution?  
+No time given now to this.  
+
+--workprompts
+vs
+--roboprompts
+How do we utilize this intelligently.  
+Still have no custom model, so not really going to work very well.  
+
+**extensions/vscode/codetutor/.vscode/settings.json
+    "mrrubato.defaultprompts": [
+        {
+            "topic": "book/definitions.txt",
+            "prompt": "You are a helpful assistant. You will be given a task and you will respond with the best possible answer. If you don't know the answer, say 'I don't know'.",
+            "weight": 0.5
+        },
+        {
+            "topic": "timestep.py",
+            "prompt": "You are a coding assistant. You will be given a task and you will respond with the best possible code. If you don't know the answer, say 'I don't know'.",
+            "weight": 0.5
+        }
+    ]
+
+
+Lot of changes.  
+Need to test.
+@mr /start think about coding **timestep.py
+
+!!Error calling Ollama: Error: Response stream has been closed
+This is occurring too much.  
+
+getting ok responses now.  
+
+But..
+--pickTopic
+still not working properly.  
+start here.  
+
+
+**MARKUP
+What are some models like this:
+#https://github.com/mwouts/jupytext
+Should adopt something from wiki.  
+[[]]
+Allow inline link to document or command search.  
+[[> dir ]]
+Just create a link from this which essentially calls generate with this text.  
+[[=$$VAR]] for substitution?  
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+$$PIANODIR=c:/devinpiano/music
+@something like this?  
+> cd [[=$$PIANODIR]]/extensions/vscode/codetutor
+
+> cd c:/devinpiano/music/extensions/vscode/codetutor
+> tsc -watch -p ./
+
+
+Need to test the decorations.  
+For now just squiggly line underline.  
+CodeLensProvider 
+this is probably what is needed for onclick actions.  
+
+Should really do this as a language server.  
+But...
+#https://code.visualstudio.com/api/references/vscode-api#DecorationRenderOptions
+
+vscode.env.clipboard.readText
+vscode.env.clipboard.writeText
+
+Think about the language a bit before moving forward.  
+Essentially this is like a shell scripting format.  
+
+
+**web/public/testparse.html
+Still dont have much regarding parser...
+
+
+**extension/vscode/codetutor/src/extension.ts
+
+When typing directory type struct, on slash, we need to understand if we are searching, 
+and adjust the return to include all files/folders in that directory.  
+Add on slash detection.  
+
+Anything changed in current interaction should automatically be added to the top recency category.  
+
+
+**extensions/vscode/codetutor/src/toolParticipant.ts
+
+I think this is ok that we have a delay for the path to load.  
+Perhaps will have too many topics this way, unclear.  
+
+
+**LISP
+Should learn this I think.  
+
+
+
+
