@@ -849,3 +849,28 @@ Need to create a QR transcript.
 Or combine with OCR transcript.  
 
 
+:: **web/public/js/dilbert.js
+
+:: **web/public/languages/videocontrol.js
+
+**extensions/vscode/codetutor/src/extension.ts
+
+@@what did I do with networkx
+
+~~ knowledge graph networkx
+
+~~ netgraph
+**web/public/graph.html
+
+@@did I use kokoro 
+
+~~ is kokoro being used
+
+@@ what did I make last year
+OK
+OK
+OKOK
+OKOKOK
+OK
+
+~~ playwright with firebase
