@@ -1,0 +1,16 @@
+
+
+
+**extensions/vscode/codetutor/src/extension.ts
+~~ And pass the contents of those files to the LLM call.  
+~~ This is interesting in and of itself.  However not sure if I can use it easily.  
+~~ Still need to fix issue when multiple instruments or certain instruments used, dont get the correct babylonJS display.  
+~~ Still need to fix issue
+~~ Doctors should be much more available in general.  The information they provide is not that interesting most of the time anyway.  
+~~ Doctors should be much more available
+~~ Need to do one match in order to have sample data.  
+~~ Need to create a link to zoom/highlight something on the graphic.  
+~~ Need to create a link to zoom
+~~ 
+~~ highlight something on the graphic.  
+~~ Maybe not necessary for me. 

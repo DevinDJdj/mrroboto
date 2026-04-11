@@ -53,5 +53,5 @@ web/public/test/javascript-vector-database/
 **/package-lock.json
 
 vecbook/*
-genbook/*
+
 .vscode/settings.json

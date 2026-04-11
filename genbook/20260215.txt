@@ -1,0 +1,14 @@
+
+
+**extensions/vscode/codetutor/src/extension.ts
+**extensions/vscode/codetutor/src/extension.ts @@do I have a piano background image
+**extensions/vscode/codetutor/src/extension.ts @@do I have a piano background image
+
+**web/public/midi.js
+**web/public/midi.js @@do I have a piano background image
+*.jpg
+
+**web/public/midi.js @@Where are the piano sequence colors done
+==
+[**js/drawkeyboard.js]
+$$
