@@ -100,31 +100,124 @@
 		
 	
 	},
+	"trey": {
+		"user": "me@yahoo.com", 
+		"pwd": "Passw0rd",
+		"speech":{
+			"asr_model_path": "./models/pretrained_ASR",
+			"tts_model_path": "./models/pretrained_tts",
+			"language_model_path": "./models/lm/lm.zip"
+		}
+	},
 	
 	"keymap":{
 	    "global":{
-			"top": 108,
-			"bottom": 21,
+			"1":{
+				"Unpause": [108],
+				"Pause": [107],
+				"Start": [21], 
+				"Stop": [22]
+				
+			}, 
+			"2": {
+				
+			}, 
+			"3": {
+				
+			},
+			"4": {
+				"LangSelect": [36,29,31,36]				
+			},
+
 			"Unpause": 108,
 			"Pause": 107,
 			"Start": 21, 
 			"Stop": 22, 
-			"ShowScreen": [105, 105], 
-			"HideScreen": 106, 
-			"LangSelect": [21, 23], #for now just use this and cycle through.  
-
-
+			
+			"Reset": [48,48,48],
+			"Unset": [0,0,0],
+			"ShowScreen": 105, 
+			"HideScreen": 106,
+			"LangSelect": [36,29,31,36],
+			"top": 108,
+			"bottom": 21
+		},
+		"actions":{
+			"screen":{
+				"Click": "Click",
+				"PageDown": "PageDown",
+				"PageUp": "PageUp"
+			},
+			"Unpause": "unpause",
+			"Pause": "pause",
+			"Start": "start",
+			"Stop": "stop",
+			"Reset": "reset",
+			"ShowScreen": "showScreen",
+			"HideScreen": "hideScreen",
+			"LangSelect": "langSelect"
+		},
+		"screen":{
+			"Click": 60,
+			"PageDown": 55,
+			"PageUp": 56
 		},
 		"languages":{
-			"mousemovement1": [60, 61],			
+			"mousemovement1": [53, 55],			
 			"mousemovement2": [62, 63],
-			"hotkeys": [64, 65]			
+			"hotkeys": [53, 54],
+			"video": [49,50], 
+			"_meta": [48,49], 
+			"base": [61,62]
 			
+		},
+		"settings":{
+			"MAX_WORD": 10, 
+			"LANG_DIR": "C:/devinpiano/languages",
+			"TRANSCRIPT_DIR": "C:/devinpiano/transcripts",
+			"PLAY_FEEDBACK": true, 
+			"HELP_X": 800
 		}
 	},
 	"languages":{
-		"mousemovement1": {
+		"hotkeys":{
+			"keybot": 53,
 			"1":{
+				"Unpause": [108],
+				"Pause": [107],
+				"Start": [21], 
+				"Stop": [22]
+				
+			}, 
+			"2": {
+				"Stop": [53,51],
+				"Pause": [53,52],
+				"Resume": [53,54],
+				"Read Screen": [53,50]
+						
+			}, 
+			"3": {
+				"Skip Lines": [53,55, 57],
+				"Find Last": [53,55, 58], 
+				"Page": [53,55, 59], 
+				"Click Link": [53,55, 60], 
+				"Search Web": [53,55, 61],
+				"Go Back": [53,55,51],
+				"List Tabs": [53,56,59],
+				"Select Tab": [53,56,60],
+				"Comment": [53,57, 58],
+				"Record Feedback": [53,57,60],
+				"Select Bookmark": [53,58,57]
+		
+				},
+			"4": {
+				"Add Bookmark": [53,58,60,62], 
+				"List Bookmarks": [53,58,60,63] 
+				}
+			},
+		"test": {
+			"1":{
+
 			},
 			"2": {
 				"left": [59,57],
@@ -132,21 +225,7 @@
 				"up": [60,61],
 				"down": [61,60]
 			}
-		},
-		"mousemovement2": {
-			"1":{
-			},
-			"2": {
-				"left": [59,57],
-				"right": [62,64],
-				"up": [60,61],
-				"down": [61,60]
-			}
-		},
-		"hotkeys": {
-			"keys": [64, 65],
-			"hotkeys": [64, 65]
 		}
+
 	}
-	
 }

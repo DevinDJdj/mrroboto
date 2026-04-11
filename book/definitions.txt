@@ -16,6 +16,8 @@ reference from document
 -->
 
 > CMD operation
+>> Elevated CMD operation
+>$ ubuntu CMD
 
 ** topic (source code file name with separator, OR videoID > 10 chars, otherwise content/topic tag)
 
@@ -32,7 +34,10 @@ May have some problematic names.
 === QA history start.  
 ==== QA history end.  
 
-$$ ENVIRONMENT (can also be direct link to topic)
+$$ ENVIRONMENT (can also be direct link to topic) also math symbol if also ending in same.  
+$$ E=mc^2 $$
+
+%% WORK
 
 !! Log output or error
 
@@ -67,15 +72,15 @@ Shorthand
 
 <!--
 Leading OPEN:
-& = and? (Latin)
+& = and? (Latin) or inline sign (&int; &sum; &prod; &radic;)
 +
 % = wild? or modulate/random? 
 ^ = generate (Exponentiate)
-_ = pre-requisite
+_ = pre-requisite /test?
 / = path
-\ = macro?  (TEX)
+\ = macro?  (TEX i.e. \being{itemize}..) 
 : = line identification
-; = comment?
+; = comment? or term identifier perhaps.  
 ~~ = suggestion or similarity check
 | = PIPE OR
 .. = time marker? continuation?  
@@ -83,9 +88,9 @@ _ = pre-requisite
 ``` = code snippet?  
 
 QUOTESETS:
-< > = language?  
+<< >> = language?  
 <? ?> = inline macro (PHP)
-[ ] = internal clickable reference?  (markup)
+[ ] = internal clickable reference?  (markup) or key sequence
 ( )
 { } 
 "" = key phrase
@@ -101,18 +106,21 @@ defstring = "!@#$%^&*<>/-+=;"
  ? Open question
  & trailing and removes from ENV.  
 <!--
+$$ ENV
 $$+MYVAR
 $$-MYVAR
 $$-**TOPIC removes all topic ENV variables.  
 TOPIC cant start with -
+
+%% WORK
+%%+
+%%-
+%%+& book
+%%+_ test
+%%-&
+%%-_ test
+
 -->
-
-
-**KEYS/vscode
-Ctrl+Enter = Continue
-Ctrl+I = voice chat
-
-0->11 = past->future
 
 
 

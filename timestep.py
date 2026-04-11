@@ -46,6 +46,9 @@ from firebase_admin import firestore
 from firebase_admin import credentials
 from firebase_admin import initialize_app, storage, auth
 
+import traceback
+
+from mido import MidiFile
 
 #from transcribe import transcribe_fromyoutube
 #import whisper
@@ -399,6 +402,8 @@ def updatestatsdb(videoid, starttimes, endtimes, midisize, numwords):
         
     #really this can all be set at play record.py as well, but this is essentially the same as we run this during record.py
     #need to test this works.  Seems to work ok.  
+    #get timeplaying..
+    ref.update({'midisize': midisize})
     ref.update({'wordsrecognized': numwords})
 
 
@@ -408,6 +413,73 @@ def rungitDownload():
     print("git download complete")
 
 
+def downloadMidiFile(midilink, force=False):
+    if (midilink is None or midilink == ""):
+        print("!!No MIDI link")
+        return
+    midi_path = "c:/devinpiano/backup/midi/"
+    midilink = midilink.replace("\r", "")
+    midiname = os.path.basename(midilink)
+    midiname = os.path.splitext(midiname)[0]
+    filename = midiname + '.mid'
+    #dont redo this.  Live with the analysis of the time for now.  
+    if (os.path.exists(os.path.join(midi_path , filename)) and not force):
+#        print("Skipping " + midilink)
+        print("_") 
+        return
+    
+    r = requests.get(midilink)
+    print(len(r.content))
+    midisize = len(r.content)
+    if (len(r.content) < 200): #not sure why this is here.  Change 500->200
+        print(r.content)
+        return
+    
+    with open(midi_path + midiname + ".mid", "wb") as f:
+        f.write(r.content)
+#    mid = MidiFile(midi_path + midiname + ".mid")
+    return midisize
+
+
+def get_relative_file_paths_os(root_dir):
+    relative_paths = []
+    for dirpath, _, filenames in os.walk(root_dir):
+        for filename in filenames:
+            # Combine the directory path and filename to get the full path
+            full_path = os.path.join(dirpath, filename)
+            # Calculate the path relative to the initial root directory
+            rel_path = os.path.relpath(full_path, start=root_dir)
+            relative_paths.append(rel_path.replace("\\", "/"))  # Replace backslashes with forward slashes for consistency
+    return relative_paths
+
+#local transcripts from keyboard usage and transcribed commands.  
+def saveLocalTranscripts():
+    #upload to folder any transcripts in local folder
+    tfolder = 'transcripts/'
+    transcript_path = "../" + tfolder
+
+    allfiles = get_relative_file_paths_os(transcript_path)
+    print(f"Checking {len(allfiles)} transcripts:")
+    print(allfiles)
+    uploadedfiles = []
+    for file in allfiles:
+        #check if exists in firebase storage
+        bucket = storage.bucket()
+        blob = bucket.blob(tfolder + file)
+        if not blob.exists():            
+            blob.upload_from_filename(transcript_path + file)
+            # Opt : if you want to make public access from the URL
+            blob.make_public()
+            #blob.public_url
+            uploadedfiles.append(tfolder + file)
+#        else:
+#            print(f"{tfolder + file} already exists in storage, skipping upload.")
+
+    print(f"Uploaded {len(uploadedfiles)} transcripts:")
+    print(uploadedfiles)
+
+    return uploadedfiles
+
 
 def writeTranscripts(alltranscripts):
     #this should be a separate function.  
@@ -415,6 +487,31 @@ def writeTranscripts(alltranscripts):
 
     f = open('./data/transcription/trans.json', "w", encoding='utf-8')
     f.write(json.dumps(alltranscripts, ensure_ascii=False, indent=4))
+
+    f1 = open('./web/public/data/trans.json', "w", encoding='utf-8')
+    f1.write(json.dumps(alltranscripts, ensure_ascii=False, indent=4))
+
+    today = date.today()
+    today = today.strftime("%Y%m%d")
+    folder = '../transcripts/' + today[0:4] + '/'
+    fname = folder + today + '.txt'
+    #full copy of historical transcripts on this date.  
+    #maybe helpful if we redo transcripts.  Probably will occur.  
+    #2 years ~ few MB?
+
+    #go through and add to individual files as well.  
+    with open(fname, 'a', encoding='utf-8') as f2:
+        for t in alltranscripts:
+            vid = t['id']
+            desc = t['description']
+            tdate = t['updated']
+            transcript = t['transcript']
+            f2.write(f'**{vid}\n')
+            f2.write(f'$${tdate}\n')
+            f2.write(transcript + '\n\n')
+
+
+
 
 
 
@@ -490,6 +587,13 @@ if __name__ == '__main__':
             plwords = ""
             #update to public if we have reviewed.  
             #if we dont want to publish, rank as 0.  
+
+            midi_file = util.getMidiFile(description)
+            midisize = downloadMidiFile(midi_file)
+
+            #skip TIME_WINDOW months
+            if (pDate.date() < mydate):
+                continue
                         
             if (privacystatus=="unlisted" and pDate.date() > mydate):
 
@@ -606,7 +710,9 @@ if __name__ == '__main__':
                     except:
                         print('error using transcript service' + videoid)
 
+            #probably want to do public as well...assumed we would have fixed the transcript by then.
             if (((privacystatus=="unlisted" and transcript_file=="error")) and "transcript" not in item and pDate.date() > mydate):
+#            if ("transcript" not in item and pDate.date() > mydate):
                 if reftr is None and servererrorcnt < 3: #dont keep banging on the door when server is down.  
                     #http://192.168.1.120/transcribe/?videoid=ZshYVeNHkOM
                     #LAk9aL9uBcg, gMlt5CRj6-0, RKRHigZ-PUM, why is transcribe_whisper failing again?  
@@ -633,6 +739,11 @@ if __name__ == '__main__':
 #                        transcript = requests.get(url, timeout=(30, None)).text
                         #set OUTPUT_DIR
                         #just call server/transcription/transcribe.py --transcribe_fromyoutube
+                        from extensions.trey.speech import transcribe_audio, listen_audio, transcribe_audio_whisper
+#                        transcript = transcribe_audio(mediafile, util.st, util.et, True)
+                        transcript = transcribe_audio_whisper(mediafile, util.st, util.et, True)
+                        servererrorcnt += 1 #testing..
+
                         """
                         if (model is None):
                             print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -641,17 +752,21 @@ if __name__ == '__main__':
                             print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 #                        transcript = transcribe_fromyoutube(videoid, model, mediafile, sta, eta)
                         """
+                        """
                         transcript = requests.get(url, params=params, timeout=(30, None), verify=False).text
+                        """
                         if (transcript is not None and transcript !="error"):
                             data = {'transcript':transcript}
                             reftranscript.set(data)
                             print(data)
-                            updatestatsdb(videoid, util.st, util.et, 0, len(transcript.split())) #wordcount
+                            #this done in analyze.py as well.
+                            updatestatsdb(videoid, util.st, util.et, midisize, len(transcript.split())) #wordcount
 
                         else:
                             print('transcript error' + videoid)
                     except:
                         print('error using transcript service' + videoid)
+                        traceback.print_exc()
                         servererrorcnt += 1
 
             if ((privacystatus=="public" or privacystatus=="unlisted") and pDate.date() < mydate ):
@@ -680,6 +795,8 @@ if __name__ == '__main__':
 
     #    #write the transcripts to a file.
     writeTranscripts(alltranscripts)
+
+    saveLocalTranscripts() #save any transcripts which we have created..
 
     getCodeHistory()
     

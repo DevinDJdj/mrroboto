@@ -1,10 +1,22 @@
 import { renderPrompt } from '@vscode/prompt-tsx';
 import * as vscode from 'vscode';
 import * as Book from './book';
-
+import * as fs from 'fs';
+import * as transcriber from './transcriber';
 import { ToolCallRound, ToolResultMetadata, ToolUserPrompt } from './toolsPrompt';
 
 let myStatusBarItem: vscode.StatusBarItem;
+
+
+import * as midiin from './midi/midi-in';
+import * as tree from './midi/tree';
+
+//import midiin from './midi/midi-in.js';
+//import tree from './midi/tree.js';
+//
+//const midiin = require('./midi/midi-in');
+//const tree = require('./midi/tree');
+
 
 export interface TsxToolUserMetadata {
     toolCallsMetadata: ToolCallsMetadata;
@@ -309,6 +321,65 @@ export function startWatchingWorkspace(context: vscode.ExtensionContext) {
 	}));
 }
 
+export function startWatchingTranscriber(lang: string, transcriptFolder: string = "C:/devinpiano/transcripts/"){
+    //watch the transcriber folder for changes and update the book accordingly.
+    //get fname as YYYYMMDD.txt
+    let fname = `${transcriptFolder}${lang}/${Book.formatDate()}.txt`;
+
+    if (!fs.existsSync(fname)) {
+        //create the file if it doesn't exist.  
+        fs.writeFileSync(fname, "");
+    }
+    fs.readFile(fname, 'utf8', (err, data) => {
+        if (err) {
+            console.error(`Error reading file ${fname}:`, err);
+        }
+        else{
+            console.log(`File ${fname} read successfully.`);
+            let topics = transcriber.transcribe(data);
+            if (topics.length > 0){
+                let topic = topics[topics.length-1].topic;
+                Book.addToHistory(topic);
+
+            }
+
+        }
+    });
+
+    fs.watchFile(fname, (curr, prev) => {
+        if (curr.size !== prev.size && curr.size > prev.size) {
+            const stream = fs.createReadStream(fname, { start: prev.size, end: curr.size });
+            let incomingData = '';
+            stream.on('data', (chunk) => {
+                incomingData += chunk.toString();
+                console.log(`Received chunk of data: ${chunk.toString()}`);
+            });
+
+            stream.on('error', (error) => {
+                console.error('Error reading stream:', error);
+            });
+            
+            stream.on('end', () => {
+                console.log('Finished reading stream.');
+                let topics = transcriber.transcribe(incomingData, Book.selectedtopic); //use selected topic to start..
+                console.log("Transcribed topics:", topics);
+                if (topics.length > 0){
+                    //read commands and do something..
+                    let topic = topics[topics.length-1].topic;
+                    //open topic if not already open..
+                    console.log("Current topic:", Book.selectedtopic);
+                    console.log("Adding to history and selecting topic ", topic);
+                    if (topic !== Book.selectedtopic){
+                        Book.addToHistory(topic);
+                        Book.select(topic);
+                        //for now just open if it exists..
+                    }
+                }
+            });            
+        }
+    });
+
+}
 
 export function registerToolUserChatParticipant(context: vscode.ExtensionContext) {
     const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) => {
@@ -427,4 +498,17 @@ export function registerToolUserChatParticipant(context: vscode.ExtensionContext
     const toolUser = vscode.chat.createChatParticipant('chat-tools-sample.tools', handler);
     toolUser.iconPath = new vscode.ThemeIcon('tools');
     context.subscriptions.push(toolUser);
+}
+
+
+export function registerPiano(context: vscode.ExtensionContext) {
+    midiin.activate(context);
+    tree.activate(context);
+    
+
+}
+
+export function unregisterPiano() {
+    midiin.deactivate();
+    tree.deactivate();
 }

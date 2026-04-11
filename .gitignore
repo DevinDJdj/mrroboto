@@ -54,4 +54,16 @@ web/public/test/javascript-vector-database/
 
 vecbook/*
 
-.vscode/settings.json
+analyze/datasets/*
+analyze/runs/*
+
+temp/*
+pretrained**/*
+models/*
+
+web/public/test/MultiRTC-firebase/*
+
+model_checkpoints/*
+*.wav
+speechvenv/*
+treyenv/*

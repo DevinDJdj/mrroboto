@@ -38,12 +38,19 @@ exports.registerStatusBarTool = registerStatusBarTool;
 exports.updateStatusBarItem = updateStatusBarItem;
 exports.registerCompletionTool = registerCompletionTool;
 exports.startWatchingWorkspace = startWatchingWorkspace;
+exports.startWatchingTranscriber = startWatchingTranscriber;
 exports.registerToolUserChatParticipant = registerToolUserChatParticipant;
+exports.registerPiano = registerPiano;
+exports.unregisterPiano = unregisterPiano;
 const prompt_tsx_1 = require("@vscode/prompt-tsx");
 const vscode = __importStar(require("vscode"));
 const Book = __importStar(require("./book"));
+const fs = __importStar(require("fs"));
+const transcriber = __importStar(require("./transcriber"));
 const toolsPrompt_1 = require("./toolsPrompt");
 let myStatusBarItem;
+const midiin = __importStar(require("./midi/midi-in"));
+const tree = __importStar(require("./midi/tree"));
 function isTsxToolUserMetadata(obj) {
     // If you change the metadata format, you would have to make this stricter or handle old objects in old ChatRequest metadata
     return !!obj &&
@@ -283,6 +290,58 @@ function startWatchingWorkspace(context) {
         return watcher;
     }));
 }
+function startWatchingTranscriber(lang, transcriptFolder = "C:/devinpiano/transcripts/") {
+    //watch the transcriber folder for changes and update the book accordingly.
+    //get fname as YYYYMMDD.txt
+    let fname = `${transcriptFolder}${lang}/${Book.formatDate()}.txt`;
+    if (!fs.existsSync(fname)) {
+        //create the file if it doesn't exist.  
+        fs.writeFileSync(fname, "");
+    }
+    fs.readFile(fname, 'utf8', (err, data) => {
+        if (err) {
+            console.error(`Error reading file ${fname}:`, err);
+        }
+        else {
+            console.log(`File ${fname} read successfully.`);
+            let topics = transcriber.transcribe(data);
+            if (topics.length > 0) {
+                let topic = topics[topics.length - 1].topic;
+                Book.addToHistory(topic);
+            }
+        }
+    });
+    fs.watchFile(fname, (curr, prev) => {
+        if (curr.size !== prev.size && curr.size > prev.size) {
+            const stream = fs.createReadStream(fname, { start: prev.size, end: curr.size });
+            let incomingData = '';
+            stream.on('data', (chunk) => {
+                incomingData += chunk.toString();
+                console.log(`Received chunk of data: ${chunk.toString()}`);
+            });
+            stream.on('error', (error) => {
+                console.error('Error reading stream:', error);
+            });
+            stream.on('end', () => {
+                console.log('Finished reading stream.');
+                let topics = transcriber.transcribe(incomingData, Book.selectedtopic); //use selected topic to start..
+                console.log("Transcribed topics:", topics);
+                if (topics.length > 0) {
+                    //read commands and do something..
+                    let topic = topics[topics.length - 1].topic;
+                    //open topic if not already open..
+                    console.log("Current topic:", Book.selectedtopic);
+                    console.log("Adding to history and selecting topic ", topic);
+                    if (topic !== Book.selectedtopic) {
+                        Book.addToHistory(topic);
+                        Book.select(topic);
+                        //for now just open if it exists..
+                    }
+                }
+            });
+        }
+    });
+}
 function registerToolUserChatParticipant(context) {
     const handler = async (request, chatContext, stream, token) => {
         if (request.command === 'list') {
@@ -383,5 +442,13 @@ function registerToolUserChatParticipant(context) {
     const toolUser = vscode.chat.createChatParticipant('chat-tools-sample.tools', handler);
     toolUser.iconPath = new vscode.ThemeIcon('tools');
     context.subscriptions.push(toolUser);
+}
+function registerPiano(context) {
+    midiin.activate(context);
+    tree.activate(context);
+}
+function unregisterPiano() {
+    midiin.deactivate();
+    tree.deactivate();
 }
 //# sourceMappingURL=toolParticipant.js.map

@@ -36,12 +36,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_SELECTION_HISTORY = exports.arrays = exports.commandarray = exports.temptopicarray = exports.temptopics = exports.topicvectorarray = exports.topicarray = exports.envarray = exports.alltopicsa = exports.alltopics = exports.vectrafixes = exports.defstring = exports.fnmap = exports.defmap = exports.environmenthistory = exports.selectionhistory = exports.selectedtopic = exports.currenttopic = exports.BOOK_OPEN_GIT = exports.BOOK_OPEN_WEB = exports.BOOK_OPEN_FILE = exports.GIT_DB = exports.GIT_RELATIONS = exports.GIT_DETAILS = exports.GIT_CODE = exports.GIT_BOOK = void 0;
+exports.MAX_SELECTION_HISTORY = exports.ftsindex = exports.arrays = exports.commandarray = exports.temptopicarray = exports.temptopics = exports.topicvectorarray = exports.topicarray = exports.envarray = exports.alltopicsa = exports.alltopicdata = exports.alltopics = exports.vectrafixes = exports.defstring = exports.fnmap = exports.defmap = exports.environmenthistory = exports.selectionhistory = exports.selectedtopic = exports.currenttopic = exports.BOOK_OPEN_GIT = exports.BOOK_OPEN_WEB = exports.BOOK_OPEN_FILE = exports.GIT_DB = exports.GIT_RELATIONS = exports.GIT_DETAILS = exports.GIT_CODE = exports.GIT_BOOK = void 0;
 exports.logCommand = logCommand;
 exports.getTokens = getTokens;
 exports.executeTokens = executeTokens;
 exports.getCommandType = getCommandType;
 exports.open = open;
+exports.close = close;
 exports.findTopicsCompletion = findTopicsCompletion;
 exports.findInputTopics = findInputTopics;
 exports.getTempTopicsFromPath = getTempTopicsFromPath;
@@ -61,10 +62,15 @@ exports.getBook = getBook;
 exports.closeFileIfOpen = closeFileIfOpen;
 exports.getFileName = getFileName;
 exports.updatePage = updatePage;
+exports.getChat = getChat;
+exports.getExpanded = getExpanded;
 exports.getSummary = getSummary;
 exports.getChunks = getChunks;
+exports.getReadableName = getReadableName;
 exports.markdown = markdown;
+exports.ask = ask;
 exports.summary = summary;
+exports.expandPrompt = expandPrompt;
 exports.similar = similar;
 exports.loadPage = loadPage;
 exports.getBookPath = getBookPath;
@@ -75,6 +81,7 @@ const path_1 = require("path");
 const tokenizer = __importStar(require("./tokenizer")); // Import the Token interface
 const Worker = __importStar(require("./worker")); // Import the Worker class
 const vectra_1 = require("vectra");
+const FlexSearch = __importStar(require("flexsearch"));
 const ollama_1 = __importDefault(require("ollama"));
 const fs = __importStar(require("fs"));
 /*
@@ -159,6 +166,7 @@ exports.fnmap = { "$$": fnEnv, "%%": fnWork, "**": fnTopic };
 exports.defstring = "~!@#$%^&*<>/:;-+=";
 exports.vectrafixes = {};
 exports.alltopics = [];
+exports.alltopicdata = [];
 exports.alltopicsa = [];
 exports.envarray = {}; //environment variables.
 exports.topicarray = {};
@@ -170,6 +178,15 @@ exports.temptopicarray = {};
 exports.commandarray = {};
 exports.arrays = {};
 //this will look like arrays[">"]["TOPIC"] = ...
+/*
+var FlexSearchParams = {
+    encode: "balance",
+    threshold: 0.6, // Adjust this value to control fuzzy matching sensitivity
+    store: true
+};
+*/
+var FlexSearchParams = {};
+exports.ftsindex = new FlexSearch.Index(FlexSearchParams);
 var refarray = [];
 let mynow = new Date(); //get the current date in YYYYMMDD format.    
 let NEXT_TERM_ID = 1;
@@ -264,8 +281,11 @@ function getCommandType(str) {
         return [str.charAt(0), str.charAt(1)]; //get the first two characters of the string for now.
     }
 }
-function open(context) {
+function open(context = null) {
     return getBook(context);
+}
+function close() {
+    //save the book if needed.
 }
 function getDateFromString(dateString) {
     if (dateString.length !== 8) {
@@ -405,7 +425,14 @@ function findInputTopics(inputString) {
             if (end === -1) {
                 end = inputString.length; // If no space found, take the rest of the string
             }
-            ret.push(inputString.substring(match.index + 2, end));
+            let key = inputString.substring(match.index + 2, end).trim();
+            //deduplicate ret array.  Keep only first instance
+            const index = ret.indexOf(key, 0);
+            if (index > -1) {
+            }
+            else {
+                ret.push(key);
+            }
         }
     }
     return ret;
@@ -561,18 +588,23 @@ function select(topic, open = opennature) {
     }
     return false;
 }
-function pickTopic(selectedtopics, defaultprompts = [], numtopics = 10) {
+function pickTopic(selectedtopics, defaultprompts = [], numtopics = 10, extendtopics = false) {
     //pick a topic from the topicarray based on the sort order.
     //still need to improve when we have no selected topics.  
     let minsort = 1000000; //set to a large number.
     let retkey = "NONE";
-    if (exports.selectionhistory.length > 0) {
-        for (let i = exports.selectionhistory.length - 1; i > -1; i--) {
-            if (exports.topicarray[exports.selectionhistory[i]] !== undefined && exports.topicarray[exports.selectionhistory[i]].length > 0) {
-                //sort the topics by date.  
-                selectedtopics.unshift(exports.selectionhistory[i]); //add the topic to the selected topics.
-                if (retkey === "NONE") {
-                    retkey = exports.selectionhistory[i]; //set the key to the topic.
+    if (selectedtopics.length > 0) {
+        retkey = selectedtopics[0]; //set the key to the first topic.
+    }
+    if (extendtopics || selectedtopics.length === 0) {
+        if (exports.selectionhistory.length > 0) {
+            for (let i = exports.selectionhistory.length - 1; i > -1; i--) {
+                if (exports.topicarray[exports.selectionhistory[i]] !== undefined && exports.topicarray[exports.selectionhistory[i]].length > 0) {
+                    //sort the topics by date.  
+                    selectedtopics.unshift(exports.selectionhistory[i]); //add the topic to the selected topics.
+                    if (retkey === "NONE") {
+                        retkey = exports.selectionhistory[i]; //set the key to the topic.
+                    }
                 }
             }
         }
@@ -672,7 +704,7 @@ async function read(prompt, mode = exports.GIT_BOOK) {
     //then retrieve topic information.  
     //find the topic in the topicarray if we have passed some
     let selectedtopics = findInputTopics(prompt);
-    console.log("Selected topics: ", selectedtopics);
+    console.log("READ topics: ", selectedtopics);
     sortArray(exports.topicarray);
     //pick a topic to return.  
     //right now random.  
@@ -680,6 +712,8 @@ async function read(prompt, mode = exports.GIT_BOOK) {
     //get from selectionhistory if exists.  
     let [topkey, topics] = pickTopic(selectedtopics); //get the topic from the topicarray.
     //find last topic and add all git changes.  
+    console.log("PICK topic: ", topkey);
+    console.log("PICK topics: ", topics);
     if (selectedtopics.length > 0 && topkey !== selectedtopics[selectedtopics.length - 1]) {
         selectedtopics.push(topkey); //add the topic to the list of selected topics.
     }
@@ -890,6 +924,57 @@ async function fixVectraError(filePath) {
         }
     }
 }
+async function getChat(input, model = 'llama3.1:8b') {
+    let response = await ollama_1.default.chat({
+        //        model: 'llama3.1:8b',
+        //        model: 'gemma3n:latest',
+        model: 'gemma3:4b',
+        //            model: 'granite3.3:8b',
+        messages: [
+            { role: 'system', content: `Answer the Query to the best of your ability.  ` },
+            { role: 'user', content: `::QUERY::  \n
+                ${input} \n
+                ::ANSWER:: \n
+            ` }
+        ]
+    });
+    return response["message"]["content"];
+}
+async function getExpanded(input, MAX_MULT = 3) {
+    //expand the input by a factor of MAX_MULT.
+    //use exp(number) to determine how much to expand.  
+    let expansionfactor = Math.exp(MAX_MULT);
+    //get the summary of the chunks.  
+    //this will be used to summarize the book.
+    let expanded = input;
+    let expandme = await ollama_1.default.chat({
+        model: 'llama3.1:8b',
+        //            model: 'deepseek-coder-v2:latest',
+        //deepseek-r1:latest 
+        //granite-code:latest
+        //codegemma:latest 
+        //model: 'gemma3n:latest',
+        //model: 'gemma3:4b',
+        //            model: 'granite3.3:8b',
+        messages: [
+            { role: 'system', content: `You are expanding a brief summary of text 
+                and creating an expanded version.  ::ABRIDGED VERSION::\n**MYTOPIC\n Brief text which is being expanded.  
+                ::EXPANDED VERSION::  **MYTOPIC\nExpanded explanation which is significantly longer than the original brief text. Roughly $$${expansionfactor.toFixed(2)} times the size.
+                **ADDITIONALTOPIC\nWhen creating the expanded version, the same writing style and syntax as the original is used.  It continues on below ` },
+            { role: 'user', content: `::ABRIDGED VERSION::\n
+                ${input}\n
+                ::NOTES::\n
+                Using the above I have expanded the content to include more details, examples, and explanations.
+                Here is the expanded version.  I tried to use about ${(expansionfactor * input.length / 4).toFixed(2)} words.\n
+                ::EXPANDED VERSION::\n` }
+        ]
+    });
+    if (expandme["message"]["content"] === undefined) {
+        console.log("Error expanding content.");
+        return input; //return the original input if there was an error.
+    }
+    return expandme["message"]["content"];
+}
 async function getSummary(input, CTX_WND = 5000) {
     //get the summary of the chunks.  
     //this will be used to summarize the book.
@@ -964,6 +1049,27 @@ async function getChunks(text, CTX_WND = 5000) {
     }
     return chunks;
 }
+function getReadableName(name, line = 0) {
+    //this will be used to get a readable name for the topic.
+    let ret = name;
+    //try to open the topic file and read the first line.
+    let fidx = ret.lastIndexOf("/");
+    if (fidx !== -1) {
+        ret = ret.slice(fidx + 1); //get the file name.
+    }
+    if (line > 0) {
+        let extidx = ret.lastIndexOf(".");
+        if (extidx !== -1) {
+            ret = ret.slice(0, extidx); //remove txt extension.  
+        }
+        //insert spaces for YYYY mm dd
+        if (ret.length === 8 && !isNaN(Number(ret))) {
+            ret = ret.slice(0, 4) + " " + ret.slice(4, 6) + " " + ret.slice(6, 8);
+        }
+        ret = ret + " line " + line.toString();
+    }
+    return ret;
+}
 async function markdown(prompt) {
     //this just adjustst the base string to include links to markdown files.  
     //replace **topic with [topic](topic.md)
@@ -982,40 +1088,125 @@ async function markdown(prompt) {
         else {
             let colon = p2.lastIndexOf(":");
             if (colon !== -1) {
-                //this is a file:line reference.  
+                //this is a file:line reference.  Book page..
                 let fname = p2.slice(0, colon); //get the file name.
+                //check if file exists.  
                 let line = p2.slice(colon + 1); //get the line number. 
                 //remove folder from file name.  
                 p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
-                return `[${p1}${p2}](${fname}#L${line})`; //return the markdown link.
+                //need to rewrite dates to something else..
+                let readablename = getReadableName(p2, line);
+                return `[${p1}${readablename}](${fname}#L${line})`; //return the markdown link.
+                //                return `[${p1}${p2}](${fname}#L${line})`; //return the markdown link.
             }
+            //try to detect generated markdown unrelated to file.  
+            //check for a topic that exists.  
+            //maybe make a smart search for a topics that exists or similar vectors and their files.  
+            if (p2 in exports.topicarray) {
+                p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
+                let readablename = getReadableName(p2);
+                return `[${p1}${readablename}](${fileUri.path})`; //return the markdown link.
+                //                return `[${p1}${p2}](${fileUri.path})`; //return the markdown link.
+            }
+            return match; //return the original match if file does not exist.
+        }
+    });
+    marked = marked.replace(/(\$\$)(\S+)/g, (match, p1, p2) => {
+        // p1 is $$
+        //need some logic here for $$ variable replacement.  
+        // p2 is the topic or link 
+        let fname = p2;
+        // this should be a book path.  Use as you would work on the project.  
+        let colon = p2.lastIndexOf(":");
+        if (colon !== -1) {
+            //this is a file:line reference.  Book page..
+            let fname = p2.slice(0, colon); //get the file name.
+            //check if file exists.  
+            if (fname.length === 8 && !isNaN(Number(fname))) {
+                fname = "book/" + fname + ".txt"; //assume its a date file.
+            }
+            let fileUri = folderUri.with({ path: path_1.posix.join(folderUri.path, fname) });
+            let line = p2.slice(colon + 1); //get the line number. 
+            //remove folder from file name.  
             p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
-            return `[${p1}${p2}](${fileUri.path})`; //return the markdown link.
+            //need to rewrite dates to something else..
+            return `[${p1}${p2}](${fileUri.path}#L${line})`; //return the markdown link.
+        }
+        else {
+            let readablename = getReadableName(p2);
+            return `[${p1}${readablename}](${fname})`; //return the markdown link.
         }
     });
     return marked;
+}
+async function ask(prompt) {
+    //this will be used to ask a question about the book.  
+    //for now just return the prompt.
+    let originalb = await read(prompt, exports.GIT_BOOK);
+    //    let summary = await getSummary(originalb[1], 5000); //get the summary of the chunks.
+    //not efficient, maybe just get end of book..
+    let summary = originalb[1].slice(-10000); //just take the end of the book for context.
+    //context window is small I think..
+    let response = await getChat(summary + "\n\n\n" + prompt + "==\n");
+    return response;
 }
 async function summary(prompt) {
     //this will be used to find similar topics in the book.  
     //for now just return the topics in the book.
     //should have just topice really expecting.  
+    //read the original topics only.  
+    let originalb = await read(prompt, exports.GIT_BOOK);
     let sim = await similar(prompt); //get the similar topics from the book.
+    let topics = [];
+    let expandedprompt = prompt;
+    let simdata = "";
     for (let i = 0; i < sim.length; i++) {
         let topic = sim[i].topic;
-        prompt = "**" + topic + " \n" + prompt; //add the topic to the prompt.
+        simdata += "$$" + sim[i].date + ':' + sim[i].line + '  \n' + sim[i].data + "  \n"; //add the topic data to the simdata.
+        if (topics.includes(topic)) {
+            //line is different, but topic is the same.
+            continue; //skip duplicate topics.
+        }
+        topics.push(topic);
+        if (expandedprompt.indexOf("**" + topic) !== -1) {
+            continue; //skip duplicate topics.
+        }
+        expandedprompt = "**" + topic + "  \n" + expandedprompt; //add the topic to the prompt.
     }
     //read the prompt and similar topics.  
-    let b = await read(prompt, exports.GIT_BOOK);
+    //    let b = await read(prompt, GIT_BOOK);
     //large context window.  testing gemma3n:latest
-    let summary = await getSummary(b[1], 5000); //get the summary of the chunks.
-    console.log(`Summary: ${summary}`);
-    return summary;
+    let originalsummary = await getSummary(originalb[1], 5000); //get the summary of the chunks.
+    console.log(`Original Summary: ${originalsummary}`);
+    //use original if we have some data..
+    if (originalsummary.length < 300) {
+        let combined = await getSummary(simdata + '\n' + originalb[1], 5000); //get the summary of the chunks.
+        console.log(`Similar Summary: ${combined}`);
+        if (combined.length < 500) {
+            let b = await read(prompt, exports.GIT_BOOK);
+            let expandedsummary = await getSummary(b[1], 5000); //get the summary of the chunks.
+            console.log(`Expanded Summary: ${expandedsummary}`);
+            return expandedprompt + "  \n" + expandedsummary + '\n\n';
+        }
+        return prompt + "  \n" + combined + '\n\n';
+    }
+    else {
+        return prompt + "\n" + originalsummary + '\n\n'; // + expandedsummary;
+    }
+}
+async function expandPrompt(prompt) {
+    //expand the prompt to include more context.
+    //for now just return the prompt.
+    return Promise.resolve(await getExpanded(prompt, 3)); //exponential expansion
+    return Promise.resolve(prompt);
 }
 async function similar(prompt) {
     //this will be used to find similar topics in the book.  
     //for now just return the topics in the book.
+    let expandedprompt = await expandPrompt(prompt); //expand the prompt to include more context.
+    //    let selectedtopics = findInputTopics(prompt + "\n" + expandedprompt); 
     let selectedtopics = findInputTopics(prompt);
-    console.log("Selected topics: ", selectedtopics);
+    console.log("SIMILAR Selected topics: ", selectedtopics);
     let bvFolder = getUri(bookvectorFolder);
     let pathParts = [];
     if (selectedtopics.length === 0) {
@@ -1034,8 +1225,10 @@ async function similar(prompt) {
         pathParts.push([""]);
     }
     let model = 'nomic-embed-text'; //default model to use for embedding.
-    let vec = await getVector(prompt, model);
+    //here only pass expanded prompt.. otherwise too much bias to the ** topics.
+    let vec = await getVector(expandedprompt, model);
     let ret = [];
+    let ret2 = [];
     for (let j = 0; j < pathParts.length; j++) {
         for (let i = 0; i < pathParts[j].length + 1; i++) {
             let sub1 = pathParts[j].slice(0, i).join('/');
@@ -1045,11 +1238,20 @@ async function similar(prompt) {
             try {
                 if (sub1 in exports.topicvectorarray) {
                     //get more results from closer path or less?  
-                    let res = await exports.topicvectorarray[sub1].queryItems(vec, prompt, pathParts[j].length - i + 2);
+                    //isBM25TextSearchEnabled
+                    let res = await exports.topicvectorarray[sub1].queryItems(vec, prompt, i + 2);
                     if (res.length > 0) {
                         for (const result of res) {
-                            ret.push(result.item.metadata); //should be BookTopic type.
-                            console.log(`[${result.score}] ${result.item.metadata.data}`);
+                            //only add results with more than 50 characters. quite a bit of noise otherwise.
+                            if (result.item.metadata.data.length > 50) {
+                                ret.push(result.item.metadata); //should be BookTopic type.
+                                console.log(`ret [${result.score}]\n ${result.item.metadata.data}`);
+                            }
+                        }
+                        for (const result of res) {
+                            //only add results with more than 50 characters. quite a bit of noise otherwise.
+                            ret2.push(result.item.metadata); //should be BookTopic type.
+                            console.log(`ret2 [${result.score}]\n ${result.item.metadata.data}`);
                         }
                     }
                     else {
@@ -1066,6 +1268,65 @@ async function similar(prompt) {
             }
         }
     }
+    if (ret.length < 6) {
+        //try ret2 for more results.  
+        for (let i = 0; i < ret2.length; i++) {
+            //mark as secondary result..
+            let r = { ...ret2[i] }; //copy object.
+            r.data = r.data.slice(0, r.topic.length + 2) + "\n_V2_\n" + r.data.slice(r.topic.length + 2); //add topic at start.
+            ret.push(r);
+            if (ret.length >= 6) {
+                break;
+            }
+        }
+    }
+    //add ftsindex results if there are none with similar text.  
+    //check text results with high similarity via uFuzzy.  
+    if (ret.length < 10) {
+        /*
+        console.log(`Fuzzy searching for more results... ${alltopicdata.length} topics available.`);
+        let ftsresults = fuzzysort.go(prompt, alltopicdata, { keys: ['topic', 'data'] });
+        //need to deduplicate here?
+        for (let i=0; i<ftsresults.length && i<10; i++) {
+            //mark as fuzzy result..
+            //this not getting very good results..
+            if (ftsresults[i].score > 0.15){ //only add if score is reasonable.}
+                let r = { ... ftsresults[i].obj }; //copy object.
+                r.data = r.data.slice(0, r.topic.length + 2) + "\n_V2_\n" + r.data.slice(r.topic.length + 2); //add topic at start.
+                ret.push(r);
+                console.log(`FTS Result: ${ftsresults[i].obj.data}  Score: ${ftsresults[i].score}`);
+    //            metadata: {data: topic.data, date: topic.date, file: topic.file, line: topic.line, topic: topic.topic},
+                if (ret.length >= 10) {
+                    break;
+                }
+            }
+        }
+            */
+        let ftsresults = exports.ftsindex.search(prompt);
+        for (let i = 0; i < ftsresults.length; i++) {
+            console.log(`FTS Result: ${ftsresults[i]}`);
+            let r = ftsresults[i]; //copy object.
+            let top = r.slice(0, r.indexOf(":"));
+            let l = Number(r.slice(r.indexOf(":") + 1));
+            let topicdata = exports.alltopicdata.filter((t) => t.topic === top && t.line === l);
+            console.log(`FTS Topic Data: ${JSON.stringify(topicdata)}`);
+            if (topicdata.length > 0) {
+                let tdata = { ...topicdata[0] }; //copy object.
+                let fidx = tdata.data.indexOf(prompt.slice(2).trim()); //just to use prompt variable.
+                if (fidx > -1) {
+                    console.log(`FTS Match in data: ${tdata.data.slice(fidx - 50, fidx + 50)}`);
+                    let offseta = fidx - 150 > tdata.topic.length + 2 ? fidx - 150 : tdata.topic.length + 2;
+                    tdata.data = "**" + tdata.topic + " \n_FT2_\n" + tdata.data.slice(offseta, fidx + 150); //add topic at start.
+                }
+                else {
+                    tdata.data = tdata.data.slice(0, tdata.topic.length + 2) + "\n_FT_\n" + tdata.data.slice(tdata.topic.length + 2);
+                }
+                ret.push(tdata);
+            }
+            //add to return array.  item.metadata = 
+            //            metadata: {data: topic.data, date: topic.date, file: topic.file, line: topic.line, topic: topic.topic},
+        }
+    }
     //deduplicate ret array.  
     for (let i = 0; i < ret.length; i++) {
         for (let j = i + 1; j < ret.length; j++) {
@@ -1076,6 +1337,9 @@ async function similar(prompt) {
             }
         }
     }
+    let today = new Date();
+    let todaydate = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    ret.push({ topic: "EXPANDED", data: expandedprompt, date: todaydate, file: "", line: 0 }); //add the prompt as the first item.
     return ret;
 }
 async function getVector(text, model = 'nomic-embed-text') {
@@ -1161,6 +1425,10 @@ async function addVectorData(topic) {
             }
         }
     }
+    if (topic.data.length > 1000) {
+        let lines = topic.data.split("\n");
+        //split into chunks and add entry for each chunk.  
+    }
     let checkexisting = await exports.topicvectorarray[topic.topic].listItemsByMetadata({
         data: topic.data, date: topic.date, file: topic.file, line: topic.line, topic: topic.topic
         //this should get the last occurrence of this data when vector file is created.  
@@ -1169,6 +1437,9 @@ async function addVectorData(topic) {
     timelag.setDate(timelag.getDate() - 270); //set the time lag to 9 months ago.
     let checkdate = timelag.getFullYear() * 10000 + timelag.getMonth() * 100 + timelag.getDate();
     console.log(`Checking existing items for topic ${topic.topic}:`, checkexisting);
+    exports.alltopicdata.push(topic); //add to all topic data for ftsindex.
+    //insert the item into the ftsindex as well.  
+    exports.ftsindex.add(topic.topic + ':' + topic.line, topic.data);
     if (checkexisting.length > 0) {
         //assume it is already there.  Duplicate data.  No need to add again.  
         //randomly upsert if the topic is older than 9 months.  
@@ -1375,7 +1646,7 @@ function getBookUri() {
     const bookUri = folderUri.with({ path: path_1.posix.join(folderUri.path, bookFolder) });
     return bookUri;
 }
-function loadBook(context) {
+function loadBook(context = null) {
     if (!vscode.workspace.workspaceFolders) {
         return vscode.window.showInformationMessage('No folder or workspace opened');
     }
@@ -1409,7 +1680,9 @@ function loadBook(context) {
         buildTopicGraph(prevdate.toISOString().slice(0, 10).replace(/-/g, ""), currentdate.toISOString().slice(0, 10).replace(/-/g, "")); //build the topic graph for last year.  
         console.log(bookgraph);
         //start workers.  
-        Worker.initWorkers(context); //start the workers.
+        if (context) {
+            Worker.initWorkers(context); //start the workers.
+        }
     });
     function createDateFromYYYYmmdd(dateString) {
         try {
