@@ -161,6 +161,10 @@ export let MAX_SELECTION_HISTORY = 10; //max number of topics to keep in history
 var bookgraph = {}; //store topic relationships.  
 
 let topicchanged = false;
+
+let primary_model = 'gemma3:4b';
+let expansion_model = 'llama3.1:8b';
+
 //store data as tabs open and close and based on location in the tab.  
 //from this info generate the context when querying the model.  
 //right now only front-side loading.  Possibly add RAG processing later?  
@@ -1024,7 +1028,7 @@ export async function getChat(input: string, model: string = 'llama3.1:8b') : Pr
     let response = await ollama.chat({
 //        model: 'llama3.1:8b',
 //        model: 'gemma3n:latest',
-        model: 'gemma3:4b',
+        model: primary_model,        //model: 'gemma3:4b',
 //            model: 'granite3.3:8b',
 
         messages: [
@@ -1047,7 +1051,8 @@ export async function getExpanded(input : string, MAX_MULT: number = 3) : Promis
     //this will be used to summarize the book.
     let expanded = input;
     let expandme = await ollama.chat({
-        model: 'llama3.1:8b',
+
+        model: expansion_model,
 //            model: 'deepseek-coder-v2:latest',
         //deepseek-r1:latest 
         //granite-code:latest
@@ -1086,7 +1091,8 @@ export async function getSummary(input : string, CTX_WND: number = 5000) : Promi
     for (let i=0; i<chunks.length-1; i++) {
         //send this chunk to the summarization model.  
         let summary = await ollama.chat({
-            model: 'llama3.1:8b',
+            model: expansion_model, //primary model too slow here, 
+            // ideally need sub-second return..
 //            model: 'deepseek-coder-v2:latest',
             //deepseek-r1:latest 
             //granite-code:latest

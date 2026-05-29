@@ -1,0 +1,29 @@
+
+
+**extensions/trey/trey.py
+**extensions/trey/trey.py @@ how am I going to monitor transcription files for changes in python
+~~ watchdog
+
+**extensions/trey/test/watchtest.py
+@@ **book/keys.txt what semantic concepts have been studied
+$$
+@@ what ollama model is being used **extensions/vscode/codetutor/book.ts
+**extensions/vscode/codetutor/src/book.ts
+
+**extensions/trey/test/watchtest.py
+@@ what ollama model is being used **extensions/vscode/codetutor/src/book.ts
+==
+Okay, let's synthesize the key concerns and requirements from these text files related to the codetutor extension for VS Code. Here’s a breakdown, categorized for clarity:
+
+1. Book Loading & Indexing:
+
+Flexibility in Book Folder: The system needs to read all subfolders within the configured book folder ([$$mrrubato.bookfolder),](mrrubato.bookfolder`),) not just the top-level folder. This is a critical change needed after setting the folder.
+Reloading: Changes to the book folder location ([$$mrrubato.bookfolder)](mrrubato.bookfolder`)) require a reload of the book data.
+Topic-Aware Search: The readFilesInFolder function should prioritize files and functions currently or recently selected in the VS Code UI. This means populating the search list based on the active topic. Using [$$](`) vari
+
+~~ Should put most relevant info first.  
+~~ External Dependencies: The files mention using external tools and libraries, notably:
+~~ curl and ollama for model deployment (specifically the Gemma3n model).
+..
+
+$$

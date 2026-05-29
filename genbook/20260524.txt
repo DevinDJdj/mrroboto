@@ -1,0 +1,5 @@
+
+@@ **languages/helpers/transcriber.py
+This code is taking too long
+            files = [f for f in os.listdir(folder) if os.path.getmtime(folder + f) >= start_time.timestamp() and os.path.getctime(folder + f) <= end_time.timestamp()]
+How do I make it faster

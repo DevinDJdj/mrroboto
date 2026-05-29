@@ -1,0 +1,20 @@
+
+@@ **web/public/midi.mjs  have I done some new midi notation system
+@@ **analyze/analyze.py have I done a midi notation system
+==
+Visualization (Mid-i Representation): A significant area of development focuses on generating visual representations of the music, starting with a "midiToImage" functionality. This aims to convert the N-gram data into a visual format – likely a staff-like representation – where notes are displayed based on their timing and relationship to other notes. It suggests an initial exploration of radial visualizations and potentially incorporating size and color to represent volume. There's an interest in creating animated GIFs from this data.
+..
+The overarching strategy seems to be to build a system that can quantitatively analyze musical pieces, identify repeating sections, and then visualize this information in a meaningful way. The N-gram approach is at the heart of this process.
+$$
+
+**book/20260514.txt 
+@@ where did I use rapidfuzz to analyze midi
+
+~~ rapidfuzz midi
+
+**book/20260514.txt 
+~~ rapidfuzz midi
+
+~~ is there anywhere that uses rapidfuzz or partial matching of midi sequences
+~~ is there anywhere that uses rapidfuzz or partial matching of midi sequences
+**extensions/trey/test/pyrebasetest.py
