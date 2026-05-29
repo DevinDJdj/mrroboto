@@ -1,0 +1,32 @@
+
+**languages/helpers/transcriber.py
+
+**extensions/trey/trey.py
+
+**extensions/trey/speech.py
+
+**languages/helpers/transcriber.py
+
+**extensions/vscode/codetutor/src/toolParticipant.ts
+
+**languages/video.py
+
+> python ./analyze/analyze.py --title  "Evil Ways (Sonny Henry)"
+> python ./analyze/analyze.py --title  "Evil Ways (Sonny Henry)" --force true
+
+@@ where do I display the images on **web/public/analyze.html
+==
+--addImage
+**web/public/feedback.js
+--getAnalyze
+$$
+
+@@ **web/public/clock.js what time is it
+
+$$
+
+@@ **extensions/trey/trey.py where do I use sharedmemory
+
+:: **extensions/trey/trey.py
+
+

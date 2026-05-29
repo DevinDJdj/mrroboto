@@ -1,0 +1,19 @@
+
+**extensions/trey/trey.py
+@@ how am I going to monitor transcription files for changes in python
+
+~~ watchdog
+==
+**extensions/trey/test/watchtest.py
+from watchfiles import watch
+..
+$$
+
+
+@@ **book/keys.txt what semantic concepts have been studied
+
+$$
+
+@@ what ollama model is being used **extensions/vscode/codetutor/src/book.ts
+
+**extensions/vscode/codetutor/src/book.ts

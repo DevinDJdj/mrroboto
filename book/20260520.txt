@@ -1,0 +1,25 @@
+
+**extensions/trey/test/watchtest.py
+
+**extensions/trey/speech.py
+
+**extensions/trey/test/watchtest.py
+
+ranges roughly from
+
+**web/public/me.html
+
+**languages/hotkeys.py
+
+
+@@ where did we use **LEAN4
+==
+$$20250606
+#https://github.com/leanprover/vscode-lean4
+**languages/lean/test.lean
+#https://github.com/leanprover-community/tutorials4/tree/master
+**testing/lean/tutorials4
+
+$$
+
+

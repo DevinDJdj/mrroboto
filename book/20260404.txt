@@ -56,3 +56,9 @@ Torch Version: 2.11.0+cu128, CUDA Available: True, CUDA Version: 12.8
 
 
 
+**mrroboto
+@@ where do I change misterrubato to missesroboto
+
+**web/.firebaserc
+@@ where do I change missesroboto
+

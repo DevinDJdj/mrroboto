@@ -1,0 +1,5 @@
+@@ **web/public/midi.mjs  have I done some new midi notation system
+
+@@ **analyze/analyze.py have I done a midi notation system
+
+@@ where did I use rapidfuzz to analyze midi

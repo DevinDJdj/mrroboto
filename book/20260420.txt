@@ -1,0 +1,13 @@
+&& **extensions/trey/test/joytest.py
+
+&& **extensions/trey/test/pyrebasetest.py
+
+&& **extensions/trey/video.py
+
+&& **extensions/vscode/codetutor/src/midi/mykeys.ts
+
+@@ **extensions/trey/trey.py where do I show command info after each note
+
+==
+--update_info
+$$
