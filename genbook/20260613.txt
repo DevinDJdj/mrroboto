@@ -1,0 +1,8 @@
+
+
+**extensions/vscode/codetutor/src/terminalworker.ts
+@@ **analyze/analyze.py where did I create a circular image representing the midi notes
+==
+--printMidiGif
+$$
+

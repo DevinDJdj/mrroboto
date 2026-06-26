@@ -1,0 +1,15 @@
+
+
+**web/public/grammar/grammar.ne
+># ../../../music/extensions/trey/run.ps1
+
+**web/public/grammar/grammar.ne
+># ../../../music/extensions/trey/run.ps1
+> python ./extensions/trey/trey.py
+
+**web/public/grammar/grammar.ne
+@@ **languages/helpers/transcriber.py how can I shorten this
+==
+!! question was not answered..
+~~ dont adjust things that end in **
+$$

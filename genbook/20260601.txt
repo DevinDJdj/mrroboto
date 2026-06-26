@@ -1,0 +1,13 @@
+
+
+**web/public/grammar/grammar.ne
+> ../../../music/extensions/trey/run.ps1
+
+**web/public/grammar/grammar.ne
+> "../../../music/extensions/trey/run.ps1"
+> ../../../music/extensions/trey/run.ps1
+#https:/go.microsoft.com/fwlink/?LinkID=135170
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+> Set-ExecutionPolicy -ExecutionPolicy CurrentUser
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ../../../music/extensions/trey/run.ps1
