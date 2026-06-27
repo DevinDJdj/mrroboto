@@ -1,13 +1,7 @@
 
 
 **extensions/vscode/codetutor/src/terminalworker.ts
-@@ **analyze/analyze.py where did I create a circular image representing the midi notes
-==
---printMidiGif
-$$
-
+> git checkout $(git rev-list -n 1 --before="2026-06-22 00:00" main)
 ># git checkout $(git rev-list -n 1 --before="2026-06-22 00:00" main)
-
 ># git checkout $(git rev-list -n 1 --before="2026-06-27 00:00" main)
-
 ># git checkout main
