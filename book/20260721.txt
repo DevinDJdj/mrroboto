@@ -1,0 +1,6 @@
+
+**books/alphageometry
+
+**books/WORLDHISTORY
+
+**extensions/vscode/codetutor/src/book.ts

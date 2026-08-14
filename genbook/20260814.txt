@@ -1,0 +1,24 @@
+** @@ what is the knowledge graph software we are using
+** @@ knowledge graph
+** @@ knowledge graph
+** @@ what knowledge graph software are you using
+@@ **extensions/trey/trey.py what knowledge graph software are you using
+@@ **extensions/trey/trey.py what knowledge graph tool are we using
+~~ knowledge graph tool
+==
+$$20260301
+
+$$
+~~ spacy
+>#1 cd c:/devinpiano/music
+>#1 .\treyenv\Scripts\Activate.ps1
+>#1 ./languages/spacy/test.py
+>#1 python -m spacy download en_core_web_md
+>#1 python -m spacy download ja_core_news_md
+
+>#1 python ./languages/spacy/test.py
+>#1 pip install sentence-transformers
+>#1 python ./languages/spacy/test.py
+>#1 python ./languages/spacy/test.py
+>#1 python ./languages/spacy/test.py
+>#1 python ./extensions/trey/trey.py

@@ -1,0 +1,22 @@
+
+**books/WORLDHISTORY
+
+**books/WORLDHISTORY
+
+>$1 sudo systemctl restart ollama
+@@Tell me what the relationship was between the Persians and Alexander?
+
+==
+The passage depicts a highly complex and ultimately hostile relationship between the Persians and Alexander. Here’s a breakdown:
+
+ *   *Initial Request & Hostile Reception** The Persian envoys, sent by King Dareios, initially arrive at Amyntas's court with a customary request to share a lavish dinner with wives and concubines – a practice common among the Persian elite. However, Amyntas refuses, adhering to his own Greek custom of separating men and women.
+
+ *   *Alexander’s Intervention & Betrayal** This refusal sparks a chaotic and violent scene. Alexander, young and impulsive, intervenes, believing he's protecting his father. He essentially *invites* the Persians to engage in sexual relations with the Macedonian women – viewing it as a demonstration of Macedonian hospitality and power.
+
+ *   *The Massacre**  This "hospitality" quickly turns deadly when Alexander and his men ambush the drunken Persian envoys, killing them and their entourage. This was not a friendly exchange but a brutal act of deception and violence.
+
+ *   *Cover-Up & Manipulation** To conceal the truth about the Persians’ deaths (and to further solidify the illusion that Alexander was generous), he uses bribery (money and his sister, Gygaia) to stop the Persian search party led by Bubares. 
+
+Essentially, Alexander initially used the Persians' customs as a tool for manipulation and deception. He exploited their cultural expectations to lure them into a trap, ultimately leading to their demise. The entire episode reveals Alexander’s strategic cunning and willingness to use any means necessary to achieve his goals—a far cry from genuine diplomacy or respect.
+
+$$

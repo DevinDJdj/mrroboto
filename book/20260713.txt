@@ -1,0 +1,5 @@
+
+># cd ../../../music
+># .\treyenv\Scripts\Activate.ps1
+># python ./timestep.py
+

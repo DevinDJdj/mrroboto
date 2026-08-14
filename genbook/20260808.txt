@@ -1,0 +1,20 @@
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#1 cd c:/devinpiano/music
+>#1 .\treyenv\Scripts\Activate.ps1
+>#1 pip install markdown
+
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+
+**books/WORLDHISTORY
+~~ Levenshtein distance
+~~ rapidfuzz

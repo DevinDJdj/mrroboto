@@ -1,0 +1,19 @@
+
+**books/WORLDHISTORY
+
+@@Who were Aristotle's best friends?
+
+==
+
+$$
+
+#1 cd c:/devinpiano/music
+#1 .\treyenv\Scripts\Activate.ps1
+#1 pip install markdown
+
+@@How many people lived in England at this time around 600 AD?
+
+==
+Okay, let's break down the provided text and then address your question about the population of England around 600 AD.
+
+$$

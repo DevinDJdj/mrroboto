@@ -1,0 +1,7 @@
+
+**WH101/INTRO
+#THE_HISTORY_OF_HERODOTUS|https://www.gutenberg.org/cache/epub/2707/pg2707-images.html
+#THE_HISTORY_OF_HERODOTUS2|https://www.gutenberg.org/cache/epub/2456/pg2456-images.html
+
+>@ workbench.action.quickOpenNavigateNextInEditorPicker
+>@ workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup

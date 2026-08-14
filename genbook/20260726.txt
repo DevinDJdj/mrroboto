@@ -1,0 +1,26 @@
+># cd ../../../music
+># .\treyenv\Scripts\Activate.ps1
+
+**web/public/grammar/grammar.ne
+> pip install textwrap
+> python ./extensions/trey/trey.py
+@@  **extensions/trey/trey.py 
+ how am I going to monitor transcription files for changes in python File "C:\devinpiano\music\extensions\trey\trey.py", line 2753, in make_kg
+    kg = nx.Graph(name=graphs['name'])
+How do I fix this?  
+
+># cd ../../../music
+># .\treyenv\Scripts\Activate.ps1
+
+**web/public/grammar/grammar.ne
+> python ./extensions/trey/trey.py
+># cd ../../../music
+># .\treyenv\Scripts\Activate.ps1
+
+**web/public/grammar/grammar.ne
+> python ./extensions/trey/trey.py
+># cd ../../../music
+># .\treyenv\Scripts\Activate.ps1
+
+**web/public/grammar/grammar.ne
+> python ./extensions/trey/trey.py

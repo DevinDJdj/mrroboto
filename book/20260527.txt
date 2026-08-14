@@ -17,3 +17,10 @@ $$
 @@ what ollama model is being used **extensions/vscode/codetutor/src/book.ts
 
 **extensions/vscode/codetutor/src/book.ts
+
+**languages/helpers/transcriber.py
+
+@@ have I done anything with training an RNN model, what file 
+
+~~ training a model
+
