@@ -1,0 +1,12 @@
+
+**books/WORLDHISTORY
+
+#https//www.gutenberg.org/cache/epub/2456/pg2456-images.html:337804
+@@What was the chariot length that Tanksays used to ride in?
+
+==
+The text doesn't state the exact length of the chariot Xerxes rode in. It describes him using a chariot drawn by Nesaian horses and later a carriage, but it doesn’t provide dimensions for either.
+
+$$
+
+> pip install torchao

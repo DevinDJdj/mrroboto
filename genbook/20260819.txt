@@ -1,0 +1,7 @@
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+**books/WORLDHISTORY @@ fix this 
+    match note:
+      case self.config['keymap']['global']['Pause'][0]:
+

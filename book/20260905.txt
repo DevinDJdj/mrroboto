@@ -1,0 +1,7 @@
+
+**books/WORLDHISTORY
+>#1 cd c:/devinpiano/music
+>#1 .\treyenv\Scripts\Activate.ps1
+>#1 pip install youtube-transcript-api
+
+**languages/_meta.py

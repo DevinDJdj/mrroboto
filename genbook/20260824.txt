@@ -1,0 +1,13 @@
+
+>#1 cd c:/devinpiano/music
+>#1 .\treyenv\Scripts\Activate.ps1
+>#1 python ./extensions/trey/trey.py
+
+> pip install torchao
+@@ **analyze/Torch/test.py what is the version of torch cuda we are using
+> pip install torchao --index-url https://download.pytorch.org/whl/cu128
+> pip install torchao --index-url https://download.pytorch.org/whl/cu128
+> pip show torch
+> pip install torchao==0.13.0 --index-url https://download.pytorch.org/whl/cu128
+> pip install torchao --index-url https://download.pytorch.org/whl/cu128
+> pip install torchao==0.13.0 --index-url https://download.pytorch.org/whl/cu128

@@ -1,0 +1,9 @@
+> pip install fast-langdetect
+> pip install fast-langdetect
+> pip install misaki[ja]
+> python ./extensions/trey/test/ttstest.py
+> python -m unidic download
+> python -m unidic download
+> pip install unidic-lite
+> pip install 'fugashi[unidic-lite]'
+> pip install unidic
