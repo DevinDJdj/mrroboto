@@ -1,0 +1,26 @@
+
+**books/WORLDHISTORY/MATHEMATICS
+
+**books/WORLDHISTORY
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/MATHEMATICS
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/MATHEMATICS
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/COMPUTING
+
+$$20261006_121948
+#https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:76739
+Amongst natural operations perpetually altering the surface of our globe, there are some which it would be advantageous to accelerate.
+
+$$20261006_122639
+#CHARLES_BABBAGE/MACHINERY_AND_MANUFACTURES|https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:84516
+In all our larger manufactories numerous instances occur of the application of the power of steam to overcome resistances which it would require far greater expense to surmount by means of animal labour.
+
+>#2 python ./extensions/trey/chromaz.py

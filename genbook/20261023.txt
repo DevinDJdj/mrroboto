@@ -1,0 +1,3 @@
+
+**books/WORLDHISTORY/COMPUTING
+> pip install diffusers transformers accelerate layout

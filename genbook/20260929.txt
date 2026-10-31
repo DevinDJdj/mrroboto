@@ -1,0 +1,8 @@
+**books/WORLDHISTORY
+**THE_HISTORY_OF_HERODOTUS
+
+**books/WORLDHISTORY
+
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 cd c:/devinpiano/music

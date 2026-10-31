@@ -1,0 +1,12 @@
+>#2 cd c:/devinpiano/music
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+
+
+**books/WORLDHISTORY
+**books/WORLDHISTORY 
+@@Show me a map of Japan in the year 800
+
+**books/JAPAN
+**books/JAPAN 
+@@Show me a map of Japan in the year 800

@@ -1,0 +1,22 @@
+
+**books/WORLDHISTORY
+
+**20260926
+
+**THE_HISTORY_OF_HERODOTUS
+
+**books/WORLDHISTORY
+
+
+**books/JAPAN
+@@Show me a map of Japan in the year 800
+
+@@ **books/JAPAN what is interesting
+
+~~ **books/JAPAN why do I get multiline entries
+
+~~ **books/WORLDHISTORY what can you prove
+
+&& **books/WORLDHISTORY
+
+

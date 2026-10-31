@@ -1,0 +1,179 @@
+
+**books/WORLDHISTORY
+
+**books/JAPAN
+
+**books/JAPAN
+
+**books/JAPAN
+
+**books/JAPAN
+
+#https://www.aozora.gr.jp/cards/001518/files/51732_44768.html:8474
+@@Then there's something coming right
+
+==
+（※この文章は非常に専門的で古い神話学のテキストを基にしているため、文脈を完全に引き継ぐためには原文を参照することが不可欠ですが、神話的な流れと文体の連続性を重視して補完します。）
+
+……左耳には若き雷が居、右の手には土の雷が居、そしてわたくしのまぶたの下から出る液体は、清らかな水ではなく、生き物の血潮に似た赤黒い雫となって滴り落ちておる。その光景を目の当たりにしたイザナギの命みことは、あまりに凄惨にして悍（おぞ）ましく、絶句いたしました。
+
+「これは……どういうことだ？」と呻き声をあげしイザナギは、自らの目と魂を焼かれんばかりの光景を前にして、その場に崩れ落ちました。神としての理性が、直に生の恐怖へと引きずり込まれたのです。全身から冷や汗が流れ出し、己の生老病死を思う心の奥底から、叫び声にも似た悲痛な響きを発しました。
+
+目の前で崩れ落ちしイザナギは、身を捩（よじ）って這うようにして、その場を去ろうとします。黄泉国の神々は、恐れおののきながらも、彼を行かせようと道を阻みつけました。やがて、彼は門前にまでたどり着き、疲れ果て、そして魂の底から「わたくしには、もうあなた様とは関わりたくありません」という拒絶の念を抱きました。
+
+かくしてイザナギの命みことは、その目に映る光景と、心に満ちる凄まじい戦慄により、玉座や神域といった場所から、すべてを忘れ去ったかのように逃げ去りました。彼はただひたすらに西へと歩み続け、二度と振り返ることのない決意をしたのです。
+
+こうして、イザナギ・イザナミのお二方の神の物語は一段落を迎えました。彼らが共にお生みになった島や神々に関する物語（国生神話）は完結しましたが、彼らの愛と世界の根源に関わる深い悲しみは、未だこの世に残り続けているのでございます。
+
+ **
+ (Translation Note: The continuation assumes the final body parts/elements were similar to the previous ones and that Izanagi's profound shock leads him to flee, which is the standard mythological ending point in this narrative sequence.)*
+
+$$
+
+**books/JAPAN
+
+**books/JAPAN
+
+**books/JAPAN
+
+**books/WORLDHISTORY
+
+**books/JAPAN
+
+**books/WORLDHISTORY
+
+#https//www.gutenberg.org/cache/epub/2680/pg2680-images.html:278914
+@@What is a useful thing to do with a life?
+
+==
+Based on the texts provided, a "useful thing to do with a life" is not primarily defined by external achievements or wealth, but rather by *internal discipline, philosophical acceptance, and dedicated service to the common good.*
+
+The advice outlines a path toward becoming a "new man" through profound shifts in mindset regarding fate, suffering, community, and self.
+
+Here is a summary of the core principles for living a useful life:
+
+ --
+
+  I. Adopting Acceptance (Detachment from Fate)
+The foundation of a useful life is recognizing one's place within the natural order, which requires unconditional acceptance.
+
+ *   *Accept What Is Given** Whatever happens to you—whether it be joy or suffering—you must accept it according to your natural constitution. Do not become offended by fate. If unable to bear something, simply endure its course (as it will eventually pass).
+ *   *Embrace Impermanence** Recognize that all parts of the world are subject to change and eventual dissolution. By understanding that everything physical is temporary and cyclical, you detach your self-worth from transient experiences like pain or pleasure.
+ *   *Trust in Providence** Understand that what happens is appointed by a continuous coherence of causes. Your current life and suffering should not cause distress, as they are merely parts of an infinitely resilient universal whole.
+
+ ## II. Focusing on the Community (Ethical Action)
+A useful life must be outwardly directed toward others and the collective good.
+
+ *   *Prioritize the Common Good** Act always with consideration for your community and "kindred" beings. Your decisions, deliberations, and intentions must drive toward the general welfare, and you must actively prevent anything that is contrary to it.
+ *   *Treat Others with Care** When encountering fault or error in others, approach them by trying to *teach with love and meekness.* If you fail this test, blame yourself—never another person (unless their will was truly wanting).
+
+ ## III. Cultivating the Ideal Virtues (Internal Discipline)
+The most actionable guidance is summarized in adopting three specific states of mind:
+
+1.  **Ἔμφρων* (Intentional Consideration)** This means maintaining a clear, non-distracted, and intelligent consideration of every object that presents itself to you. You must be present, mindful, and attentive without distraction.
+2.  **Σύμφρων* (Contented Acceptance)** This is the ready and contented acceptance of what is assigned or appointed by the nature of things—a profound sense of inner peace regarding your lot in life.
+3.  **Ὑπέρφρων* (Transcendence/Detachment)** This is the most difficult discipline: developing a disposition so transcendent that it passes above all bodily pains, pleasures, honor, credit, and death. These matters are viewed as absolute indifferents—they can neither elevate nor diminish the wise person.
+
+ ## Summary of the Ideal Life
+To live a useful life, therefore, is to achieve *equanimity* (emotional balance). It means living perpetually with a purified mind that treats pleasure, pain, praise, and disgrace not as defining events, but as passing phenomena against the stable backdrop of universal law and communal duty.
+
+In essence: *Be profoundly mindful in action, supremely accepting in spirit, and always dedicated to promoting the welfare of your community.*$$**=Meditations | Project Gutenberg
+
+$$
+
+
+> pip install beautifulsoup4
+**books/WORLDHISTORY
+
+**books/WORLDHISTORY
+
+**books/WORLDHISTORY
+
+**books/WORLDHISTORY
+
+#https//www.gutenberg.org/cache/epub/2680/pg2680-images.html:329948
+@@How is one supposed to plan if they're only thinking about the present?
+
+==
+This query points out one of the most profound and challenging paradoxes in Stoic and Platonic philosophy, particularly when applied to modern human experience.
+
+You are correct: by definition, planning requires projecting oneself into a future state. If the text instructs you to "think of no longer life than that which is now present," it seems to forbid any practical form of foresight or preparation—the very core of what we call "planning."
+
+To understand how the philosophy manages this apparent contradiction, one must shift the definition of *"planning"* from an external blueprint of events to an internal discipline of the mind.
+
+Here is a breakdown of the philosophical tension and the underlying advice:
+
+ **
+
+  1. The Conflict Between Philosophy and Pragmatism
+
+The passage is not giving practical self-help advice; it is teaching a state of *mind*. For the ancient philosopher, the biggest impediment to human happiness was *attachment*—attachment to past glories or attachment to future desired outcomes.
+
+ *   *Traditional Planning** "If I do X now, then Y will happen in the future." (This establishes control over external events.)
+ *   *The Philosophy's Warning** By structuring your life around an anticipated future result (Y), you are creating anxiety and vulnerability because you cannot guarantee that nothing will interrupt the sequence of events. This attachment to outcome is deemed a source of suffering ("troubles and distractions").
+
+Therefore, when the text advises focusing on the present, it is not advising a paralysis of action; it is demanding *a profound shift in the locus of control.*
+
+  2. Redefining "Planning" through Virtue
+
+If you cannot plan outcomes, what are you supposed to do? According to this tradition (drawing heavily from Stoicism), you must plan your *virtue* and your *response*.
+
+The goal is not to ensure Event Y happens, but to ensure that *no matter what happens*—whether A or B or C—your internal response remains just, temperate, and virtuous.
+
+In this framework:
+1.  *Planning becomes** Developing the stable character so that when a difficult situation arises (a natural "accident"), your mind does not panic or grieve; it simply acts rationally.
+2.  *The object of focus is not an external goal, but internal alignment.* You are planning to be *unperturbed*, rather than planning for a specific set of events.
+
+ ## 3. The Practical Implication: Active Acceptance
+
+How do you manage life without detailed plans? By adopting what Plato calls *"active acceptance."* This sounds passive, but it is deeply active work that requires immense mental discipline:
+
+ *   *Acknowledge the Uncertainty** You must first intellectually accept that the future is *not* within your absolute control (this is the most difficult step).
+ *   *Focus on the Immediate Virtue** In any given moment, ask yourself: "What is the just and rational thing for me to do right now?" The action you take in this instant becomes your goal.
+ *   *Live by Circularity** Thinking of life "all round and circular" means treating every new day as a fresh opportunity—a perfect sphere where no end point is predetermined, only the continuity of virtue.
+
+ **
+
+  Conclusion
+
+To answer your query directly: *One does not plan *for* an outcome; one plans to *be* resilient.*
+
+The philosophy asks you to move from being an architect of predictable events (which leads to anxiety when reality deviates) to being a master responder in the moment. Your life becomes less about crossing off items on a timeline and more about maintaining a steady, virtuous disposition regardless of what the world throws at you next.
+
+$$
+
+#https//www.gutenberg.org/cache/epub/2680/pg2680-images.html:332786
+@@Do you really think that no man can be hindered by another?
+
+==
+This is a question that runs directly counter to our everyday human experience—we are constantly subjected to the actions, opinions, and expectations of others.
+
+However, if one reads this passage through the philosophical lens it presents (Stoicism), the claim "no man can truly be hindered by any other" does not refer to a physical or social impossibility; rather, *it is an assertion about the ultimate sovereignty of the human mind.*
+
+Therefore, drawing on the principles laid out in these writings, the answer must be qualified:
+
+ ## 1. Where External Action Succeeds (The Agreement)
+In the observable, brute reality—in terms of physical constraint, emotional wound, economic failure, or public ridicule—the passage is demonstrably false. Others *can* certainly hurt you, criticize you, fail you, and place obstacles in your path. This is the realm of accidental circumstance and material dependence.
+
+ ## 2. Where Internal Sovereignty Reigns (The Disagreement)
+What the text truly argues is that while others possess the power to initiate an action or present a difficulty (the *event*), they do not possess any authority over your internal reaction, judgment, or core valuation of yourself (your *assent*).
+
+If we accept the premises of this philosophy:
+
+ *   *The Hindrance Must Be Internal** The true "hindrance" is never the external event itself (e.g., a person insulting you); it is your internal acceptance and belief in the power of that insult to damage your self-worth or peace.
+ *   *Control Only Over Judgment** As Epictetus taught, we are not free from external forces; we are only free from being enslaved by our judgments about those forces. If I believe my happiness depends on others approving of me (a judgment), then they have the power to "hinder" me. If I accept that my flourishing is dependent solely upon my own rational discipline and adherence to nature (the premise of the text), then their opinion becomes literally irrelevant.
+ *   *The Role of Assent** The passage implies that all strife and contention are maintained by a voluntary *assenting* to false premises ("all but conceit and opinion"). To be "hindered" means to lose one's ability to withhold this assent.
+
+ **
+
+  Conclusion: A Matter of Jurisdiction
+When the writer claims that no man can truly be hindered, he is making not a boast about superhuman invincibility, but a declaration regarding the *jurisdiction of the soul.*
+
+He is saying that every person has an inner citadel—the rational mind (the "divine part"—XII. I)—which belongs solely to them and cannot be violated, coerced, or controlled by any external force. Others may attack the walls, throw stones at the gates, and ring the alarm bells; but as long as one maintains discipline over their judgment, they remain untouchable in the core of who they are.
+
+ *Therefore, while others can always hinder your *comfort*, they can never genuinely hinder your *rational existence*.*$$**=Meditations | Project Gutenberg
+
+$$
+
+> pip install chromadb
+>$ ollama pull nomic-embed-text-v2-moe

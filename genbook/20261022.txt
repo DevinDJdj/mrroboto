@@ -1,0 +1,47 @@
+**books/WORLDHISTORY/COMPUTING
+**books/WORLDHISTORY
+&&
+
+**books/WORLDHISTORY
+&&
+&&
+
+**books/WORLDHISTORY
+&&
+
+**books/WORLDHISTORY
+&&
+&&
+&&
+&&
+
+**books/WORLDHISTORY/COMPUTING
+&&
+
+**books/WORLDHISTORY/COMPUTING
+&&
+&&
+
+**books/WORLDHISTORY/COMPUTING
+&&
+
+@@What is Quicksilver?
+
+@@What is the process of whitening the pins?
+$$TIME=20261020_101638
+
+@@Why was it important to straighten the wire in this process?
+
+@@Describe the inking balls and the process in this printing.
+
+**books/WORLDHISTORY/COMPUTING
+&&
+
+@@What is the process of whitening the pins?
+
+@@What is the usage of these pins in this time?
+
+@@What is Quicksilver?
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py

@@ -1,0 +1,41 @@
+
+**books/JAPAN
+**books/JAPAN @@ **books/JAPAN what is interesting
+**books/JAPAN @@ **books/JAPAN what is interesting
+~~ **books/JAPAN why do I get multiline entries
+
+**books/JAPAN
+~~ **books/JAPAN why do I get multiline entries
+
+**books/JAPAN
+~~ **books/JAPAN why do I get multiline entries
+**books/JAPAN
+@@Show me a map of Japan in the year 800
+
+**books/JAPAN
+@@Show me a map of Japan in the year 800
+
+**books/JAPAN
+@@ **books/JAPAN what is interesting
+**books/JAPAN
+**books/WORLDHISTORY
+
+**books/JAPAN
+~~ **books/WORLDHISTORY/MATHEMATICS what can you prove
+~~ **books/WORLDHISTORY what can you prove
+&& **books/WORLDHISTORY
+
+**books/JAPAN
+&& **books/WORLDHISTORY
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py

@@ -1,0 +1,59 @@
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/COMPUTING
+
+#CHARLES_BABBAGE/MACHINERY_AND_MANUFACTURES|https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:106562
+@@Describe the inking balls and the process in this printing.
+
+==
+Based on the passage, here is a description of the inking balls and the associated printing process:
+
+ The Inking Balls:**
+They were **large hemispherical balls** that were stuffed internally and covered with leather. They served as the primary tool used to apply ink during the printing process.
+
+ **The Process (Old Method):**
+1. **Ink Collection:** The printer would take a small portion of ink from an ink-block placed on these balls.
+2. **Inking the Balls:** To ensure the ink was spread uniformly, the printer had to continually roll the balls against each other in various directions until a thin layer of ink was evenly distributed across their surface.
+3. **Transferring Ink:** Finally, the type was inked by transferring this film of ink onto it using a "kind of rolling action."
+
+The passage notes that this old method was inefficient because large quantities of ink often got stuck near the edges of the balls, becoming unusable waste (a thick black crust), and the amount of ink applied to the type could not be regulated precisely.
+
+$$
+
+#:115545
+@@How were the plates prepared for this printing process?
+
+==
+Based on the provided text, the plates were prepared through **engraving**.
+
+Specifically:
+
+1.  **Copperplate Printing:** The process requires an artist to spend significant labor over time "engraving a plate" by cutting **hollow lines** into the copper material.
+2.  **Engravings on Steel:** This art is described as being similar to engraving on copper, meaning the plates were prepared through the act of **engraving** onto steel.
+
+In both cases, the final impression relies on transferring thick ink from the deliberately cut lines and hollows of the plate structure.
+
+$$
+
+#CHARLES_BABBAGE/MACHINERY_AND_MANUFACTURES|https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:116744
+@@What are the steel punches like?
+
+==
+Based on the provided text, the most detailed description of a steel punch is found in Chapter 10:
+
+In this context, the steel punch is described as an instrument used to cut cardwadding for a fowling-piece. Its key characteristic mentioned is its **perfect consistency and accuracy**; if it performs its function correctly once, it "constantly reproduces the same exact circle."
+
+Additionally, in the section on engraving (Section 85), the text mentions that characters may be impressed onto pewter plates by steel punches, indicating they are used for creating printed type or marks.
+
+$$
+
+#:121511
+@@When was printing by movable types invented?
+
+==
+Based on the text provided, the specific date of when printing by movable types was invented **is not mentioned.**
+
+The passage describes its function and importance in Section 93 ("Printing from moveable types"), but it does not provide a historical timeline or an invention date.
+
+$$

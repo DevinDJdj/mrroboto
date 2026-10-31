@@ -10,3 +10,4 @@ The text doesn't state the exact length of the chariot Xerxes rode in. It descri
 $$
 
 > pip install torchao
+> pip install --upgrade PyMultiDictionary

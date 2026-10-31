@@ -62,7 +62,7 @@ $$
 
 **books/WORLDHISTORY
 
-#https//www.gutenberg.org/cache/epub/2680/pg2680-images.html:50345
+#https://www.gutenberg.org/cache/epub/2680/pg2680-images.html:50345
 @@Was Marcus Aurelius a strict parent or a good parent?
 
 ==

@@ -1,0 +1,7 @@
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+
+**books/WORLDHISTORY/COMPUTING
+>#2 python ./extensions/trey/test/chromaz.py
+>#2 python ./extensions/trey/chromaz.py
+>#2 python ./extensions/trey/trey.py

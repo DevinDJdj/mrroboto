@@ -1,0 +1,18 @@
+
+**books/WORLDHISTORY/COMPUTING
+
+#CHARLES_BABBAGE/MACHINERY_AND_MANUFACTURES|https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:184174
+@@Why was Charles Babbage so interested in the art of copying?
+
+==
+Based on the themes prevalent throughout these passages—which deal extensively with mechanical processes, methods of reproduction, and the systematization of complex forms (from engravings to printing)—Charles Babbage's interest in the art of copying was fundamentally rooted in his goal: to mechanize thought itself.**
+
+While the text does not mention Charles Babbage by name, it provides a perfect intellectual backdrop for understanding this fascination. His entire life’s work revolved around creating mechanical devices (the Difference Engine and the Analytical Engine) that could take abstract, complex operations—like mathematical calculation—and execute them repeatedly, systematically, and without human error.
+
+In essence, for Babbage, copying was not just about duplicating ink on paper; it was:
+
+1.  **A Process of Systematization:** As illustrated in passage 159 (the four-step process from stereotype plates to movable type), knowledge is shown to be a commodity that must pass through highly regimented, mechanical stages of duplication. Babbage sought to build the ultimate machine for this systematic replication of complex logical steps.
+2.  **The Mechanical Embodiment of Logic:** The advanced engraving techniques (156) and the principles described in 157 all demonstrate transforming an original, unique physical object into a reproducible plan or projection. Babbage was trying to build a machine that could take a mathematical function (the "original object") and mechanically project its results through calculation (the "reproduction").
+3.  **Reducing Manual Labor/Error:** Just as the passage details machines designed to improve engraving accuracy, Babbage envisioned an engine that would eliminate the tremendous amount of time, effort, and potential error inherent in manual calculation—thus making mathematical knowledge infinitely reproducible.
+
+$$

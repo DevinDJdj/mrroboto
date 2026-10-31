@@ -1,0 +1,36 @@
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/COMPUTING
+
+#https://www.gutenberg.org/cache/epub/4238/pg4238-images.html:90687
+@@What is a muslin?
+
+==
+Based on the context of the provided text, a **muslin** is a type of extremely fine, lightweight woven fabric.
+
+In the passage where it appears (Section 64), the author mentions that it was created by weaving "best spun thread" (implied to be cotton) and notes that its delicate nature makes it prone to having small, protruding filaments.
+
+Therefore, generally speaking:
+    Muslin** refers to a gauzy or diaphanous textile material.
+ *   It is characterized by its fineness and lightness, making it suitable for sheer garments and detailed weaving.
+
+$$
+
+#:96885
+@@How did they build people when they were not able to measure the amount of gas consumed?
+
+==
+Based on the text provided, it is impossible to answer that question because **the excerpt only discusses mechanical inventions for measuring resources (like gas, water, or labor) and increasing industrial efficiency; it does not discuss human population dynamics, demographics, or historical methods of survival.**
+
+The passage focuses on *technology* as a means of control and profit (e.g., how the gas-meter prevents waste and ensures fair pricing by making consumers pay only for what they use).
+
+If your query is intended to be interpreted generally (i.e., "How did people survive and build civilization before technologies like calibrated gas meters were common?"), that falls outside the scope of this specific chapter, which is a collection of technological observations from the 19th century.
+
+ **In summary:** The text describes *measuring* resources; it does not describe the mechanisms of human population growth or development.
+
+$$
+
+$$20261009_122209
+#:98802
+An instrument for measuring and registering the quantity of rain, was invented by Mr John Taylor, and described by him in the Philosophical Magazine.

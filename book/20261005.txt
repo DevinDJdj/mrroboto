@@ -1,0 +1,73 @@
+
+**books/WORLDHISTORY/COMPUTING
+
+**books/WORLDHISTORY/COMPUTING
+
+#:45951
+@@Who invented the flywheel?
+
+==
+Based on the provided text, **the invention of the flywheel is not mentioned.**
+
+The passages describe what a flywheel is, how it functions (by accumulating power), and where it was used in industry, but they do not attribute its creation to any specific inventor.
+
+$$
+
+#:51546
+@@What is a deal board?
+
+==
+Based on the context of the scientific text, a **deal board** refers to a **plank or piece of wood** used for demonstration or experimentation.
+
+The word "deal" in this historical technical writing is simply an older term for lumber or boards suitable for testing physical properties, such as how a wave travels through it (as suggested by the comparison between the speed of sound/waves through the board versus the speed through tallow).
+
+$$
+
+#:55106
+@@What were the patent laws at this time how long did a patent last for instance?
+
+==
+The text you have provided is a highly detailed technical and scientific treatise from an era of massive technological change—likely the late 18th or early 19th century, right in the heart of the Industrial Revolution. It describes cutting-edge engineering principles regarding steam power, pneumatics, and mechanical regulation (governors).
+
+Regarding your question about patent law: The text itself does not contain specific legal details.** It merely notes that "Several patents have been taken out for methods of regulating this supply." Therefore, to answer your question, one must draw upon general historical knowledge of intellectual property during that time period.
+
+Because the laws governing patents were highly complex and changed significantly depending on whether the inventor was operating in England, America, or another European country, I cannot give a single, universal answer. However, I can provide a comprehensive overview of how patent law generally worked during this era (the 1750s–1830s).
+
+ ---
+
+  General Overview of Patent Law During the Steam Age
+
+In short, patents granted an inventor a **temporary legal monopoly** on their invention—a right to exclude others from making, using, or selling the invention for a limited time. This was extremely valuable because it allowed inventors (like James Watt or Richard Trevithick) to recoup their investment and make profits from highly complex, novel machinery.
+
+ #### 1. The Purpose: Disclosure in Exchange for Monopoly
+The core principle of patent law at this time—and still today—is the *quid pro quo* (something for something):
+
+    In exchange for a limited monopoly:** The inventor had to publicly and completely **disclose** how the invention worked. This disclosure was crucial because, once the patent expired, the knowledge became public domain, allowing all future inventors to build upon it.
+ *   The "Novelty" Requirement:** The law required that the invention be genuinely *new* (novel) and not already known or used by anyone else.
+
+ #### 2. How Long Did a Patent Last? (Duration)
+This was one of the most variable aspects of the law:
+
+    British Patents (The Model in your Text's Context):** In Britain, patent terms were subject to periodic changes. For many decades during the period when this text was likely written, the general term for a useful art patent was often around **14 years**. However, the rules surrounding renewal, maintenance fees, and specific extensions were notoriously difficult and expensive to navigate.
+ *   American Patents:** Similarly, American law was evolving. While early patents sometimes covered very short periods, the goal was always defined duration (usually several years) followed by a required expiration date.
+
+ ***Crucially: The patent did not last forever. It was designed to expire.*** Once the term expired, the inventor had no further exclusive rights.
+
+ #### 3. Key Challenges and Pitfalls
+For inventors in this era, simply receiving the patent document was often **not enough**. They faced several difficulties:
+
+    Infringement:** It was incredibly hard to prove that a competitor was "infringing" (copying) the exact mechanism described in the patent. Litigation was costly and required highly expert testimony, which could often be manipulated.
+ *   Prior Art:** The most common pitfall was that an invention might be criticized for not being sufficiently "novel." If another person had shown a similar mechanism just before the patent application, the patent could be invalidated, even if the inventor felt they had done new work.
+
+ ### Summary Table (Approximate)
+
+| Feature | Description |
+| :--- | :--- |
+| **Purpose** | To grant temporary exclusive rights (a monopoly) to an invention. |
+| **Exchange** | Monopoly in exchange for public disclosure of the technology. |
+| **Duration** | Highly variable; often set by law (e.g., 14 years in Britain), but never indefinite. |
+| **Requirement** | The invention must be truly novel and non-obvious. |
+
+$$
+
+**books/WORLDHISTORY/MATHEMATICS

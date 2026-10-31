@@ -1,0 +1,10 @@
+
+**20261030
+@@ **analyze/midilyze.py what did I do with visualization of midi files
+~~ what did I do with visualization of midi files
+~~ visualization of midi files
+~~ visualization of music notation
+~~ notation system
+~~ Optimized notation system for reading
+~~ autocorrelation
+@@ **analyze/midscribe.py explain how this works
