@@ -56,6 +56,14 @@ export function run(command: string, dir: string="") {
             //run elevated?  
             worker = getTerminalWorker(cmdtype, cmdtype[1], version, dir);
         }
+        else if (cmdtype[1] === '#'){
+            //powershell
+            worker = getTerminalWorker(cmdtype, cmdtype[1], version, dir);
+        }
+        else if (cmdtype[1] === '_'){
+            //create new terminal 
+            worker = getTerminalWorker(cmdtype, cmdtype[1], version, dir);
+        }
     }
 
     if (worker === undefined || worker.terminal === undefined){
@@ -89,11 +97,13 @@ function getTerminal(key: string, type: string="", version: string="", dir=""): 
 
 
     if (type === '$'){
+        const mySettings = vscode.workspace.getConfiguration('mrrubato');		
+    
         myprofile = {
             "name": key,
             "shellPath": "C:\\Windows\\System32\\wsl.exe",
 
-            "shellArgs": ["-d", "Ubuntu-20.04"]
+            "shellArgs": ["-d", mySettings.get('ubuntu')]
         };
         //for now assume ubuntu. this API not working well, so just do manually..
         /*
@@ -119,13 +129,24 @@ function getTerminal(key: string, type: string="", version: string="", dir=""): 
         }
             */
     }
+    else if (type === '>'){
+        //elevated terminal
+    }
+    else if (type === '#'){
+        //powershell
+        myprofile = {
+            "name": key,
+            "shellPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+            "shellArgs": []
+        };
+    }   
 
     console.log("Creating terminal with profile: " + myprofile.name + " Type: " + type + " Version: " + version);
 
 //    return vscode.window.createTerminal(myprofile);
 /*
     vscode.commands.executeCommand('workbench.action.terminal.newWithProfile', {
-        name: key, 
+        name: key+version, 
         profile: myprofile
     });
     */
@@ -149,7 +170,6 @@ export function addClosedTerminalListener() {
 
 export function getTerminalWorker(key: string, type: string="", version: string = "", dir="") : TerminalWorker {
     //for now only use one of each type/version of terminal.  
-
 
     if(terminalworkers[key] === undefined){
         //create a new worker.  

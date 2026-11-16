@@ -1,0 +1,6 @@
+**genbook/20261115
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+**extensions/vscode/codetutor/src/book.ts
+**extensions/vscode/codetutor/src/book.ts

@@ -1,0 +1,104 @@
+
+//import * as MyKeys from '../midi/mykeys';
+export default class LANG {
+    config: Record<string, any> = {};
+    keybot: number = 48;
+    keyoffset: number = 0;
+    funcdict: Record<string, Function> = {};
+    midwordtree: Record<string, any> = {}; 
+    mykeys: any = null;
+    name: string = "_meta";
+    //ALLCAPS = vscode handler..
+
+    constructor(){
+        console.log("meta language constructor");
+    }
+
+    init(config: Record<string, any>): void {
+        //optional init function
+        console.log("meta language init");
+        this.config = config || {};
+        this.load();
+    }
+
+    load(): void {
+        let obj = {
+            "2":{
+            },
+            "3":{
+                "RESET TOPICS": [0, 4, 5],
+                "ADD TOPICS": [0, 6, 7],
+            },
+
+        };
+        if (this.name in this.config['languages']){
+            //merge existing config with defaults
+            obj = Object.assign({}, obj, this.config['languages'][this.name]);
+
+        }
+        this.config['languages'][this.name] = obj;        
+        this.funcdict["RESET TOPICS"] = this.reset_topics;
+        this.funcdict["ADD TOPICS"] = this.add_topics;
+    }
+
+    //only functions that are very time sensitive..
+    add_topics(cls: LANG, sequence: number[], words: string[]): void {
+        console.log("meta add_topics", sequence, words);
+        if (sequence.length > 0){
+            //add topic based on sequence
+            let numtopics = sequence[0]-this.keybot-this.keyoffset;
+            //select this number of topics from history and add those topics to current query..  
+        }
+    }
+
+    reset_topics(cls: LANG, sequence: number[], words: string[]): void {
+        //clears out history or previous topics.  
+        //how do we clear the context information.  
+        //no need to clear read books vectra data?  
+        //may need restart to fully clear context
+
+        console.log("meta reset_topics", sequence, words);
+        if (sequence.length > 0){
+            //set topic to 
+            let numtopics = sequence[0]-this.keybot-this.keyoffset;
+            //select this number of topics and share those topics.  
+        }
+    }
+
+    act(cmd: string, sequence: number[], words: string[]): number {
+        console.log("meta act", cmd, sequence, words);
+        if (cmd in this.funcdict){
+            let func = this.funcdict[cmd];
+            if (sequence.length ===1 && sequence[0] === this.keybot+this.keyoffset){
+                return func(this, [], words); //no parameters
+            }
+            else if (sequence.length > 1 && JSON.stringify(sequence.slice(-2)) === JSON.stringify([this.keybot+this.keyoffset, this.keybot+this.keyoffset])){
+                return func(this, sequence.slice(0, -2), words);
+            }
+            else{
+                return 1; //more keys needed
+            }
+
+        }
+        else{
+            console.log("meta unknown command", cmd);
+            return -1; //unknown command
+        }
+    }
+
+    word(sequence: number[], words: string[] = []): string {
+        let cmd = "";
+        let sl = sequence.length;
+        let strsl = sl.toString();
+        if (strsl in this.config['languages'][this.name]){
+            for (const [key, value] of Object.entries(this.config['languages'][this.name][strsl])) {
+                if (JSON.stringify(value) === JSON.stringify(sequence)){
+                    cmd = key;
+                    break;
+                }
+            }
+        }
+        return cmd;
+
+    }
+}

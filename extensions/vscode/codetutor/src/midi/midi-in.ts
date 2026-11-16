@@ -3,8 +3,12 @@ const JMVSC = require('jazz-midi-vscode');
 const JZZ = require('jzz');
 import * as mykeys from './mykeys';
 
-let mkeys : mykeys.MyKeys;
+//let mkeys : mykeys.MyKeys;
+export var panels = {};
+//load config.  
 
+var mkeys = {};
+var midiport = {};
 //use shared JSON config..
 import * as config from '../../../../../../config.json';
 
@@ -21,11 +25,7 @@ function getNonce() {
 export function activate(context) {
     const extpath = context.extensionPath;
     
-    var panels = {};
 
-    //load config.  
-
-    mkeys = new mykeys.MyKeys(config );
 
 
     context.subscriptions.push(vscode.commands.registerCommand('midi-demo.midi-in', async function (port) {
@@ -55,19 +55,35 @@ export function activate(context) {
          });
 
 
+        console.log("setting up mykeys");
+        if (!mkeys[port]){
+            mkeys[port] = new mykeys.MyKeys(config);
+            console.log("Setting up interval for running holds");
+            setInterval(() => {
+                //send the current sequence to the webview for display
+                //console.log("Running Holds");
+                mkeys[port].runHolds();
+            }, 500);
+        }
+        if (midiport[port]){
+            midiport[port].close();
+        }
 
-         var midiport = JZZ().openMidiIn(port).or(() => {
+
+         midiport[port] = JZZ().openMidiIn(port).or(() => {
              panels[port].webview.html = `<html><body><h1>${port}</h1><p>Cannot open port!</p></body></html>`;
              return;
          });
 
-            midiport.connect((msg) => {
-                console.log('MIDI message:', msg);
+
+            midiport[port].connect((msg) => {
+                //console.log('MIDI message:', msg);
                 //mykeys.push(msg);
-                mkeys.key(msg, 0, null); //no callback for now.
+                mkeys[port].key(msg, 0, null); //no callback for now.
 //                panels[port].webview.postMessage({ command: 'midi', message: msg });
             });
-         
+
+
 
          const scriptPath = vscode.Uri.joinPath(context.extensionUri, 'src', 'midi', 'input.js');
          const scriptUri = panels[port].webview.asWebviewUri(scriptPath);
@@ -80,6 +96,7 @@ export function activate(context) {
 </head>
 <body>
 <h1>${port}</h1>
+<p id="info"></p>
 <pre id="log"></pre>
 <script>
 //const vscode = acquireVsCodeApi();

@@ -1,13 +1,18 @@
 import * as vscode from 'vscode';
-import { posix, basename } from 'path';
+import path, { posix, basename } from 'path';
 import * as tokenizer from './tokenizer'; // Import the Token interface
 import * as  Worker from './worker'; // Import the Worker class
 
+//import { LANG } from './languages/base';
+import { setArrayEntry, setFunctions, getFunctions } from './midi/state';
+
+//export var currentfunctions = [];
 import { LocalIndex } from 'vectra';
 import * as FlexSearch from 'flexsearch';
 import fuzzysort from 'fuzzysort';
 import ollama from 'ollama';
 import * as fs from 'fs';
+import { get } from 'http';
 /*
     * Book.ts - This file is part of the GitBook extension for VSCode.
     * It manages the GitBook structure, repositories, and content retrieval.
@@ -50,12 +55,22 @@ var gitnature = GIT_CODE | GIT_DETAILS; //do we retrieve history and commits?
 
 export var currenttopic = "NONE";
 export var selectedtopic = "NONE";
+var lastlogtopic = "NONE";
+
 var currenttopicline = 0;
 var currentrefline = 0;
 var currentref = "NONE";
 
-export var selectionhistory = [];
+export var selectionhistory = {};
 export var environmenthistory = [];
+export var queryhistory = [];
+
+//export var currentfunctions = [];
+
+export var ollama_model = 'gemma4:e4b';
+ollama_model = 'gemma3:4b';
+
+var mytime = new Date().getTime()/1000; //set the time in seconds
 
 
 var myCodeMirror = null;
@@ -64,6 +79,12 @@ var usetempcodewindow = false;
 var definitions = {"REF": "#", "REF2": "##", "TOPIC": "**", "STARTCOMMENT": "<!--", "ENDCOMMENT": "-->", "CMD": ">", "QUESTION": "@@", "NOTE": "--", "SUBTASK": "-"};
 //have to include >, -> to get to -->
 //have to include -, --, !-- to get to <!--
+
+
+export function setModel(model: string) {
+    ollama_model = model;
+}
+
 
 
 function fnEnv(lines : Array<Array<tokenizer.Token>>, currentindex: number)  {
@@ -97,8 +118,10 @@ function fnWork(lines : Array<Array<tokenizer.Token>>, currentindex: number)  {
     return "WORK ";
 }
 
-export var defmap = [{"#": "REF",">": "CMD", "-": "SUBTASK", "@": "USER"}, 
-    {"##": "REF2", "**": "TOPIC", "@@": "QUESTION", "->": "DGRAPH", "--": "NOTE", "==": "ANSWER", "$$": "ENV", "!!": "ERROR", "%%": "WORKER"}, 
+export var defmap = [{"#": "REF",">": "CMD", "-": "SUBTASK", "@": "USER", ";": "COMMENT"}, 
+    {"##": "REF2", "~~": "SUGGESTION", "**": "TOPIC", "@@": "QUESTION", "->": "DGRAPH", 
+        "::": "SUMMARY", "&&": "CONTEXT", 
+        "--": "NOTE", "==": "ANSWER", "$$": "ENV", "!!": "ERROR", "%%": "WORKER"}, 
     {"-->": "ENDCOMMENT", "!--": "ERRORNOTE" }, 
     {"<!--": "STARTCOMMENT"}];
 
@@ -111,11 +134,27 @@ export interface BookTopic {
     file: string;
     line: number;
     topic: string;
+    "_": string; //this is the type of topic, based on the definition map.
+    "**": string; //this is the full topic string, including the definition characters.
+    "..": number; //this is the timestamp of the topic in milliseconds since epoch.
+    ":": number, //this is the line number
     data: string;
     date: number; //date in YYYYMMDD format.
     sortorder: number;
+    allfunctions?: vscode.DocumentSymbol[];
 }
 
+export interface BookData {
+    topic: string;
+    data: Record<string, Array<any>>; //json structure of string -> Array
+
+}
+
+export interface QueryEntry {
+    query: string;
+    expanded?: string;  
+    response?: string;
+}
 
 export var vectrafixes: {[key: string] : boolean } = {};
 
@@ -126,6 +165,7 @@ export var alltopicsa: string[] = [];
 export var envarray: {[key: string] : string} = {}; //environment variables.
 
 export var topicarray: {[key: string] : Array<BookTopic> | undefined} = {};
+export var topicdata: {[key: string] : BookData | undefined} = {};
 
 var bookvectorFolder = "vecbook"; //this will be used to store the book vector folder.
 //no sharding for now, but perhaps shard per time period.  
@@ -160,11 +200,8 @@ export let MAX_SELECTION_HISTORY = 10; //max number of topics to keep in history
 
 var bookgraph = {}; //store topic relationships.  
 
+export var workspaceUri = vscode.workspace.workspaceFolders[0].uri;
 let topicchanged = false;
-
-let primary_model = 'gemma3:4b';
-let expansion_model = 'llama3.1:8b';
-
 //store data as tabs open and close and based on location in the tab.  
 //from this info generate the context when querying the model.  
 //right now only front-side loading.  Possibly add RAG processing later?  
@@ -235,14 +272,36 @@ function getDigraph(topic, templist, depth=12){
 
 
 
-export function logCommand(command: string) {
+export function logCommand(command: string, topic: string = "") {
     //log the command in genbook.  
+    //add here to selection history..
+    //parse all lines..
+
     try {
         const mySettings = vscode.workspace.getConfiguration('mrrubato');	
         let genbookFolder = mySettings.genbookfolder;
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const fullpath = editor.document.fileName;
+            if (fullpath.startsWith(genbookFolder)) {
+                //dont log commands in the genbook folder.
+                return;
+            }
+        }
     
         let logPath = genbookFolder + "/" + formatDate(mynow) + ".txt"; //get the date in YYYYMMDD format.
-        updatePage(logPath, command, -1, -1);
+        let topiccmd = "";
+        if (topic !== "") {
+            if (lastlogtopic !== topic) {
+                //do something if the topic has changed
+                topiccmd = `**${topic}\n`;
+            }
+            lastlogtopic = topic;
+        }
+        updatePage(logPath, topiccmd + command, -1, -1, false);
+        addLogHistory(command); //add all autocompletion orders..
+
+
     }
     catch (error) {
         console.error(`Error reading file: ${error}`);
@@ -298,13 +357,41 @@ function getDaysBetweenDates(startDate : Date, endDate: Date) : number{
     return daysDiff;
 }
 
+
+export function setTime(t : number, w: number, s: number, e: number, open=true) {
+    const date = new Date(t * 1000);
+    sortRecency(date);
+    let dstring = formatDate(date);
+    //if this book exists?  
+    if (dstring in topicarray){
+        //get the topics for this date.
+        if (open) {
+            select(dstring);
+            vscode.commands.executeCommand('workbench.action.chat.open', "@mr /read " + "**" + dstring );
+        }
+
+    }
+    //for now just sort by this date.. 
+    //eventually use the window as well perhaps for context creation..
+}
+
+function sortRecency(mydate: Date = new Date()) {
+    sortArray(topicarray, '', mydate); //sort the topic array by date.
+    for (let i=0; i<defmap.length; i++) {
+        for (const [key, val] of Object.entries(defmap[i])) {
+            sortArray(arrays[key], key, mydate);
+        }
+    }
+
+}
+
 function getRecency(bt : Array<BookTopic>, mydate: Date = new Date()) : number {
     let cumdate = 0;
     for (let i = 0; i < bt.length; i++) {
         //need better calculation of recency.
 
         //get closest to mydate.  
-        cumdate += getDaysBetweenDates(getDateFromString(bt[i].date.toString()), mydate);
+        cumdate += Math.abs(getDaysBetweenDates(getDateFromString(bt[i].date.toString()), mydate));
 
         bt[i].sortorder = 0;
     }
@@ -316,9 +403,28 @@ function getRecency(bt : Array<BookTopic>, mydate: Date = new Date()) : number {
     }
 }
 
+
+export function itemToDoc(item: BookTopic): string {
+    const folderUri = workspaceUri;    
+
+    let ret = "";
+    let fname = item.file;
+    fname = fname.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.
+    let fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
+    //need to rewrite dates to something else..
+
+    ret += `Line: ${item.line}, Sort: ${item.sortorder}  \n`;
+    ret += `Link: [${fname}](${fileUri}#L${item.line})  \n`;
+    let data = item.data.substring(0, 255);
+    ret += `Data: ${data}  \n`;
+
+    return ret;
+}
+
 export function findTopicsCompletion(str: string = "") : string[]{
     let myarray = [];
     let sortText = "0000";
+    const folderUri = workspaceUri;    
     if (str === ""){
         for (const [key, value] of Object.entries(topicarray)) {
             if (value !== undefined && value.length > 0) {
@@ -327,13 +433,22 @@ export function findTopicsCompletion(str: string = "") : string[]{
                 let doc = "";
                 sortText = "0000";
                 for (let item of value) {
+
+                    let fname = item.file;
+                    fname = fname.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.
+                    let fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
+                    //need to rewrite dates to something else..
+
                     doc += `Line: ${item.line}, Sort: ${value[0].sortorder}  \n`;
-                    doc += `Link: [${item.file}](${item.file}#L${item.line})  \n`;
+                    doc += `Link: [${fname}](${fileUri}#L${item.line})  \n`;
                     let data = item.data.substring(0, 255);
                     //add formatting here for timestamp and OCR if available.  
                     doc += `Data: ${data}  \n`;
                     //set sortText to top if it is in selection history.  
-                    const found = selectionhistory.findIndex((t) => t === item.topic);
+                    if (!selectionhistory['**']) {
+                        selectionhistory['**'] = [];
+                    }
+                    const found = selectionhistory['**'].findIndex((t) => t === item.topic);
                     if (found > -1){
                         sortText = (MAX_SELECTION_HISTORY-found).toString(16).padStart(4, '0').toUpperCase();
                     }
@@ -388,10 +503,7 @@ export function findTopicsCompletion(str: string = "") : string[]{
                 ci.detail = `**${key}`;
                 let doc = "";
                 for (let item of topicarray[key]) {
-                    doc += `Line: ${item.line}, Sort: ${item.sortorder}  \n`;
-                    doc += `Link: [${item.file}](${item.file}#L${item.line})  \n`;
-                    let data = item.data.substring(0, 255);
-                    doc += `Data: ${data}  \n`;
+                    doc = itemToDoc(item);
 
                 }
                 ci.documentation = new vscode.MarkdownString(`${doc}`);
@@ -425,10 +537,13 @@ export function findTopicsCompletion(str: string = "") : string[]{
 export function findInputTopics(inputString : string) : string[]{
     // Create a regex pattern to match double asterisks and capture the text after them
     //need to add newline at start.  
-    const matches = inputString.matchAll(/\*\*/g);
+    const matches = [...inputString.matchAll(/\*\*/g)];
     let ret = [];
+    console.log(`Input string: ${inputString}`);
+    console.log(`Finding input topics in string: ${matches}`);
     for (const match of matches) {
-        if (match.index !== undefined && match.index > 0) {
+        console.log(`Found topic input : ${match}`);
+        if (match.index !== undefined && match.index >= 0) {
             let end = inputString.indexOf(' ', match.index);
             if (end === -1) {
                 end = inputString.length; // If no space found, take the rest of the string
@@ -440,6 +555,13 @@ export function findInputTopics(inputString : string) : string[]{
             }
             else{
                 ret.push(key);
+                //dont use the "books/" prefix in the key for topics..
+                //but for now we will just use both..
+                if (key.startsWith("books/")){
+                    
+                    key = key.substring("books/".length);
+                    ret.push(key);
+                }
             }
         
         }
@@ -479,7 +601,7 @@ export function adjustSort(array: Array<string>) {
 
 //do we want to reset all here?  
 //for now the book isnt large enough to worry about this type of performance.  But...
-function sortArray(array: {[key: string] : Array<BookTopic> | undefined}, typekey='')  {
+function sortArray(array: {[key: string] : Array<BookTopic> | undefined}, typekey='', mydate: Date = new Date()) {
     if (typekey===''){
         alltopics = []; //reset all topics.
         alltopicsa = []; //reset all topics.
@@ -489,7 +611,7 @@ function sortArray(array: {[key: string] : Array<BookTopic> | undefined}, typeke
         if (array[key] !== undefined) {
             //sort the topics by date.  
             if (array[key].length > 0) {
-                array[key][0].sortorder = getRecency(array[key]); //set the sort order to recency.
+                array[key][0].sortorder = getRecency(array[key], mydate); //set the sort order to recency.
             }
         }
         alltopics.push(key);
@@ -530,30 +652,80 @@ export function addToEnvironment(str: string, value: string) {
     }        
 }
 
-export function removeFromHistory(topic: string){
-    const found = selectionhistory.findIndex((t) => t === topic);
+export function removeFromHistory(topic: string, key="**"){
+    const found = selectionhistory[key]?.findIndex((t) => t === topic) ?? -1;
     if (found > -1){
-        selectionhistory.splice(found, 1); //remove the topic from the selection history.
+        selectionhistory[key].splice(found, 1); //remove the topic from the selection history.
     }
 
 }
 
-export function addToHistory(topic: string){
-    //add the topic to the history.  
-    const found = selectionhistory.findIndex((t) => t === topic);
+export function addQueryHistory(query: QueryEntry){
+    //add the query to the history.
+    const found = queryhistory.findIndex((t) => t.query === query.query);
     if (found < 0){
-        selectionhistory.push(topic); //add the topic to the selection history.
+        queryhistory.push({'query': query.query, 'expanded': query.expanded, 'response': query.response}); //add the query to the history.
     }
     else{
-        selectionhistory.splice(found, 1); //remove the topic from the selection history.
-        selectionhistory.push(topic); //add the topic to the end of the selection history.
+        let obj = queryhistory[found];
+        queryhistory.splice(found, 1); //remove the query from the history.
+        if (query.expanded !== undefined) {
+            obj.expanded = query.expanded; //update the expanded value.
+        }
+        if (query.response !== undefined) {
+            obj.response = query.response; //update the response value.
+        }
+        if (query.query !== undefined) {
+            obj.query = query.query; //update the query value.
+        }
+        queryhistory.push(obj); //add the query to the end of the history.
+    }
+}
+
+
+function addLogHistory(cmd: string){
+    let alllines = cmd.split("\n");
+    if (alllines.length > 1){
+        //multiple line command, run each line.  need sequential thread.  
+        for (let line of alllines){
+            //get each defstring..
+
+            keyfind: for (let j=defmap.length-1; j>=0; j--) {
+                for (const [k, v] of Object.entries(defmap[j])) {
+                    //for now excluding the '-' key.
+                    if (line.startsWith(k)) {
+                        let t = line.substring(k.length);
+                        const found = selectionhistory[k]?.findIndex((x) => x === t) ?? -1;
+                        if (found > -1){
+                            removeFromHistory(t, k); //dont keep duplicates in the selection history.
+                        }
+                        addToHistory(t, k);
+                    }
+                }
+            }
+        }
+    }
+
+}
+export function addToHistory(topic: string, key="**"){
+    //add the topic to the history.  
+    if (!selectionhistory[key]) {
+        selectionhistory[key] = [];
+    }
+    const found = selectionhistory[key].findIndex((t) => t === topic);
+    if (found < 0){
+        selectionhistory[key].push(topic); //add the topic to the selection history.
+    }
+    else{
+        selectionhistory[key].splice(found, 1); //remove the topic from the selection history.
+        selectionhistory[key].push(topic); //add the topic to the end of the selection history.
     }
     if (selectedtopic !== topic) {
         selectedtopic = topic; //set the selected topic to the current topic.
         topicchanged = true; //set the topic changed flag to true.
     }
-    if (selectionhistory.length > MAX_SELECTION_HISTORY) {
-        selectionhistory.shift(); //remove the first element from the array.
+    if (selectionhistory[key].length > MAX_SELECTION_HISTORY) {
+        selectionhistory[key].shift(); //remove the first element from the array.
     }    
 }
 
@@ -590,39 +762,295 @@ function webBook(topic: string){
 
 }
 
+
+export function getURLAndIndex(link: string): [string, number] {
+    let total_read = 0;
+    let ret = link;
+    let pipe = ret.indexOf('|');
+    if (pipe !== -1) {
+        ret = ret.substring(pipe + 1);
+    }
+    let colon = ret.lastIndexOf(':');
+    if (colon !== -1) {
+        total_read = parseInt(ret.substring(colon + 1));
+        ret = ret.substring(0, colon);
+    }
+    return [ret, total_read];
+}
+
+function getMyUris(topic: string, externalpath: string = "") : vscode.Uri[] {
+    //how many to return..
+    //check if file or folder
+    let ret = [];
+    let folderUri = workspaceUri;
+    if (externalpath !== ""){
+        const parentPath = path.dirname(folderUri.path);
+        folderUri = folderUri.with({ path: parentPath });
+        folderUri = folderUri.with({ path: posix.join(folderUri.path, externalpath) });
+    }
+    // this should be a book path.  Use as you would work on the project.  
+    var uripath = topic;
+    if (!Number.isNaN(Number(topic)) && topic.length===8) {
+        uripath = topic + ".txt";
+    }
+    let fileUri = folderUri.with({ path: posix.join(folderUri.path, uripath) });
+    if (fs.existsSync(fileUri.fsPath)) {
+        if (fs.lstatSync(fileUri.fsPath).isDirectory()) {
+            //this is a directory.  Get the index file for the directory.  
+            //find latest file in directory..
+            const files = fs.readdirSync(fileUri.fsPath);
+
+            let latestFile = null;
+            let latestMtime = 0;
+            for (const file of files) {
+                const filePath = posix.join(fileUri.fsPath, file);
+                const stats = fs.statSync(filePath);
+                if (stats.isFile() && stats.mtimeMs > latestMtime) {
+                    latestMtime = stats.mtimeMs;
+                    latestFile = file;
+                }
+                const tempUri = folderUri.with({ path: posix.join(folderUri.path, topic, file) });
+                ret.push(tempUri);
+            }
+            ret.sort((a, b) => a.fsPath.localeCompare(b.fsPath)); //sort alphabetically?  Maybe ok..
+//            if (latestFile) {
+//                fileUri = folderUri.with({ path: posix.join(folderUri.path, topic, latestFile) });
+//            }
+        }
+        else{
+            const stats = fs.lstatSync(fileUri.fsPath);
+            ret.push(fileUri);
+
+        }
+    }
+    return ret;
+
+}
+
+
+async function getAllFunctionsInFile(uri: vscode.Uri) {
+    // 1. Execute the built-in document symbol provider
+    const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+        'vscode.executeDocumentSymbolProvider',
+        uri
+    );
+
+    if (!symbols) return [];
+
+    // 2. Recursively filter out symbols that are functions or methods
+    const functions: vscode.DocumentSymbol[] = [];
+    
+    function filterFunctions(symbolList: vscode.DocumentSymbol[], depth: number = 0, maxDepth: number = 3) {
+        for (const symbol of symbolList) {
+            if (
+                symbol.kind === vscode.SymbolKind.Function || 
+                symbol.kind === vscode.SymbolKind.Method
+            ) {
+                functions.push(symbol);
+            }
+            // Language servers often nest functions inside classes or scopes
+            if (symbol.children && symbol.children.length > 0) {
+                if (depth < maxDepth) {
+                    filterFunctions(symbol.children, depth + 1, maxDepth);
+                }
+            }
+        }
+    }
+
+    filterFunctions(symbols);
+    return functions;
+}
+
+function getExtension(filename: string): string | undefined {
+  const dotIndex = filename.lastIndexOf('.');
+  if (dotIndex !== -1 && dotIndex !== 0) {
+    return filename.substring(dotIndex + 1);
+  }
+  return undefined;
+}
+
 export function select(topic: string, open: number = opennature) : boolean {
     //select the topic from the topicarray.  
     //this will be used to get the topic from the array.  
     let fname = topic.trim();
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
+    const folderUri = workspaceUri;
     // this should be a book path.  Use as you would work on the project.  
-    const fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
+    console.log("Selecting topic: " + fname);
+    let fileUris = getMyUris(fname);
+    console.log("Found file URIs: ", fileUris);
+    let fileUri = fileUris.length > 0 ? fileUris[fileUris.length - 1] : null; //start with last entry..
+
+    console.log(`Initial fileUri: ${fileUri}`);
+    console.log(`Topic: ${topic}`);
+    if (fileUri === null && !isNaN(Number(topic.slice(-8)))) {
+        //special handling for date files, create on select..
+        //open date file on select even if it doesnt exist..
+        fileUri = folderUri.with({ path: posix.join(folderUri.path, topic + ".txt") });
+        console.log(`Creating date file for topic: ${topic} at path: ${fileUri.path}`);
+        if (!fs.existsSync(fileUri.fsPath)) {
+            //create the file if it doesn't exist.  
+            try {
+                fs.writeFileSync(fileUri.fsPath, "");
+            } catch (err) {
+                console.error(`Failed to create date file for topic: ${topic} at path: ${fileUri.fsPath}`, err);
+            }
+        }
+    }
 //	const fileUri = folderUri.with({ path: posix.join(folderUri.path, 'definitions.txt') });
 
     const found = alltopics.find((t) => t === topic);
 
-    vscode.workspace.openTextDocument(fileUri).then(doc => {
-        if (open & BOOK_OPEN_FILE) {
-            vscode.window.showTextDocument(doc);
+    try{
+
+        vscode.workspace.openTextDocument(fileUri).then(doc => {
+            if (open & BOOK_OPEN_FILE && fileUri) {
+                console.log(`Showing text document for fileUri: ${fileUri.fsPath}`);
+                vscode.window.showTextDocument(doc, {preview: false}); //keep the document open in case of tab switch..
+            }
+                //keep selectionhistory, dont load twice.  
+            if (!found){
+                addToHistory(topic); //add the topic to the history.
+            }
+        });
+        if (open & BOOK_OPEN_WEB) {
+            webBook(topic); //open the web view for the topic.
         }
-        //keep selectionhistory, dont load twice.  
-        if (!found){
+
+        //only add if we have data.  
+        if (found) {
             addToHistory(topic); //add the topic to the history.
+            //read the book content if it exists.  
+            let ext = getExtension(topic);
+            console.log(`Extension for topic ${topic}: ${ext}`);
+            if (ext !== undefined && ext !== 'txt' && fileUri !== null) {
+                console.log(`Getting all functions in file: ${fileUri.fsPath}`);
+                getAllFunctionsInFile(fileUri).then((allfuncs) => {
+                    //set data for base language to use for autocompletion and other purposes.
+                    console.log(`Functions in ${fileUri.fsPath}:`, allfuncs);
+//                    setFunctions(allfuncs);
+                    setArrayEntry('currentfunctions', allfuncs);
+                    //update this topic as well..
+                    let mydata = null;
+                    if (!topicdata[topic]) {
+                        topicdata[topic] = {
+                            topic: topic,
+                            data: {}
+                        };
+                        mydata = topicdata[topic];
+                    }
+                    else{
+                        mydata = topicdata[topic];
+                    }
+                    if (!mydata.data["functions"]){
+                        mydata.data["functions"] = [];
+
+                    }
+                    
+                    if (!mydata.data["usedfunctions"]) {
+                        mydata.data["usedfunctions"] = [];
+                    }
+                    //find used functions in Book topic..
+                    //sort by all looked up..
+                    mydata.data["usedfunctions"].sort((a, b) => a.date.localeCompare(b.date));
+                    let tempusedfunctions = [];
+                    for (const func of allfuncs) {
+                        if (func && func.name){
+                            const hasFunc = arrays['--'] && arrays['--'][func.name];
+                            if (hasFunc) {
+                                let lastEntry = arrays['--'][func.name][-1];
+                                tempusedfunctions.push({func: func, topic: topic, book: arrays['--'][func.name], date: lastEntry.date, sortorder: lastEntry.sortorder});
+                            }
+                        }
+                    }
+                    tempusedfunctions.sort((a, b) => a.sortorder > b.sortorder ? 1 : -1);
+                    //add the newly found used functions at the beginning of the list
+                    mydata.data["usedfunctions"].insert(0, ...tempusedfunctions);
+
+                    //functions not in book.. less prevalent listing..
+                    allfuncs = allfuncs.filter(func => func && func.name && !(func.name in arrays['--']));
+
+                    allfuncs.sort((a, b) => a.name.localeCompare(b.name));
+                    mydata.data["functions"].insert(0, ...allfuncs);
+                    
+                    setArrayEntry('currentfunctions', mydata.data["functions"]); //update with 
+
+
+                    console.log(`Current functions:`, getFunctions());
+                });
+                //log for now..
+                //use this for autocompletion on -- as well as storing for trey..
+            }
+
+            readBooksContent(fileUris, topic); //read the book content if it exists.  
+            fileUris = getMyUris(fname, "books");
+            //started using this, but really dont want leading books/
+            if (topic.startsWith("books/")) {
+                topic = topic.substring("books/".length);
+            }
+            readBooksContent(fileUris, topic);
+            //open global or local book view.  
+            return true;
         }
-    });
-    if (open & BOOK_OPEN_WEB) {
-        webBook(topic); //open the web view for the topic.
+    } catch (err) {
+        console.error(`Error selecting topic ${topic}:`, err);
     }
 
-    //only add if we have data.  
-    if (found) {
-        addToHistory(topic); //add the topic to the history.
-        return true;
-    }
     return false;
 
 }
-export function pickTopic(selectedtopics : string[], defaultprompts: string[] = [], numtopics: number = 10, extendtopics: boolean = false) : [string, string] {
+
+export async function readBooksContent(fileUris: vscode.Uri[], topic: string, depth : number = 0){
+    let bookContent = [];
+    if (topic && topicarray[topic] !== undefined) {
+        //read the book content for the topic if it exists.
+        bookContent = topicarray[topic];
+    }
+    for (const fileUri of fileUris) {
+        if (fs.lstatSync(fileUri.fsPath).isDirectory()) {
+            //recurse here to readBooksContent
+            if (depth > 0) {
+                const subUris = getMyUris(fileUri.fsPath);
+                await readBooksContent(subUris, topic, depth - 1);
+            }
+
+
+        }
+        else{
+            await vscode.workspace.openTextDocument(fileUri).then((document) => {
+                let text = document.getText();
+                console.log(`${fileUri.path} ... read`);
+                // parse this.  
+                if (text.length === 0){
+                    console.log(`${fileUri.path} ... empty`);
+                    let tempname = getFileName(fileUri.path);
+                    let mydate = getFileDate(tempname);
+                    if (mydate > 0){
+                        //delete the file if it is empty and has a date.
+                        //I think this should delete past files and still allow for create on open..
+                        fs.unlinkSync(fileUri.fsPath); 
+                        console.log(`${fileUri.path} ... deleted because empty and has date`);
+                    }
+                }
+
+                //load book content for further processing.  This should add to vectra DB if doesnt exist?  
+                let d = loadPage(text, fileUri.path, 0, topic);
+
+
+            });
+        }
+
+        //start workers.  
+//            Worker.initWorkers(context); //start the workers.
+
+    
+    }
+
+
+
+    return bookContent;
+}
+
+export function pickTopic(selectedtopics : string[], defaultprompts: string[] = [], numtopics: number = 10, extendtopics: boolean = false, numentries: number = 10) : [string, string] {
     //pick a topic from the topicarray based on the sort order.
     //still need to improve when we have no selected topics.  
     let minsort = 1000000; //set to a large number.
@@ -633,15 +1061,17 @@ export function pickTopic(selectedtopics : string[], defaultprompts: string[] = 
     }
 
 
-
+    if (!selectionhistory["**"]) {
+        selectionhistory["**"] = [];
+    }
     if (extendtopics || selectedtopics.length === 0){
-        if (selectionhistory.length > 0) {
-            for (let i = selectionhistory.length - 1; i > -1; i--) {
-                if (topicarray[selectionhistory[i]] !== undefined && topicarray[selectionhistory[i]].length > 0) {
+        if (selectionhistory["**"].length > 0) {
+            for (let i = selectionhistory["**"].length - 1; i > -1 && i > selectionhistory["**"].length - numtopics; i--) {
+                if (topicarray[selectionhistory["**"][i]] !== undefined && topicarray[selectionhistory["**"][i]].length > 0) {
                     //sort the topics by date.  
-                    selectedtopics.unshift(selectionhistory[i]); //add the topic to the selected topics.
+                    selectedtopics.unshift(selectionhistory["**"][i]); //add the topic to the selected topics.
                     if (retkey === "NONE"){
-                        retkey = selectionhistory[i]; //set the key to the topic.
+                        retkey = selectionhistory["**"][i]; //set the key to the topic.
                     }
 
 
@@ -672,28 +1102,23 @@ export function pickTopic(selectedtopics : string[], defaultprompts: string[] = 
 
 
     //deduplicate selectedtopics
-    selectedtopics = Array.from(new Set(selectedtopics)); //remove duplicates from the array.
-    if (retkey !== "NONE"){
-        let found = selectedtopics.indexOf(retkey);
-        if (found > -1) {
-            selectedtopics.splice(found, 1); //remove the topic from the selected topics.
-        }
-        selectedtopics.push(retkey); //add the key to the selected topics.
-    }
+    selectedtopics = Array.from(new Set(selectedtopics)); //remove duplicates from the array, keeps order.
+//    selectedtopics.reverse(); //reverse the array so that the most recent topics are at the start..
     let i=0;
-    if (selectedtopics.length > numtopics) {
-        i = selectedtopics.length - numtopics; //start from the end of the array.
-    }
-
 
     //what date do we want to search from?  
     //just add all.  
     let mylist = [];
-    for (; i<selectedtopics.length; i++) {
+
+    let dedup = new Set(); //to keep track of unique items by their data.
+    for (; i<selectedtopics.length && i< numtopics; i++) {
         if (topicarray[ selectedtopics[i] ] !== undefined) {
             retdata += "**" + selectedtopics[i] + "\n"; //add the topic to the data.
             retkey = selectedtopics[i]; //set the key to the topic.
 
+            //only get 10 entries.. per topic
+            let tentries = topicarray[ selectedtopics[i] ].length;
+            let selectedentries = 0;
             for (let j=0; j<topicarray[ selectedtopics[i] ].length; j++) {
                 //add date here.  
                 let item = topicarray[ selectedtopics[i] ][j];
@@ -704,7 +1129,15 @@ export function pickTopic(selectedtopics : string[], defaultprompts: string[] = 
 //                retdata += `[${item.file}](${item.file}#L${item.line})  \n`;
                 
 //                retdata += item.data + "\n"; //add all data for the topic.
-                mylist.push(item);
+                //random number related to list length...
+                if (Math.random() < ((numentries+selectedentries)/(tentries*2))){ //randomly add entries based on the number of entries for the topic.
+                    //weight later entries more..
+                    if (!dedup.has(item.data)) { //deduplicate the list. by data..
+                        mylist.push(item);
+                        selectedentries++;
+                        dedup.add(item.data);
+                    }
+                }
             }
         }
     }
@@ -714,11 +1147,13 @@ export function pickTopic(selectedtopics : string[], defaultprompts: string[] = 
         return a.date - b.date; //sort by date.
     });
 
+    //get only a subset of results to avoid overwhelming the model and the user..
     for (let i=0; i<mylist.length; i++) {
         //add the date to the data.  
+        //randomly return results?  
         let item = mylist[i];
 //        retdata += `**${item.topic}\n`;
-        retdata += `**${item.file}:${item.line}  \n`;
+        retdata += `**${item.file}:${item.line}\n`;
         retdata += item.data + "  \n"; //add all data for the topic.
     }
     //for now returning all topic data in book.  
@@ -736,7 +1171,7 @@ export async function gitChanges(topics: string[]) : Promise<string> {
     const mytopiclogfile = mytopicfile + ".log"; //get the topic log file.
 
     //read this log file if exists. 
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
+    const folderUri = workspaceUri;
     const fileUri = folderUri.with({ path: posix.join(folderUri.path, mytopiclogfile) });    
     const readData = await vscode.workspace.fs.readFile(fileUri);
     const readStr = Buffer.from(readData).toString('utf8');
@@ -786,7 +1221,7 @@ export async function read(prompt: string, mode: number = GIT_BOOK) : Promise<[s
 
     if (mode & GIT_CODE){
         try {
-            const folderUri = vscode.workspace.workspaceFolders[0].uri;
+            const folderUri = workspaceUri;
             const stat = await vscode.workspace.fs.stat(folderUri.with({ path: topkey }));
             //assume file exists if stats doesnt fail.  
             let git = await gitChanges(selectedtopics); //get the git changes for the topic.
@@ -797,6 +1232,7 @@ export async function read(prompt: string, mode: number = GIT_BOOK) : Promise<[s
         }
     }
 
+    addQueryHistory({'query': prompt, 'expanded': '**' + selectedtopics.join('\n**'), 'response': topics}); //add the query and the expanded context to the query history.
     return [topkey, topics];
 
 
@@ -812,6 +1248,7 @@ export function formatDate(date: Date = new Date()): string {
 
 export function getBook(context: vscode.ExtensionContext | null = null) {
     loadBook(context);
+    loadGenBook(context); //load the genbook if it exists.
 }
 
 export async function closeFileIfOpen(file:vscode.Uri) : Promise<void> {
@@ -822,7 +1259,7 @@ export async function closeFileIfOpen(file:vscode.Uri) : Promise<void> {
     }
 }
 
-async function readFileNamesInFolder(path: string): Promise<Array<string>> {
+async function readFileNamesInFolder(path: string, includeDir: boolean = true): Promise<Array<string>> {
     let topicUri = getUri(path);
     let total = 0;
     let count = 0;
@@ -831,7 +1268,9 @@ async function readFileNamesInFolder(path: string): Promise<Array<string>> {
         //what order does this come in?  Is it alphabetical?
         if (type === vscode.FileType.Directory) {
             const fileUri = topicUri.with({ path: posix.join(topicUri.path, name) });
-            retarray.push(path + name); //add the directory name to the array.
+            if (includeDir) {
+                retarray.push(path + name); //add the directory name to the array.
+            }
 
         }
         if (type === vscode.FileType.File) {
@@ -843,7 +1282,7 @@ async function readFileNamesInFolder(path: string): Promise<Array<string>> {
 
 }
 
-async function readFilesInFolder(folder: vscode.Uri): Promise<{ total: number, count: number, page: string }> {
+async function readFilesInFolder(folder: vscode.Uri): Promise<{ total: number, count: number, page: string, genpage: string }> {
     let total = 0;
     let count = 0;
     let booknow = 0;
@@ -878,7 +1317,7 @@ async function readFilesInFolder(folder: vscode.Uri): Promise<{ total: number, c
             let stats = await vscode.workspace.fs.stat(fileUri);
             const modifiedDate = new Date(stats.mtime);
             //alt date in case this is not named correctly.
-            let altdate = modifiedDate.getFullYear()*10000 + modifiedDate.getMonth()*100 + modifiedDate.getDate();
+            let altdate = modifiedDate.getFullYear()*10000 + (modifiedDate.getMonth()+1)*100 + modifiedDate.getDate();
         } catch (error) {
             console.error(`Error reading file: ${error}`);
         }
@@ -887,6 +1326,16 @@ async function readFilesInFolder(folder: vscode.Uri): Promise<{ total: number, c
             let text = document.getText();
             console.log(`${fileUri.path} ... read`);
             // parse this.  
+            if (text.length === 0){
+                console.log(`${fileUri.path} ... empty`);
+                let tempname = getFileName(fileUri.path);
+                let mydate = getFileDate(tempname);
+                if (mydate > 0){
+                    //delete the file if it is empty and has a date.
+                    fs.unlinkSync(fileUri.fsPath); 
+                    console.log(`${fileUri.path} ... deleted because empty and has date`);
+                }
+            }
 
             let d = loadPage(text, fileUri.path, altdate);
             if (d.valueOf() > booknow) {
@@ -908,9 +1357,23 @@ async function readFilesInFolder(folder: vscode.Uri): Promise<{ total: number, c
         });
 
     }
-    return { total, count, page: getBookPath() + "/" + booknow.toString() };
+
+    return { total, count, page: getBookPath() + "/" + booknow.toString(), genpage: getGenBookPath() + "/" + booknow.toString() };
 }
 
+
+export function getTopicFromFilePath(filePath: string, wsf: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders?.[0]): string {
+    // Extract the topic from the file path.
+    // Assuming the topic is the filename without the extension.
+    if (wsf) {
+        if (filePath.startsWith(wsf.uri.path + "/")) {
+            filePath = filePath.replace(wsf.uri.path + "/", "");
+        }
+    }
+
+
+    return filePath; 
+}
 
 export function getFileName(filePath: string): string {
     //get the date of the file.  
@@ -927,7 +1390,7 @@ function getFileDate(filePath: string): number {
     }
     else{
         //get date of the file
-        const folderUri = vscode.workspace.workspaceFolders[0].uri;
+        const folderUri = workspaceUri;
 
 //       const stat => await vscode.workspace.fs.stat(folderUri.with({ path: filePath }))
 //        console.log((new Date(stat.mtime)).getFullYear() * 10000); //get the date of the file.
@@ -943,58 +1406,84 @@ function initArray(topic: string, array: {[key: string] : Array<BookTopic> | und
     }
 }
 
-export function updatePage(filePath: string, text: string, linefrom: number = 0, lineto: number = 0, show: boolean = false) {
+export function updatePage(filePath: string, text: string, linefrom: number = 0, lineto: number = 0, show: boolean = true) {
     //update the current page with the text and filePath.  
     //this will be used to update the current topic.  
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
+    const folderUri = workspaceUri;
     // this should be a book path.  Use as you would work on the project.  
     const fileUri = folderUri.with({ path: posix.join(folderUri.path, filePath) });
 
-    const wsEdit = new vscode.WorkspaceEdit();
-    wsEdit.createFile(fileUri, { ignoreIfExists: true });
-    vscode.workspace.applyEdit(wsEdit).then(() => {
+    
+    const copyUri = filePath.split("/").pop(); //last part of file path
+
+    const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+    //do we need two copies?  
+    try{
+        const transcriptFolder = mySettings.get('transcriptfolder', 'C:\\devinpiano\\transcripts\\');
+        fs.appendFileSync(posix.join(transcriptFolder, 'genbook\\' + copyUri), text + "\n", 'utf-8'); //write the text to the transcript folder for backup and analysis.
+    }
+    catch (error) {
+        console.error(`Error writing file: ${error}`);
+    }
+
+    const genbookfolder = mySettings.get('genbookfolder', 'genbook');
+    if (filePath.startsWith(genbookfolder)){
+        //dont open just for logging.. just write..
+        try {
+            console.log('writing to ' + posix.join(folderUri.path, genbookfolder + "\\" + copyUri));
+            fs.appendFileSync(posix.join(folderUri.fsPath, genbookfolder + "\\" + copyUri), text + "\n", 'utf-8');
+        } catch (error) {
+            console.error(`Error writing file: ${error}`);
+        }
+    }
+    else{
+
+        const wsEdit = new vscode.WorkspaceEdit();
+        wsEdit.createFile(fileUri, { ignoreIfExists: true });
+        vscode.workspace.applyEdit(wsEdit).then(() => {
 
 
-        vscode.workspace.openTextDocument(fileUri).then((document) => {
+            vscode.workspace.openTextDocument(fileUri).then((document) => {
 
-            vscode.window.showTextDocument(document).then((editor) => {
-                /*
-            const editor = vscode.window.visibleTextEditors.find(
-                (editor) => editor.document.uri.fsPath === document.uri.fsPath
-            );   
-            */     
-    //        let editor = document.editor;
-                editor.edit(editBuilder => {
-                    if (lineto === 0 && linefrom === 0) {
-                        var firstLine = editor.document.lineAt(0);
-                        var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
-                        var textRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
-                        editBuilder.replace(textRange, text); //replace the entire document with the new text.
-                    }
-                    else if (lineto === -1 && linefrom === -1){
-                        //append to the end of the document.
-                        var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
-                        var textRange = new vscode.Range(lastLine.range.end, lastLine.range.end);
-                        editBuilder.insert(textRange.start, "\n" + text); //append the text to the end of the document.
-                    }
+                vscode.window.showTextDocument(document).then((editor) => {
+                    /*
+                const editor = vscode.window.visibleTextEditors.find(
+                    (editor) => editor.document.uri.fsPath === document.uri.fsPath
+                );   
+                */     
+        //        let editor = document.editor;
+                    editor.edit(editBuilder => {
+                        if (lineto === 0 && linefrom === 0) {
+                            var firstLine = editor.document.lineAt(0);
+                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+                            var textRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
+                            editBuilder.replace(textRange, text); //replace the entire document with the new text.
+                        }
+                        else if (lineto === -1 && linefrom === -1){
+                            //append to the end of the document.
+                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+                            var textRange = new vscode.Range(lastLine.range.end, lastLine.range.end);
+                            editBuilder.insert(textRange.start, "\n" + text); //append the text to the end of the document.
+                        }
 
-                }).then(() => {
-                    // Optionally, you can show a message to indicate the file has been updated
-                    if (!show) {
-//                        vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-                        setTimeout(() => {
-                            vscode.commands.executeCommand("workbench.action.openPreviousRecentlyUsedEditor");                         
-                        }, 400); //wait a second before going back to previous editor.
+                    }).then(() => {
+                        // Optionally, you can show a message to indicate the file has been updated
+                        if (!show) {
+    //                        vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+                            setTimeout(() => {
+                                vscode.commands.executeCommand("workbench.action.openPreviousRecentlyUsedEditor");                         
+                            }, 400); //wait a second before going back to previous editor.
 
-                    }
-                    else{
-                        //still go back to previous editor?  maybe not just boolean for more possibilities.
-                        vscode.commands.executeCommand("workbench.action.openPreviousRecentlyUsedEditor");                         
-                    }
+                        }
+                        else{
+                            //still go back to previous editor?  maybe not just boolean for more possibilities.
+    //                        vscode.commands.executeCommand("workbench.action.openPreviousRecentlyUsedEditor");                         
+                        }
+                    });
                 });
             });
         });
-    });
+    }
 }
 
 
@@ -1024,11 +1513,12 @@ async function fixVectraError(filePath: vscode.Uri){
     }
 }
 
-export async function getChat(input: string, model: string = 'llama3.1:8b') : Promise<string> {
+export async function getChat(input: string, model: string = ollama_model) : Promise<string> {
     let response = await ollama.chat({
 //        model: 'llama3.1:8b',
 //        model: 'gemma3n:latest',
-        model: primary_model,        //model: 'gemma3:4b',
+//        model: 'gemma3:4b',
+        model: model,
 //            model: 'granite3.3:8b',
 
         messages: [
@@ -1051,8 +1541,7 @@ export async function getExpanded(input : string, MAX_MULT: number = 3) : Promis
     //this will be used to summarize the book.
     let expanded = input;
     let expandme = await ollama.chat({
-
-        model: expansion_model,
+        model: ollama_model,
 //            model: 'deepseek-coder-v2:latest',
         //deepseek-r1:latest 
         //granite-code:latest
@@ -1081,7 +1570,7 @@ export async function getExpanded(input : string, MAX_MULT: number = 3) : Promis
         return expandme["message"]["content"];
 }
 
-export async function getSummary(input : string, CTX_WND: number = 5000) : Promise<string> {
+export async function getSummary(input : string, CTX_WND: number = 100000) : Promise<string> {
     //get the summary of the chunks.  
     //this will be used to summarize the book.
     let chunks = await getChunks(input, CTX_WND); //get the chunks from the book.
@@ -1091,8 +1580,7 @@ export async function getSummary(input : string, CTX_WND: number = 5000) : Promi
     for (let i=0; i<chunks.length-1; i++) {
         //send this chunk to the summarization model.  
         let summary = await ollama.chat({
-            model: expansion_model, //primary model too slow here, 
-            // ideally need sub-second return..
+            model: ollama_model,
 //            model: 'deepseek-coder-v2:latest',
             //deepseek-r1:latest 
             //granite-code:latest
@@ -1185,21 +1673,67 @@ export function getReadableName(name: string, line: number = 0) : string {
     return ret;
 }
 
-export async function markdown(prompt: string) : Promise<string> {
+
+export function loadGenBook(context: vscode.ExtensionContext | null = null) {
+    //load the genbook from the workspace to get additional frequency information.  
+    //readAllFiles..
+    //this will be used to load the genbook from the workspace.
+    //also clean genbook of any files which are empty..
+    const genbookUri = getGenBookUri();
+    readFilesInFolder(genbookUri).then((result) => {
+        console.log(`GenBook loaded: ${result.count} files, ${result.total} bytes, most recent page: ${result.page}, genpage: ${result.genpage}`);
+
+
+    });
+
+    
+
+}
+
+
+function getLinkCommand(link: string){
+    //this will return the link command for the given link.
+    //for now, just return the link itself.
+    //find last colon
+    let vars = [{ link: link }];
+    return `command:mrrubato.mytutor.link?${encodeURIComponent(JSON.stringify(vars))}`;
+    return `command://@mr/link=${link}`;
+    //(copilot://@mr/link?)
+    return `copilot://@mr/link?link=${link}`;
+    return link;
+
+}
+//format is for what window..
+export async function markdown(prompt: string, format: number =1) : Promise<string> {
     //this just adjustst the base string to include links to markdown files.  
     //replace **topic with [topic](topic.md)
     //replace #link with [link](link)
+    console.log(`Markdown prompt: ${prompt}`);
 
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
-    let marked = prompt.replace(/(\*\*|\#)(\S+)/g, (match, p1, p2) => {
+    const folderUri = workspaceUri;
+    let prevURL = "";
+    let marked = prompt.replace(/(\*\*|\n\#)(\S+)/g, (match, p1, p2) => {
         // p1 is either ** or #
         // p2 is the topic or link 
         let fname = p2;
         let fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
        // this should be a book path.  Use as you would work on the project.  
-        if (p1 === "#"){
-                fileUri = p2;
-                return `[${p1}${p2}](${fileUri})`; //return the markdown link.
+        if (p1 === "\n#"){
+
+                if (p2.startsWith(":")){
+                    p2 = prevURL + p2;
+                }
+                else{
+                    let lastColon = p2.lastIndexOf(":");
+                    if (lastColon > 10){
+                        prevURL = p2.substring(0, lastColon);
+                    }
+                    else{
+                        prevURL = p2;
+                    }
+                }
+                let linkText = p2.replace(/\|/g, "\\|"); 
+                return `\n[#${linkText}](${getLinkCommand(p1+p2)})  `; //return the markdown link.
         }
         else{
             let colon = p2.lastIndexOf(":");
@@ -1211,11 +1745,28 @@ export async function markdown(prompt: string) : Promise<string> {
 
         
                 let line = p2.slice(colon + 1); //get the line number. 
-                //remove folder from file name.  
-                p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
-                //need to rewrite dates to something else..
-                let readablename = getReadableName(p2, line);
-                return `[${p1}${readablename}](${fname}#L${line})`; //return the markdown link.
+                line = line.trim(); //remove any whitespace from the line number.
+
+                if (fname.length > 1){
+                    //only do this with actual name.. not blank : 
+                    //remove folder from file name.  Why do we have to do this???
+                    p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
+                    fname = fname.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.
+    //				let fileUri = getUri(fname);
+                    let fileUri = folderUri.with({ path: posix.join(folderUri.path, fname) });
+                    //check if valid too expensive..
+//                    if (fs.existsSync(fileUri.fsPath)) {
+                        //file exists, return the link.
+//                    }
+                    //need to rewrite dates to something else..
+                    if (line.length > 0 && !isNaN(Number(line))){
+                        let readablename = getReadableName(p2, line);
+                        return `[${p1}${readablename}](${fileUri}#L${line})  `; //return the markdown link.
+                    }
+                    else{
+                        return `[${p1}${fname}]`; //return the markdown link.
+                    }
+                }
 //                return `[${p1}${p2}](${fname}#L${line})`; //return the markdown link.
             }
             //try to detect generated markdown unrelated to file.  
@@ -1224,7 +1775,7 @@ export async function markdown(prompt: string) : Promise<string> {
             if (p2 in topicarray) {
                 p2 = p2.replace(folderUri.path + "/", ""); //remove the folder path from the file name for display purposes.  
                 let readablename = getReadableName(p2);
-                return `[${p1}${readablename}](${fileUri.path})`; //return the markdown link.
+                return `[${p1}${readablename}](${fileUri})  `; //return the markdown link.
 //                return `[${p1}${p2}](${fileUri.path})`; //return the markdown link.
             }
             return match; //return the original match if file does not exist.
@@ -1257,12 +1808,27 @@ export async function markdown(prompt: string) : Promise<string> {
 
         }
         else{
-            let readablename = getReadableName(p2);
-            return `[${p1}${readablename}](${fname})`; //return the markdown link.
+            let readablename = getReadableName(p2); //only using for TTS really..
+            return `[${p1}${readablename}](${getLinkCommand(p1+p2)})`; //return the markdown link.
 
         }
     });
 
+    //could be others as well.. not sure why /^ syntax doesnt work in this function..
+    marked = marked.replace(/(\n~~|\n@@)(.*)/g, (match, p1, p2) => {
+        // p1 is $$
+        //need some logic here for $$ variable replacement.  
+        // p2 is the topic or link 
+        console.log(`Processing line with type: ${p1} and info: ${p2}`);
+        let type = p1;
+        let info = p2;
+        return `[${type}](${getLinkCommand(type+info)})${info}`; //return the markdown link.
+
+    });
+    
+    //$$ is math block in markdown..
+    marked = marked.replace(/\$/g, () => '\\$'); //escape dollar signs
+   console.log(`Marked content: ${marked}`);
     return marked;
 
 }
@@ -1276,6 +1842,7 @@ export async function ask(prompt: string) : Promise<string> {
     let summary = originalb[1].slice(-10000); //just take the end of the book for context.
     //context window is small I think..
     let response = await getChat(summary + "\n\n\n" + prompt + "==\n");
+    addQueryHistory({ query: prompt, expanded: prompt, response: response }); //add the query and response to the history.
     return response;
 }
 
@@ -1309,17 +1876,17 @@ export async function summary(prompt: string) : Promise<string> {
 //    let b = await read(prompt, GIT_BOOK);
 
     //large context window.  testing gemma3n:latest
-    let originalsummary = await getSummary(originalb[1], 5000); //get the summary of the chunks.
+    let originalsummary = await getSummary(originalb[1], 50000); //get the summary of the chunks.
     console.log(`Original Summary: ${originalsummary}`);
 
     //use original if we have some data..
     if (originalsummary.length < 300){
-        let combined = await getSummary(simdata + '\n' + originalb[1], 5000); //get the summary of the chunks.
+        let combined = await getSummary(simdata + '\n' + originalb[1], 50000); //get the summary of the chunks.
         console.log(`Similar Summary: ${combined}`);
 
         if (combined.length < 500){
             let b = await read(prompt, GIT_BOOK);
-            let expandedsummary = await getSummary(b[1], 5000); //get the summary of the chunks.
+            let expandedsummary = await getSummary(b[1], 50000); //get the summary of the chunks.
             console.log(`Expanded Summary: ${expandedsummary}`);
             return expandedprompt + "  \n" + expandedsummary + '\n\n';
         
@@ -1341,7 +1908,8 @@ export async function expandPrompt(prompt: string) : Promise<string> {
 export async function similar(prompt: string) : Promise<Array<BookTopic>> {
     //this will be used to find similar topics in the book.  
     //for now just return the topics in the book.
-    let expandedprompt = await expandPrompt(prompt); //expand the prompt to include more context.
+    //expansion not working..
+    let expandedprompt = prompt; //await expandPrompt(prompt); //expand the prompt to include more context.
 //    let selectedtopics = findInputTopics(prompt + "\n" + expandedprompt); 
     let selectedtopics = findInputTopics(prompt);
     console.log("SIMILAR Selected topics: ", selectedtopics);
@@ -1486,6 +2054,8 @@ export async function similar(prompt: string) : Promise<Array<BookTopic>> {
     let today = new Date();
     let todaydate = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
     ret.push({topic: "EXPANDED", data: expandedprompt, date: todaydate, file: "", line: 0}); //add the prompt as the first item.
+
+    addQueryHistory({'query': prompt, 'expanded': expandedprompt}); //add to query history.
     return ret;
 
 }
@@ -1531,7 +2101,8 @@ async function addVectorData(topic: BookTopic) {
         //maybe want to create an index by first subfolder or second etc.  
         if (pathParts.length > 1) {
             const folderUri = bvFolder.with({ path: posix.join(bvFolder.path, pathParts.slice(0,-1).join('/')) });
-            console.log(`Creating folder: ${folderUri.path}`);
+
+            //console.debug(`Creating folder: ${folderUri.path}`);
             try{
                 //why are we getting a leading slash?  posix.join should not do this.
             fs.mkdirSync(folderUri.path.slice(1), { recursive: true });
@@ -1602,7 +2173,8 @@ async function addVectorData(topic: BookTopic) {
     timelag.setDate(timelag.getDate() - 270); //set the time lag to 9 months ago.
     let checkdate = timelag.getFullYear()*10000 + timelag.getMonth()*100 + timelag.getDate();
 
-    console.log(`Checking existing items for topic ${topic.topic}:`, checkexisting);
+    //to high frequency
+//    console.debug(`Checking existing items for topic ${topic.topic}:`, checkexisting);
 
     alltopicdata.push(topic); //add to all topic data for ftsindex.
     //insert the item into the ftsindex as well.  
@@ -1663,25 +2235,62 @@ async function addVectorData(topic: BookTopic) {
 
 }
 
-export function loadPage(text: string, filePath: string, altdate: number=0): Number {
+export function loadPage(text: string, filePath: string, altdate: number=0, bookname : string = "", reload=false): Number {
     //get the completions from the text.  
     //each topic or comment should be parsed and added to 
     //completions...
+    let topicpath = getTopicFromFilePath(filePath);
+    console.log("Topic Path: " + topicpath);
     let filename = getFileName(filePath);
 
     currenttopic = filename.split(".")[0]; //default topic is the file name.
 
+    let mydate = getFileDate(filename); //get the date of the file.    
+
+    if (bookname !== "") {
+//        altdate = getFileDate(filename);
+//        currenttopic = bookname;
+        if (!(bookname in topicarray) || topicarray[bookname] === undefined) {
+            topicarray[bookname] = [];
+        }
+        //add bookname as a prefix to the current topic.
+        if (mydate !== 0){
+            //date file
+        }
+        else{
+            //use bookname folder as a prefix for the current topic.
+            currenttopic = bookname + "/" + currenttopic;
+        }
+    }
+
     if (!(currenttopic in topicarray) || topicarray[currenttopic] === undefined) {
         topicarray[currenttopic] = [];
     }
-    let mydate = getFileDate(filename); //get the date of the file.    
+
     if (mydate === 0 && altdate !== 0){
         mydate = altdate; //use the alternate date if we have one.
     }
-    let mypage = {"file": filePath, "line": 0, "topic": currenttopic, "sortorder": 0, "date": mydate, "data": ""};
+    if (mydate === 0){
+        let d = new Date();
+        mydate = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); //use the current date in YYYYMMDD format if we have no other date.
+    }
+
+    const date = new Date(mydate.toString().slice(0,4) + "-" + mydate.toString().slice(4,6) + "-" + mydate.toString().slice(6,8)); //convert YYYYMMDD to Date object.
+
+    // Get Unix timestamp in seconds
+    const unixTimestamp = Math.floor(date.getTime() / 1000);
+
+
+    let booktopic = {"file": filePath, "_": "**", "**": bookname, ":": 0, "..": unixTimestamp, 
+                                    "topic": bookname, "line": 0, "date": mydate, "sortorder": 0, "data": ""};
+
+    let mypage = {"file": filePath, "_": "**", "**": currenttopic, ":": 0, "..": unixTimestamp, 
+                                    "topic": currenttopic, "line": 0, "date": mydate, "sortorder": 0, "data": ""};
     //adjust sortorder based on order of occurrence for now. 
-    let mytopic = {"file": filePath, "line": 0, "topic": currenttopic, "sortorder": 0, "date": mydate, "data": ""};
-    let subtopic = {"file": filePath, "line": 0, "topic": currenttopic, "sortorder": 0, "date": mydate, "data": ""};
+    let mytopic = {"file": filePath, "_": "**", "**": currenttopic, ":": 0, "..": unixTimestamp, 
+                                    "topic": currenttopic, "line": 0, "date": mydate, "sortorder": 0, "data": ""};
+    let subtopic = {"file": filePath, "_": "> ", "**": currenttopic, ":": 0, "..": unixTimestamp, 
+                                    "topic": currenttopic, "line": 0, "date": mydate, "sortorder": 0, "data": ""};
 
     let strs = text.split("\n");
     let tkey = currenttopic;
@@ -1713,7 +2322,12 @@ export function loadPage(text: string, filePath: string, altdate: number=0): Num
 //                    if (type === "TOPIC") {
                     topicstart[key].push(i);
                     if (key === "**") {
-                        currenttopic = str.slice(2).trim(); //get the topic key from the line.                        
+                        let ttop = str.slice(2).trim();
+                        if (ttop.indexOf(':') !== -1) {
+                            ttop = ttop.split(':')[0].trim();
+                        }
+                        currenttopic = ttop;
+
 
                         break keyfind;
                     }
@@ -1749,7 +2363,7 @@ export function loadPage(text: string, filePath: string, altdate: number=0): Num
         initArray(tkey, topicarray); //if doesnt exist, add.  
         let myorder = 0;
         myorder = topicarray[tkey]?.length || 0; //get the current order of the topic.
-        mytopic = {"file": filePath, "line": topicstart['**'][i], "topic": tkey, "sortorder": myorder, "date": mydate, "data": ""};
+        mytopic = {"file": filePath, "_": "**", "**": tkey, "..": unixTimestamp, ":": topicstart['**'][i], "line": topicstart['**'][i], "topic": tkey, "sortorder": myorder, "date": mydate, "data": ""};
         mytopic.data = strs.slice(topicstart['**'][i], (i+1)<topicstart['**'].length?topicstart['**'][i+1]:strs.length).join("\n"); //get the topic data from the lines.
 
         //add to vectra (vector DB) this data for later similarity search?  
@@ -1761,6 +2375,11 @@ export function loadPage(text: string, filePath: string, altdate: number=0): Num
         if (found === undefined) {
             topicarray[tkey]?.push(mytopic); //add the previous topic to the array.
             addVectorData(mytopic); //add the topic to the vector DB.
+            if (bookname !== "") {
+                mytopic.topic = bookname;
+                addVectorData(mytopic); //add the book topic to the vector DB.
+                mytopic.topic = currenttopic; //restore the original topic for the current topic.
+            }
         }
 
         //adjust sortorder based on order of occurrence for now. 
@@ -1801,10 +2420,9 @@ export function loadPage(text: string, filePath: string, altdate: number=0): Num
             myorder = arrays[key][ckey]?.length || 0; //get the current order of the topic.
             
 
-            subtopic = {"file": filePath, "line": topicstart[key][i], "topic": currenttopic, "sortorder": myorder, "date": mydate, "data": ""};
+            subtopic = {"file": filePath, "_": key, "..": unixTimestamp, ":": topicstart[key][i], "**": currenttopic, "line": topicstart[key][i], "topic": currenttopic, "sortorder": myorder, "date": mydate, "data": ""};
             //for now just get two lines of data for subtopics.
             subtopic.data = strs.slice(topicstart[key][i],topicstart[key][i]+2 ).join("\n"); //get the subtopic data from the lines.
-
             initArray(ckey, arrays[key]); //if doesnt exist, add.  
 
             const found = arrays[key][ckey]?.find(element => element.file === subtopic.file && element.line === subtopic.line);
@@ -1819,9 +2437,16 @@ export function loadPage(text: string, filePath: string, altdate: number=0): Num
     if (found === undefined) {
         topicarray[currenttopic]?.push(mytopic); //add the previous topic to the array.
         addVectorData(mytopic); //add the topic to the vector DB.
+        if (bookname !== "") {
+            mytopic.topic = bookname;
+            addVectorData(mytopic); //add the book topic to the vector DB.
+            mytopic.topic = currenttopic; //restore the original topic for the current topic.   
+        }
     }
 //do we want this?  
-    topicarray[mydate.toString()]?.push(mypage);       
+    if (!reload){
+        topicarray[mydate.toString()]?.push(mypage);       
+    }
     return mydate;
 }
 
@@ -1838,13 +2463,31 @@ export function getBookVectorPath() : string{
 }
 
 
+export function getGenBookPath() : string{
+    const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+    let genbookFolder = mySettings.genbookfolder;
+    return genbookFolder;
+}
+
 export function getUri(path: string) : vscode.Uri {
     if (!vscode.workspace.workspaceFolders) {
         return vscode.Uri.parse("");
     }
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
+    const folderUri = workspaceUri;
+//    const retUri = folderUri.with({ path: posix.join(folderUri.path, path) });
     const retUri = folderUri.with({ path: posix.join(folderUri.path, path) });
     return retUri;
+}
+
+
+function getGenBookUri() : vscode.Uri {
+    if (!vscode.workspace.workspaceFolders) {
+        return vscode.Uri.parse("");
+    }
+    const folderUri = workspaceUri;
+    const genBookFolder = getGenBookPath();
+    const genBookUri = folderUri.with({ path: posix.join(folderUri.path, genBookFolder) });
+    return genBookUri;
 }
 
 function getBookUri() : vscode.Uri {
@@ -1852,10 +2495,10 @@ function getBookUri() : vscode.Uri {
         return vscode.Uri.parse("");
     }
     // this should be a book path.  Use as you would work on the project.  
-    const folderUri = vscode.workspace.workspaceFolders[0].uri;
+    const folderUri = workspaceUri;
 
     const bookFolder = getBookPath(); //get the book folder from settings.
-    bookvectorFolder = getBookVectorPath(); //get the book vector folder from settings.
+    const bookvectorFolder = getBookVectorPath(); //get the book vector folder from settings.
     const bookUri = folderUri.with({ path: posix.join(folderUri.path, bookFolder) });
     return bookUri;
 }
@@ -1877,19 +2520,65 @@ function loadBook(context: vscode.ExtensionContext | null = null) {
         }
     }
 
-    readFilesInFolder(bookUri).then((result) => {
+    readFilesInFolder(bookUri).then(async (result) => {
         console.log(`Total size: ${result.total} bytes, File count: ${result.count}`);
         console.log(topicarray);
         //add this to our CompletionItemProvider.   
-        sortArray(topicarray); //sort the topic array by date.
-        for (let i=0; i<defmap.length; i++) {
-            for (const [key, val] of Object.entries(defmap[i])) {
-                sortArray(arrays[key], key);
+        sortRecency();
+        console.log(`Sorted topic array: ${Object.keys(topicarray).length} elements`);
+
+        //open the most recent file.
+        select(result.page, BOOK_OPEN_FILE); //select and open topic
+        console.log(`Opened most recent topic file: ${result.page}.txt`);
+        select(result.genpage, BOOK_OPEN_FILE); //select and open genbook topic
+        let genPage = result.genpage + ".txt";
+        console.log(`Opened most recent genbook topic file: ${genPage}`);
+
+        //get file content of the current genpage.
+        const currentGenpageUri = getUri(genPage);
+        console.log(`Current genpage URI: ${currentGenpageUri.fsPath}`);
+        let length = 0;
+        try{
+            const currentContent = await vscode.workspace.fs.readFile(currentGenpageUri);        
+            length = currentContent.length;
+        } catch (err){
+            console.log(`Error reading current genpage: ${err}`);
+        }
+        console.log(`Current genpage content length: ${length}`);
+        if (length === 0) {
+            //current genpage is empty, we may want to insert data from the previous genpage.
+            //insert data into genpage from previous genpage..
+            let folder = genPage.split('/').slice(0, -1).join('/'); //get the folder path of genpage.
+            //find previous page
+            //list directory
+
+            const genpageFiles = await readFileNamesInFolder(folder + "/", false); //list files in the genpage folder.
+            //get latest..
+            console.log(`copying Genpage content from latest file to current genpage dir ${genpageFiles.length} files`);
+            let latestGenpage = genpageFiles.sort((a, b) => a.localeCompare(b)).pop(); //get the latest file based on modification time.
+            console.log(`Latest genpage file: ${latestGenpage}`);
+            if (latestGenpage) {
+                console.log(`Copying content from latest genpage: ${latestGenpage} to current genpage: ${genPage}`);
+                //copy content from the latest genpage to the current genpage.
+                const latestGenpageUri = getUri(latestGenpage);
+                const currentGenpageUri = getUri(genPage);
+                const latestContent = await vscode.workspace.fs.readFile(latestGenpageUri);
+                console.log(`Read content from latest genpage: ${latestContent.length} bytes`);
+                //truncate to only use latest N lines of content..
+                const latestContentStr = Buffer.from(latestContent).toString('utf8');
+                const latestContentLines = latestContentStr.split('\n');
+                const N = 20; // number of lines to keep, for now, lets keep it minimal.  
+                //dont make this repeated context, we want run commands to be distinguishable, not sure what to bring if anything..
+
+                const truncatedContent = latestContentLines.slice(-N).join('\n');
+                const latestContentBuffer = Buffer.from(truncatedContent, 'utf8');
+                console.log(`Writing truncated content to current genpage: ${truncatedContent.length} to ${genPage}`);
+                await vscode.workspace.fs.writeFile(currentGenpageUri, latestContentBuffer);
+
             }
         }
 
-        //open the most recent file.
-        select(result.page + ".txt"); //select and open topic
+
         
         
         let YYYYmmdd = result.page.split('/').at(-1); //get the date from the path.
@@ -1898,6 +2587,7 @@ function loadBook(context: vscode.ExtensionContext | null = null) {
         prevdate.setFullYear(currentdate.getFullYear() - 1); //get the date one year ago.
         
         //see if this logic works.  OK we have a small relationship graph.  
+        console.log(`Building topic graph from ${prevdate.toISOString().slice(0,10).replace(/-/g,"")} to ${currentdate.toISOString().slice(0,10).replace(/-/g,"")}`);
         buildTopicGraph(prevdate.toISOString().slice(0,10).replace(/-/g,""), currentdate.toISOString().slice(0,10).replace(/-/g,"")); //build the topic graph for last year.  
         console.log(bookgraph);
 

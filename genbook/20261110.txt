@@ -1,0 +1,44 @@
+**genbook/20261110
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+>#2 python ./extensions/trey/trey.py
+> pip install flask
+> pip install flask, flask-cors
+**genbook/20261110
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+
+@@What is the usage of these pins in this time?
+**extensions/vscode/codetutor/src/languages/base.ts
+**extensions/vscode/codetutor/src/languages/base.ts
+**genbook/20261110
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+**languages/git.py
+**languages/git.py
+**languages/git.py
+**genbook/20261110
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**genbook/20261110
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+> pip install fastapi
+**timestep.py
+**timestep.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**languages/hotkeys.py
+**languages/hotkeys.py

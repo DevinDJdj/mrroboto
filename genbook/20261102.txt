@@ -1,0 +1,8 @@
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+&&
+**books/WORLDHISTORY/COMPUTING
+&&
+&&
+$$20261020_101638

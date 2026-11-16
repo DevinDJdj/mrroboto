@@ -4,6 +4,10 @@ import { AudioContext, OscillatorNode, GainNode } from 'node-web-audio-api';
 
 import * as vscode from 'vscode';
 import * as Book from '../book';
+import * as State from './state';
+import * as transcriber from '../transcriber';
+
+let state = State.state; //reference to the static state class
 
 let playfeedback = true;
 let pedal = false;
@@ -13,19 +17,33 @@ const SUSTAIN_LEVEL = 0.8;
 const RELEASE_TIME = 0.2;
 
 
+
+class WordNode{
+    word: string;
+    lang: string;
+    sequence: Number[]; //params
+    ws: Number[]; //word
+}
 export class MyKeys {
+    state: typeof State.state; //reference to the static state class
+    transcriber: typeof transcriber;
     keys: Number[]; //array of ints
     sequence: Number[]; //array of ints
     config: any;
-    words: string[];
+    lasttick: number;
+    words: WordNode[];
+    words_: WordNode[];
+    heldwords: any[];
     languages: any;
-    currentlang: string;
     transcripts: any;
     currentseqno: number = 0;
     startseqno: number = 0;
     lastnote: any;
     lastnotetime: number = 0;
     currentcmd: string = '';
+    currentlangna: string = '';
+    currentlang: Object = null;
+    quickkey: any = {}; 
     currentmidiuser: number = 0;
     start: number = (new Date()).getTime();
     notes: any[];
@@ -34,23 +52,33 @@ export class MyKeys {
     midiarray: any;
     keybot: any = {};
     keymaps: any = {};
+    midwordtree: any = {};
+    current_state: number = 1; //0=running, 1=paused start in recording state..
     midiUICallback = null;
+    octaveInterval: number = 12;
 
     constructor(config = {}) {
+        this.state = state; //initialize the reference to the static state class
+        this.transcriber = transcriber;
         this.keys = [];
         this.config = config;
+        this.lasttick = (new Date()).getTime();
         this.sequence = []; //current sequence of notes
         this.words = []; //current sequence of words
+        this.words_ = [];
         this.languages = {}; //lang: {lang: [keys], module: module}
-        this.currentlang = '';
+        this.currentlangna = '';
+        this.currentlang = null;
         this.transcripts = {}; //lang: transcript
         this.currentseqno = 0;
         this.startseqno = 0;
         this.lastnotetime = 0;
         this.lastnote = null;
         this.currentcmd = ''; 
+        this.quickkey = {};
         this.currentmidiuser = 0;
         this.midiarray = [{}]; //user, lang, array of notes with time, note, velocity, duration
+        this.heldwords = []; //array of words that are currently held down
         //module values:
         //keybot
         //keyoffset - offset within octave
@@ -67,20 +95,44 @@ export class MyKeys {
         this.audioContext = new AudioContext(); //(window.AudioContext || (window as any).webkitAudioContext)();
         this.setupAudioFeedback();
         this.setupMidi();
+        playfeedback = config['keymap']['settings']['PLAY_FEEDBACK'] == "true";
 
         if (config['keymap']['languages']) {
             for (const [lang, val] of Object.entries(config['keymap']['languages'])) {
                 //dynamically load languages.  
                 console.log("loading language", lang, val);
                 //web/public/languages/base.js
-                this.languages[lang] = {val};
+                this.languages[lang] = {"module": null, "keys": val};
                 this.transcripts[lang] = [];
+
             }
-            this.currentlang = Object.keys(this.languages)[0];
+            this.currentlang = null;
         }
+        this.importLanguages();
+        
 
     }    
 
+    getFunctions(): any[] {
+        return this.state.currentfunctions;
+    }
+    setFunctions(funcs: any[]): void {
+        this.state.currentfunctions.length = 0;
+        this.state.currentfunctions.push(...funcs);
+        console.log('Current functions set to:', this.state.currentfunctions);
+    }
+
+    selectTopic(topic: string): void {
+        topic = Book.getTopicFromFilePath(topic);
+        Book.select(topic);
+        this.state.currenttopic = topic;
+    }
+
+    setTabs(tabs: any): void {
+        this.state.tabs.length = 0;
+        this.state.tabs.push(...tabs);
+    }
+    
     async importLanguages(){
         for (const lang of Object.keys(this.languages)) {
             try{
@@ -90,29 +142,133 @@ export class MyKeys {
             }
         }
     }
+
+    async makeTree(tree, keys, word, lang="") {
+        let current = tree;
+        for (const key of keys) {
+            if (!current[key]) {
+                current[key] = {};
+            }
+            current = current[key];
+        }
+        current['word'] = {'word': word, 'lang': lang, 'keys': keys};
+    }
+
+    //gen_lang_struct
+    async updateKeyMaps(lang) {
+        console.log("updateKeyMaps", lang);
+        if (this.languages[lang]["module"] !== null) {
+            let module = this.languages[lang]["module"];
+            console.log(module.config['languages']);
+            for (const [len, obj] of Object.entries(module.config['languages'][lang])) {
+                for (const [word, keys] of Object.entries(obj)) {
+                    //adjust keys for keybot and keyoffset
+                    let v2 = keys.map(x => x + module.keybot + module.keyoffset);
+                    console.log("adding word", word, v2, lang);
+                    this.makeTree(this.midwordtree, v2, word, lang);
+                }
+            }
+        }
+        else{
+            console.error("Language module not loaded for", lang);
+        }
+    }
+
     async importLanguageModule(lang) {
-        if (this.languages[lang]) {
+        if (this.languages[lang]["module"] !== null) {
             return;
         }
         //dynamically load languages.
         console.log("loading language", lang);
-        const module = await import(`../languages/${lang}.js`);
-        this.languages[lang]["module"] = module.LANG;
-        //initialize language if needed.  
-        if (module.LANG && module.LANG.init) {
-            module.LANG.init(this.config);
+        //where are we here? why are we in /out..
+        try{
+            const module = await import(`../../src/languages/${lang}.ts`);
+            const langModule = module.default;
+            this.languages[lang]["module"] = new langModule();
+            //initialize language if needed.  
+            this.languages[lang]["module"].init(this.config);
+            this.languages[lang]["module"].mykeys = this;
+            this.midiarray[this.currentmidiuser][lang] = [];
+            this.keybot[lang] = this.languages[lang]["module"].keybot;
+            this.updateKeyMaps(lang);
+        } catch (e){
+            console.error("Error loading language module", lang, e);
         }
+    }
+
+    gen_keystruct(){
 
     }
 
+    runHolds(){
+        //console.log("runHolds called");
+        let currentTime = Date.now() - this.start;
+        let purenotes = this.heldwords.map(h => h['_']); //should keep order..
+
+        //console.log("checking held word", purenotes);
+        if (purenotes.length > 1){ //prerequisite no single key..
+            let lastnote = this.heldwords[this.heldwords.length - 1];
+            if (currentTime - lastnote['..'] > 500) {
+                //do something if the last note has been held for more than 500ms
+
+                let notekey = purenotes.join(',');
+                if (this.quickkey[notekey] !== undefined) {
+                    //execute quickkey action
+                    let lastword = this.quickkey[notekey];
+                    if (lastword) {
+                        let lang = lastword.lang;
+                        let cmd = lastword.word;
+                        let sequence = lastword.sequence;
+                        let module = this.languages[lang]["module"];
+                        if (module) {
+                            console.log("executing quickkey command", cmd, sequence, lang);
+                            module.act(cmd, sequence, []);
+                        }
+                    }
+                }
+            }
+        }
+        /*
+        for (const [note, obj] of Object.entries(this.notes)) {
+            if (obj.velocity > 0) { //still holding..
+//                console.log("note held", note, currentTime, obj.time, obj.velocity);
+                let elapsedTime = - currentTime - obj.time;
+                //0.5 to start, and execute each 0.5 seconds for now..
+                elapsedTime = - elapsedTime; //switch to positive..
+                if (elapsedTime > 500 && elapsedTime < 10000){ //multiple keys runs multiple times is this desirable?  
+                    //get last command and re-execute it..
+                    if (this.currentcmd !== "" && this.currentlangna !== "" && this.currentlang !== null) {
+                        let ret = (this.currentlang as any).act(this.currentcmd, this.sequence.slice(this.startseqno), this.words_);
+                    }
+                    else{
+                        let lastword = this.words_[this.words_.length - 1];
+                        if (lastword) {
+                            let lang = lastword.lang;
+                            let cmd = lastword.word;
+                            let sequence = lastword.sequence;
+                            let module = this.languages[lang]["module"];
+                            if (module) {
+                                console.log("re-executing command on hold", cmd, sequence, lang);
+                                module.act(cmd, sequence, []);
+                            }
+                        }
+                        else{
+                            console.log("no last word to re-execute", this.words_);
+                        }
+                    }
+                }
+            }
+        }
+        */
+    }
     key(msg, myTime = 0, midiCb = null){
-        console.log("key", msg);
+//        console.log("key", msg);
         this.lastnotetime = (new Date()).getTime();
 
         if (myTime === 0){
             myTime = - (this.lastnotetime - this.start);  //current time in ms
         }
-        let lang = this.currentlang;
+        let lang = this.currentlangna;
         let midiuser = this.currentmidiuser;
         if (midiCb) {
             midiCb(msg, myTime, lang, midiuser);
@@ -159,8 +315,8 @@ export class MyKeys {
     }
 
     noteOn(note, velocity, abstime, myTime = 0, lang = "") {
-        if (lang==""){
-            lang = this.currentlang;
+        if (lang === ""){
+            lang = this.currentlangna;
         }
             
         let osc = null;
@@ -170,6 +326,7 @@ export class MyKeys {
             osc = this.playTone(this.midiToFreq(note, velocity));
         }
 
+        console.log("noteOn", note, abstime, lang);
         var obj = {"note": note, "velocity": velocity, "time": abstime, "duration": 0, osc: osc, pnote: pnote, complete: false, user: this.currentmidiuser, created: Date.now()};
 
         if (myTime > 0) {
@@ -177,13 +334,175 @@ export class MyKeys {
         }
 
         this.notes[note] = obj;
+        this.heldwords.push({'_': note, '..': Date.now() - this.start, '$$': velocity}); //add to held words
+        this.mkey(note, velocity, abstime, myTime, lang);
+    }
+
+    reset_sequence(){
+        this.sequence = [];
+        this.words = [];
+        this.currentcmd = '';
+        this.currentlangna = '';
+        this.currentlang = null;
+        this.startseqno = 0;
+        this.currentseqno = 0;
+    }   
+
+    findWord(sequence, lang) {
+        let current = this.midwordtree;
+        for (const key of sequence) {
+            if (!current[key]) {
+                return null;
+            }
+            current = current[key];
+        }
+        return current.word || null;
+    }
+
+    get_state(note){
+        let state = this.current_state;
+        if (note === this.config['keymap']['global']['Pause']){
+            state = 1;
+        }
+        else if (note === this.config['keymap']['global']['Unpause']){
+            state = 0;
+        }
+        else if (note === this.config['keymap']['global']['Start']){
+            state = 0;
+        }
+        else if (note === this.config['keymap']['global']['Stop']){
+            state = 1;
+        }
+        this.current_state = state;
+    }
+    mkey(note, velocity, abstime, myTime = 0, lang = "") {
+        if (lang === ""){
+            lang = this.currentlangna;
+        }
+
+        let unsetseq = this.config['keymap']['global']['Unset'];
+        let temptime = (new Date()).getTime() - this.lasttick;
+        if (temptime > 10000 && this.sequence.length > 0) {
+            this.reset_sequence();
+        }
+        this.lasttick = (new Date()).getTime();
+
+        this.get_state(note);
+        if (this.current_state === 0){   
+            if (Math.random() < 0.01){
+                console.log(`Paused state, ignoring key ${note}`);
+            }
+            return -1;
+        }
+
+        this.sequence.push(note);
+        this.currentseqno += 1;
+
+        console.log("mkey", note, velocity, abstime, myTime, lang);
+        console.log("sequence", this.sequence);
+//        console.log("languages", this.languages);
+
+        let asequence = this.sequence.slice(-unsetseq.length);
+        asequence = asequence.map(x => (Number(x) % this.octaveInterval)); //0-adjusted sequence     
+//        console.log("asequence", asequence);
+        if (asequence.length >= unsetseq.length && JSON.stringify(asequence) === JSON.stringify(unsetseq)) {
+            this.reset_sequence();
+            return;
+        }
+        if (this.currentcmd === ""){
+            console.log("Finding word for sequence", this.sequence);
+            console.log(this.midwordtree);
+            let word = this.findWord(this.sequence, lang);
+            //console.log(this.midwordtree);
+            if (word){
+                console.log("Found word:", word);
+                let langModule = this.languages[word.lang]["module"];
+                this.currentcmd = word.word;
+                this.currentlangna = word.lang;
+                this.currentlang = langModule;
+                this.startseqno = this.currentseqno;
+            }
+        }
+
+        console.log("Current command:", this.currentcmd, "Current language name:", this.currentlangna);
+        if (this.currentcmd !== "" && this.currentlangna !== "" && this.currentlang !== null) {
+            //right now no selection mechanism for EOW.  This is all controlled by
+            let ret = (this.currentlang as any).act(this.currentcmd, this.sequence.slice(this.startseqno), this.words);
+            console.log('transcript:', (this.currentlang as any).transcript);
+            if ('transcript' in this.currentlang && (this.currentlang as any).transcript){
+                this.state.currenttranscript = (this.currentlang as any).transcript;
+                this.state.currentlang = this.currentlangna;
+                //sending in noteOff for now..
+            }
+            if (ret === -1) {
+                //unknown command, reset sequence.  
+                this.reset_sequence();
+            }
+            else if (ret === 0) {
+                //command executed, reset sequence.  
+                console.log(`> ${this.currentcmd}\n`);
+                //only add on success.  
+                this.words_.push({'word':this.currentcmd, 'ws': this.sequence.slice(0, this.startseqno), 'sequence': this.sequence.slice(this.startseqno), 'lang': this.currentlangna});
+                for (let i = 0; i < this.words_[this.words_.length-1].ws.length; i++) {
+                    //add index of quickkeys..
+                    console.log("Adding quickkey for sequence:", this.words_[this.words_.length-1].ws.slice(0,i+1).join(','));
+                    this.quickkey[this.words_[this.words_.length-1].ws.slice(0,i+1).join(',')] = this.words_[this.words_.length-1];
+                }
+                this.reset_sequence();
+
+
+            }
+            else if (ret === 1) {
+                //more keys needed, do nothing.  
+            }
+
+        }
+
+    }
+
+    updateState(updated_state) {
+        //dont update with default or empty values..
+        for (let key in updated_state) {
+            if (Array.isArray(updated_state[key]) && updated_state[key].length > 0){
+                this.state[key] = updated_state[key];
+            }
+            else if (typeof updated_state[key] === 'number' && updated_state[key] !== 0) {
+                this.state[key] = updated_state[key];
+            }
+        }
+    }
+
+    getTranscript(lang: string, vars: {[key: string]: string}) {
+        // Implementation for setting the transcript using the transcriber module
+        let transcript = transcriber.write_topic(lang, this.state.currenttopic, "", true, false);
+        return transcript;
     }
 
     noteOff(note, abstime, lang = "") {
-        if (lang==""){
-            lang = this.currentlang;
+        if (lang === ""){
+            lang = this.currentlangna;
         }
     
+        let currentTime = Date.now() - this.start;
+        
+        //state should have been updated by note on mkey..
+        console.log('current functions', this.getFunctions());
+        const stateCopy = Object.assign({}, this.state);
+        console.log('Sending current state to Flask:', stateCopy);
+        State.sendDataToFlask(stateCopy).then((updated_state) => {
+            console.log('Updated state received from Flask:', updated_state);
+            this.updateState(updated_state);
+        });
+
+        if (this.heldwords.length === 1){ //last held word?  
+            let lastnote = this.heldwords[this.heldwords.length - 1];
+            if (currentTime - lastnote['..'] > 1500) { //held for more than 1.5 seconds.. assume we are done..
+                console.log("Last note held for more than 1500ms:", lastnote);
+                //clear sequence..
+                this.reset_sequence();
+            }
+        }
+        this.heldwords = this.heldwords.filter(n => n['_'] !== note); //remove from held words
         const obj = this.notes[note];
         if (obj.osc) {
             obj.osc.stop();
@@ -195,21 +514,26 @@ export class MyKeys {
         let clone = Object.assign({}, obj);
         clone.duration = abstime - obj.time;
     
+        console.log("noteOff", note, abstime, lang);
         if (this.lastnote && this.lastnote.note === obj.note && this.lastnote.time === obj.time) {
+            obj.velocity = 0; //at least set velocity.  
         }
         else{
             this.lastnote = obj;
-            this.insertNote(clone, lang);
             obj.velocity = 0;
-            this.notes[note] = obj;
+//            this.insertNote(clone, lang);
+//            this.notes[note] = obj;
     
         }
+        console.log(this.notes[note]);
+
 
     }
 
+    //deprecated?  
     insertNote(note, lang = "") {
         if (lang == ""){
-            lang = this.currentlang;	
+            lang = this.currentlangna;	
         }
         let i=this.midiarray[this.currentmidiuser][lang].length-1;
 
@@ -274,9 +598,9 @@ export class MyKeys {
     }
 
     setupMidi() {
-        this.midiarray = [{"base": [], "meta": []}];
-        this.keybot["base"] = 48;
-        this.keybot["meta"] = 48;
+        this.midiarray = [{"base": [], "_meta": []}];
+        this.keybot["base"] = 69;
+        this.keybot["_meta"] = 48;
         this.currentmidiuser = 0;
         this.start = Date.now();
 //        reinitLanguages();

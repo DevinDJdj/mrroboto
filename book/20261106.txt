@@ -1,0 +1,13 @@
+**timestep.py
+
+@@ did I investigate fastapi anywhere
+
+~~ did I investigate fastapi anywhere
+
+**server/transcription/server.py
+Why not use servers for communication?  
+python server, typescript client..
+connect every time to send function lists etc..
+
+~~ https://github.com/fastapi/fastapi
+

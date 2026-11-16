@@ -1,0 +1,20 @@
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+&&
+**books/WORLDHISTORY/COMPUTING
+&&
+&&
+$$20261020_101638
+**book/20261104
+>#2 cd c:/devinpiano/music
+>#2 .\treyenv\Scripts\Activate.ps1
+>#2 python ./extensions/trey/trey.py
+
+**books/WORLDHISTORY/COMPUTING
+>#1 cd c:/devinpiano/music
+>#1 .\treyenv\Scripts\Activate.ps1
+
+>#1 python ./timestep.py
+**timestep.py
+**timestep.py

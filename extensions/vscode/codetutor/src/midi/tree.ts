@@ -1,6 +1,8 @@
 const vscode = require('vscode');
 const JZZ = require('jzz');
 
+var numconns = 0;
+
 export function activate(context) {
     context.subscriptions.push(vscode.window.registerTreeDataProvider('midi-demo.tree', {
         getChildren: async function(item) {
@@ -21,6 +23,8 @@ export function activate(context) {
             }
             else if (item.label === 'MIDI-In') {
                 info = (await JZZ()).info();
+                //populate number of connections..
+                numconns = info.outputs.length + info.inputs.length;
                 ret = [];
                 for (x of info.inputs) {
                     ret.push({ label: x.name, command: { command: 'midi-demo.midi-in', arguments: [ x.name ] } });
@@ -33,7 +37,11 @@ export function activate(context) {
         getTreeItem: function(item) {
             return item;
         }
+
     }));
+
+
+
 }
 
 export function deactivate() {}

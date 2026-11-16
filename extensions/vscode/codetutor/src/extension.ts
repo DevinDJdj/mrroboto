@@ -1,31 +1,40 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-//npx --package yo --package generator-code -- yo code
-//npm install --global yo generator-code
+//> npx --package yo --package generator-code -- yo code
+//> npm install --global yo generator-code
 //if not working run this..
-//>cd [extensiondir]
-//>ollama start..
-//>tsc -watch -p ./
-//npm install --save @vscode/prompt-tsx
-//npm install --save ollama
-
+//> cd [extensiondir]
+//> ollama start..
+//> tsc -watch -p ./
+//> npm install --save @vscode/prompt-tsx
+//> npm install --save ollama
+//> npm install vectra
 
 import * as vscode from 'vscode';
 import { renderPrompt } from '@vscode/prompt-tsx';
 import { format, posix } from 'path';
 import { PlayPrompt } from './prompts';
 import * as Book from './book';
+import * as Gen from './gen';
 import * as Worker from './worker';
 import ollama from 'ollama';
 
 import { LanguageModelPromptTsxPart, LanguageModelToolInvocationOptions, LanguageModelToolResult } from 'vscode';
 
 
-import { startWatchingWorkspace, startWatchingTranscriber, updateStatusBarItem, registerStatusBarTool, registerCompletionTool, registerToolUserChatParticipant, registerPiano, unregisterPiano } from './toolParticipant';
+import { startWatchingWorkspace, startWatchingTranscriber, writeToTranscriber, updateStatusBarItem, registerStatusBarTool, 
+	registerCompletionTool, registerToolUserChatParticipant, registerPiano, unregisterPiano, 
+	getSelectionInfo, 
+	readFromTranscriber,
+	activateTabWatching,
+	activateWorkspaceWatching} from './toolParticipant';
 import { start } from 'repl';
 import { get } from 'http';
 
 import * as TerminalWorker from './terminalworker';
+import { isNumber } from 'util';
+
+import { recentTabs2 } from './languages/base';
 
 const BASE_PROMPT =
   'You are a helpful code tutor. Your job is to teach the user with simple descriptions and sample code of the concept. Respond with a guided overview of the concept in a series of messages. Do not give the user the answer directly, but guide them to find the answer themselves. If the user asks a non-programming question, politely decline to respond.';
@@ -40,6 +49,8 @@ let activeEditor = vscode.window.activeTextEditor;
 let isWorking = false;
 let workFunc = null;
 let workPrompt = "Improve my code";
+
+let mynow = "0"; //hold current day
 
 function get_current_weather(city: string): string {
 	return `The current weather in ${city} is sunny.`;
@@ -254,7 +265,8 @@ async function Chat(prompt: string, context: vscode.ChatContext, stream: vscode.
 		await Book.read(prompt);
 	  const response = await ollama.chat({
 //		model: 'llama3.1:8b',
-		model: 'deepseek-coder-v2:latest',
+		model: Book.ollama_model,
+		//deepseek-coder-v2:latest
 		//deepseek-r1:latest 
 		//granite-code:latest
 		//codegemma:latest 
@@ -337,10 +349,10 @@ function getTextFromCursor(editor: vscode.TextEditor) {
 
 		let offset = editor.selection.active;
 		//get the text from the cursor to the end of the line.
-		if (offset.character === 0){
+//		if (offset.character === 0){
 			//select to end of line
 			offset = new vscode.Position(offset.line, editor.document.lineAt(offset.line).text.length);
-		}
+//		}
 
 		//					editor.selection = new vscode.Selection(offset.line, 0, offset.line, offset.character);
 		text = editor.document.getText(new vscode.Range(offset.line, 0, offset.line, offset.character));
@@ -352,6 +364,9 @@ function getTextFromCursor(editor: vscode.TextEditor) {
 		else{
 			topic = getTopicFromLocation(editor);
 		}
+	}
+	else{
+		topic = getTopicFromLocation(editor);
 	}
 	return [text, topic];
 }
@@ -365,16 +380,39 @@ export function formatMarkdownSnippet(snippet: string): string {
 	return snippet;
 }
 
+export function startTranscribers(){
+	let now = Book.formatDate();
+	if (mynow !== now){
+		startWatchingTranscriber('hotkeys'); //get record feedback..
+		startWatchingTranscriber('video');
+	//	startWatchingTranscriber('base'); //get all mood changes and extra pause..
+		//use 'base' for tracking genbook
+		startWatchingTranscriber('book'); //pause etc..
+		startWatchingTranscriber('_meta'); //get all topic changes..
+
+		mynow = now;
+	}
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	//not being activated until chatted to...
     registerToolUserChatParticipant(context);
 	registerCompletionTool(context);
 	registerStatusBarTool(context);
 	startWatchingWorkspace(context); //watch for changes to book.  
-	startWatchingTranscriber('hotkeys');
-	startWatchingTranscriber('video');
-	startWatchingTranscriber('_meta'); //get all topic changes..
+	
+	startTranscribers(); //start the transcribers for the book.
+	setInterval(() => {
+		startTranscribers();
+	}, 60000); // check every minute if date changes to follow new file..
+	activateTabWatching(context); //start watching tab changes for recency tracking.
+	activateWorkspaceWatching(context); //start watching workspace folder changes.
+	
+	//create loop to watch for change of day to restart transcribers..
+	
 
+	const mySettings = vscode.workspace.getConfiguration('mrrubato');	
+	Book.setModel(mySettings.get('model'));
 	TerminalWorker.addClosedTerminalListener();
 
 	Book.open(context); //open the book.  
@@ -391,8 +429,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const wsUri = vscode.workspace.workspaceFolders[0].uri;				
 
 
+		const mySettings = vscode.workspace.getConfiguration('mrrubato');	
 		if (request.command === 'stats'){
-			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
 
 			stream.markdown('**My agent default prompts**  ' + mySettings.defaultprompts.length + '  \n');
 			stream.markdown('**My agent work prompts** ' + mySettings.workprompts.length + '  \n');
@@ -403,17 +441,35 @@ export function activate(context: vscode.ExtensionContext) {
 
 		}
 
-		if (request.command === 'genbook' || request.command === 'gencomments' || request.command === 'gencode' || request.command === 'gentests'){
+		const toreadaloud = mySettings.get('readaloud', false);
+		if (request.command === 'genbook' || request.command === 'gencomments' || request.command === 'gencode' || request.command === 'gentests' || request.command === 'genhelp'){
 			//generate context for this topic.  
 			if (request.command === 'genbook'){
+				let result = await Gen.genbook(request.prompt);
+				stream.markdown(result);
 
 			}
 			if (request.command === 'gencomments'){
+				let result = await Gen.gencomments(request.prompt);
+				stream.markdown(result);
 			}
 			if (request.command === 'gencode'){
+				let result = await Gen.gencode(request.prompt);
+				stream.markdown(result);
 			}
 			if (request.command === 'gentests'){
+				//let result = await Gen.gentests(request.prompt);
+				//stream.markdown(result);
 			}
+			if (request.command === 'genhelp'){
+				let result = await Gen.genhelp(request.prompt);
+				stream.markdown(result);
+			}
+		}
+
+		if (request.command === 'link'){
+			//handle link command
+			console.log(`Link command received with prompt: ${request.prompt}`);
 		}
 
 		if (request.command === 'summarize' || request.command=== 'summary'){
@@ -429,10 +485,13 @@ export function activate(context: vscode.ExtensionContext) {
 			let response = await Book.markdown(summary);
 			stream.markdown(response);
 			//workbench.action.chat.readChatResponseAloud
-			setTimeout(() => {	
-			vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
-			vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
-			}, 15000);
+
+			if (toreadaloud) {
+				setTimeout(() => {					
+					vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
+					vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
+				}, 15000);
+			}
 
 
 
@@ -469,11 +528,15 @@ export function activate(context: vscode.ExtensionContext) {
 				
 				
 			}
+			//special for summary here in extension.ts
+			Book.addQueryHistory({ query: request.prompt, response: doc }); //add the query and response to the history.
 			stream.markdown(doc);
-			setTimeout(() => {	
-				vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
-				vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
+			if (toreadaloud) {
+				setTimeout(() => {	
+					vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
+					vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
 				}, 15000);
+			}
 	
 
 
@@ -495,7 +558,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		if (request.command === 'start') {
 			//start running in background.
-			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
 			mySettings.update('runinbackground', true);
 			stream.markdown('**Starting background agent**  \n ' + mySettings.runinbackground);
 			//start the work function here.
@@ -511,10 +573,17 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		if (request.command === 'stop') {
-			const mySettings = vscode.workspace.getConfiguration('mrrubato');	
 			//stop running in background.
 			mySettings.update('runinbackground', false);
-			stream.markdown('**Stopping background agent**  \n' + mySettings.runinbackground);
+//			stream.markdown('stop');
+			//vscode.commands.executeCommand('workbench.action.chat.stopReadChatResponseAloud');	 //not working..		
+			setTimeout(() => {	
+				vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
+				vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
+			}, 5000);
+
+
+
 			return;
 		}
 		if (request.command === 'exercise') {
@@ -548,25 +617,33 @@ export function activate(context: vscode.ExtensionContext) {
 			let response = await Book.markdown(res);
 			stream.markdown(response);
 			//workbench.action.chat.readChatResponseAloud
-			setTimeout(() => {	
-				vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
-				vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
-			}, 15000);
+			if (toreadaloud) {
+				setTimeout(() => {	
+					vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
+					vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
+				}, 15000);
+			}
 
 			return;
 		}
 		if (request.command === 'read'){
 			//general text query..
 
-			let summary = await Book.summary(request.prompt);
+			//let summary = await Book.summary(request.prompt);
+			let [topics, context] = await Book.read(request.prompt);
 			//replace topics.  
-			let response = await Book.markdown(summary);
-			stream.markdown(response);
+			let response = await Book.markdown(context);
+			console.log("Response: ", response);
+			let markdownString : vscode.MarkdownString = new vscode.MarkdownString(response);
+			markdownString.isTrusted = {enabledCommands: ['mrrubato.mytutor.link']};
+			stream.markdown(markdownString);
 			//workbench.action.chat.readChatResponseAloud
-			setTimeout(() => {	
-				vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
-				vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
-			}, 15000);
+			if (toreadaloud){
+				setTimeout(() => {	
+					vscode.commands.executeCommand('workbench.action.chat.nextCodeBlock');
+					vscode.commands.executeCommand('workbench.action.chat.readChatResponseAloud');
+				}, 15000);
+			}
 
 			return;
 
@@ -660,6 +737,25 @@ export function activate(context: vscode.ExtensionContext) {
 	//start listening for external URIs.  
 	vscode.commands.executeCommand('mrrubato.mytutor.start');
 
+	const linkcommand = vscode.commands.registerCommand('mrrubato.mytutor.link', async (link="") => {
+		//what else do we do here?  
+		//
+		console.log(`Link command received with link: ${link}`);
+		if (!link || !link.link) {
+			return;
+		}
+		let mylink = decodeURIComponent(link.link);
+		console.log(`Opening link: ${mylink}`);
+		// trigger the generate command for this text
+		vscode.commands.executeCommand('mrrubato.mytutor.generate', mylink);
+
+		//const [url, index] = Book.getURLAndIndex(mylink);
+		//vscode.env.openExternal(vscode.Uri.parse(url));
+
+		//vscode.env.openExternal(vscode.Uri.parse(mylink));
+
+	});
+	
 	const searchcommand = vscode.commands.registerCommand('mrrubato.mytutor.search', async (text="", topic="") => {
 		//what else do we do here?  
 		//
@@ -686,13 +782,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const gencommand = vscode.commands.registerCommand('mrrubato.mytutor.generate', async (text="", topic="") => {
 		let topiccmd = "";
+		let datecmd = "";
 		if (text === "") {
 			//probably should remove header and then run ctrl+shift+f.  
 			const editor = vscode.window.activeTextEditor;
 			if (editor) {
+				const fullpath = editor.document.fileName;
+				if (fullpath.includes("book/")){
+					let fname = fullpath.split("book/")[1];
+					fname = fname.replace('.txt', '');
+					if (fname.length === 8 && !isNaN(Number(fname))){
+						//not sure if this is worth the space, but could be useful..
+						datecmd = "$$" + fname + "\n";
+						//get line number
+						let line = editor.selection.active.line;
+						//no need to pass this I think, just search if opening..
+					}
+				}
 				[text, topic] = getTextFromCursor(editor);
+				console.log("Current text: " + text + ", Current topic: " + topic);
 				if (topic !== "" && topic !== Book.selectedtopic) {
 					//select the topic.  
+					console.log("Selecting topic: " + topic);
 					Book.select(topic, 0); //select and open topic
 //					Book.logCommand("**" + topic); //log the command to genbook.
 					if (text.startsWith("**") > 0){
@@ -702,6 +813,10 @@ export function activate(context: vscode.ExtensionContext) {
 						topiccmd = "\n**" + topic + "\n";
 					}
 				}
+
+				console.log(editor.selection);
+
+				writeToTranscriber('base', topic, getSelectionInfo(editor));
 
 			}
 		}
@@ -831,23 +946,49 @@ export function activate(context: vscode.ExtensionContext) {
 						vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: line.substring(idx) + "\n" });
 						*/
 					}
-					break;
 
 				}
-				switch (cmdtype[1]) {
-					//only single line commands for now.  
-					case ">":							
-						//run admin command.
-						vscode.commands.executeCommand('workbench.action.terminal.focus');
-						vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(2) + "\n" });
-						break;
+				else{
+					switch (cmdtype[1]) {
+						//only single line commands for now.  
+						case ">":							
+							//run admin command.
+							vscode.commands.executeCommand('workbench.action.terminal.focus');
+							vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(2).trim() + "\n" });
+							break;
+						case "$":
+							//run in specific terminal.  
+							//pull name from $$TERM=NAME variable if set..
+							TerminalWorker.run(text.trim()); //does this work?  
+							break;
+						case "#": //powershell for now..
+							TerminalWorker.run(text.trim()); //does this work?  
+							break;
+						case "@":
+							//run in vscode
+							vscode.commands.executeCommand(text.substring(2).trim());
+							break;
+						case "_":
+							TerminalWorker.run(text.trim()); //does this work?  
+							break;
+							
+						default:
 
-					default:
-
-						vscode.commands.executeCommand('workbench.action.terminal.focus');
-						vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(1) + "\n" });
-						break;
+							vscode.commands.executeCommand('workbench.action.terminal.focus');
+							vscode.commands.executeCommand('workbench.action.terminal.sendSequence', { text: text.substring(1) + "\n" });
+							break;
+						
+					}
 				}
+				//return focus after terminal execution..
+				console.log('returning focus after cmd execution');
+					vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup').then(() => {				
+						if (vscode.window.activeTextEditor) {
+							vscode.window.showTextDocument(vscode.window.activeTextEditor.document, vscode.window.activeTextEditor.viewColumn);
+
+						}
+					});
+
 
 				break;
 
@@ -911,7 +1052,22 @@ export function activate(context: vscode.ExtensionContext) {
 				break;
 			case "#":
 				//open on web.
-				vscode.env.openExternal(vscode.Uri.parse(text.substring(1)));
+				let startstring = text.substring(1);
+				if (startstring.indexOf('|') !== -1) {
+					startstring = startstring.split('|')[1];
+				}
+				vscode.env.openExternal(vscode.Uri.parse(startstring));
+				//send to transcriber..
+				if (topic === ""){
+					const editor = vscode.window.activeTextEditor;
+					if (editor) {
+						topic = getTopicFromLocation(editor);
+					}
+				}
+				writeToTranscriber("book", topic, text);
+
+
+
 				break;
 			case "!":
 				//find in log files
@@ -938,6 +1094,9 @@ export function activate(context: vscode.ExtensionContext) {
 						if (text.length < 3) {
 							//list env variables.  
 							Book.printENV();
+							//stop any reading..
+							vscode.commands.executeCommand('workbench.action.chat.open', "@mr /stop");
+
 						}
 						else{
 							if (text.charAt(2) === "-"){
@@ -974,6 +1133,15 @@ export function activate(context: vscode.ExtensionContext) {
 								let kv = text.substring(2).split("=");
 								if (kv.length === 2) {
 									Book.addToEnvironment(kv[0], kv[1]);
+								}
+								else {
+									//is date?  
+									if (kv[0].length === 8 && isNumber(Number(kv[0]))){
+										//open book to date..
+										//get book folder
+										Book.select(Book.getBookPath() + "/" + kv[0] + '.txt'); //select and open topic										
+									}
+
 								}
 							}
 						}
@@ -1048,7 +1216,9 @@ export function activate(context: vscode.ExtensionContext) {
 							}
 
 							//no context pass..						
-							vscode.commands.executeCommand('workbench.action.chat.open', "@mr /chat " + text );
+							//vscode.commands.executeCommand('workbench.action.chat.open', "@mr /chat " + text );
+							vscode.commands.executeCommand('workbench.action.chat.open', "@mr /read " + text );
+
 							break;
 						default:
 							break;
@@ -1102,11 +1272,21 @@ export function activate(context: vscode.ExtensionContext) {
 			case "":
 				//failure return?  
 				break;
+			default:
+				//default is to search for this text in the book.
+				//get current file if it is date.  				
+				//this loads related browser info if we have a match..
+				let found = readFromTranscriber(text, 'hotkeys', datecmd !== "" ? datecmd.substring(2, 10) : Book.formatDate());
+				if (!found){ //find similar..
+					vscode.commands.executeCommand('workbench.action.chat.open', "@mr /similar " + text );
+
+				}
+				break;
 
 		}		
 		//log the command to genbook if valid.  
 
-		Book.logCommand(topiccmd + text);
+		Book.logCommand(datecmd + text, topic);
 		//copy to the clipboard anyway by default.  
 		//if wanting to use in different environment.  
 
@@ -1141,6 +1321,7 @@ export function activate(context: vscode.ExtensionContext) {
 			triggerUpdateDecorations();
 			triggerGetBookContext();
 			updateStatusBarItem();
+
 		}
 	}, null, context.subscriptions);
 
@@ -1152,17 +1333,21 @@ let uitimeout: NodeJS.Timeout | undefined = undefined;
 //#https://code.visualstudio.com/api/references/vscode-api#DecorationRenderOptions
 
 const smallNumberDecorationType = vscode.window.createTextEditorDecorationType({
-	borderWidth: '1px',
+//	borderWidth: '1px',
+	borderWidth: '2px 0 2px 0', // Top Right Bottom Left
 	borderStyle: 'solid',
 	overviewRulerColor: 'blue',
+	textDecoration: 'wavy',
 	overviewRulerLane: vscode.OverviewRulerLane.Right,
 	light: {
 		// this color will be used in light color themes
-		borderColor: 'darkblue'
+		borderColor: 'darkblue',
+//		textDecoration: 'underline #0000cc'
 	},
 	dark: {
 		// this color will be used in dark color themes
-		borderColor: 'lightblue'
+		borderColor: 'lightblue',
+//		textDecoration: 'underline #cccc00'
 	}
 });
 
@@ -1173,6 +1358,30 @@ const largeNumberDecorationType = vscode.window.createTextEditorDecorationType({
 	backgroundColor: { id: 'myextension.largeNumberBackground' }
 });
 
+const defstringDecorationType = vscode.window.createTextEditorDecorationType({
+	fontStyle: 'italic',
+//	borderWidth: '0 0 0 1px', // Top Right Bottom Left
+//	borderStyle: 'solid',
+	// use a themable color. See package.json for the declaration and default values.
+	light: {
+		// this color will be used in light color themes
+		borderColor: 'darkred',
+		color: '#777777'
+//		textDecoration: 'underline #0000cc'
+	},
+	dark: {
+		// this color will be used in dark color themes
+		borderColor: 'darkred',
+		color: '#777777'		
+//		textDecoration: 'underline #cccc00'
+	}
+});
+
+const linkDecorationType = vscode.window.createTextEditorDecorationType({
+	cursor: 'crosshair',
+	textDecoration: 'none; display: inline-block; transform: scale(0.75); font-size: 0.75em;'
+
+});
 
 function updateDecorations() {
 	if (!activeEditor) {
@@ -1186,15 +1395,43 @@ function updateDecorations() {
 	while ((match = regEx.exec(text))) {
 		const startPos = activeEditor.document.positionAt(match.index);
 		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-		const decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: 'Number **' + match[0] + '**' };
+		//const md = new vscode.MarkdownString('[Click to Run Action](command:myExtension.sayHello)');
+		const decoration = { range: new vscode.Range(startPos, endPos)};//, hoverMessage: 'Number **' + match[0] + '**' };
 		if (match[0].length < 3) {
 			smallNumbers.push(decoration);
 		} else {
 			largeNumbers.push(decoration);
 		}
-	}
+	}	
 	activeEditor.setDecorations(smallNumberDecorationType, smallNumbers);
 	activeEditor.setDecorations(largeNumberDecorationType, largeNumbers);
+
+	//defstring decorations.
+	const defstringRegex = /[~!@#$%^&*<>/:;\-+=]+/g;
+	const defstringDecorations: vscode.DecorationOptions[] = [];
+	while ((match = defstringRegex.exec(text))) {
+		const startPos = activeEditor.document.positionAt(match.index);
+		const endPos = activeEditor.document.positionAt(match.index + match[0].length);
+		const decoration = { range: new vscode.Range(startPos, endPos)};//, hoverMessage: 'Defstring **' + match[0] + '**' };
+		defstringDecorations.push(decoration);
+	}
+	activeEditor.setDecorations(defstringDecorationType, defstringDecorations);
+
+	const linkRegex = /\n\#([\S]+)\|([\S]+)/g;
+	const linkDecorations: vscode.DecorationOptions[] = [];
+	while ((match = linkRegex.exec(text))) {
+//		console.log('match', match);
+		if (match.length > 2) {
+			console.log('found match', match);
+			const startIndex = match.index + match[1].length + 2;
+			const startPos = activeEditor.document.positionAt(startIndex);
+			const endPos = activeEditor.document.positionAt(startIndex + match[2].length+1); //for now also including |
+			const decoration = { range: new vscode.Range(startPos, endPos)};//, hoverMessage: 'Link **' + match[0] + '**' };
+			linkDecorations.push(decoration);
+		}
+		
+	}
+	activeEditor.setDecorations(linkDecorationType, linkDecorations);
 }
 
 
@@ -1213,6 +1450,19 @@ function getBookContext() {
 		return vscode.window.showInformationMessage('No active editor found');
 	}
 	console.log("getBookContext: " + activeEditor.document.uri.toString());// + activeEditor.document);
+	const activeWorkspaceFolder = vscode.workspace.getWorkspaceFolder(activeEditor.document.uri);
+	const topic = Book.getTopicFromFilePath(activeEditor.document.uri.path, activeWorkspaceFolder);
+
+	//keep tabs up to date for quick selection..
+	//remove one entry from array.  
+	const currentUri = activeEditor.document.uri.toString();
+	const index = recentTabs2.findIndex(item => item.uri === currentUri);
+	if (index !== -1) {
+		recentTabs2.splice(index, 1);
+	}
+//	recentTabs2 = recentTabs2.filter(tab => tab.uri !== currentUri);
+	recentTabs2.unshift({uri: currentUri, name: topic});
+
 }
 
 
